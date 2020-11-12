@@ -60,6 +60,7 @@ public class Server {
                     .build();
 
             InetAddress hostAddress = InetAddress.getLocalHost();
+            System.out.println("hostaddress = " + hostAddress);
 
             final HttpServer server = ServerBootstrap.bootstrap()
                     .setLocalAddress(hostAddress)
