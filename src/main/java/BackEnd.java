@@ -2,17 +2,19 @@ import org.apache.http.*;
 import org.apache.http.config.SocketConfig;
 import org.apache.http.impl.bootstrap.HttpServer;
 import org.apache.http.impl.bootstrap.ServerBootstrap;
-import org.apache.http.protocol.*;
+import org.apache.http.protocol.HttpContext;
+import org.apache.http.protocol.HttpProcessor;
+import org.apache.http.protocol.HttpRequestHandler;
+import org.apache.http.protocol.ImmutableHttpProcessor;
 
-import java.io.*;
+import java.io.IOException;
 import java.net.InetAddress;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 
-public class Server {
-    public void start(int port) {
+public class BackEnd {
+    public static void start(int port) {
         try {
             HttpRequestHandler requestHandler = new HttpRequestHandler() {
                 @Override
@@ -85,16 +87,7 @@ public class Server {
         }
     }
 
-    public void printHeaders(HttpRequest req) {
-        HeaderIterator iterator = req.headerIterator();
-
-        while (iterator.hasNext()) {
-            Header header = iterator.nextHeader();
-            System.out.printf("%s: %s\n", header.getName(), header.getValue());
-        }
-    }
-
     public static void main(String[] args) {
-        new Server().start(8080);
+        new BackEnd().start(6666);
     }
 }
