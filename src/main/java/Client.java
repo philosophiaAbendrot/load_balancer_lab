@@ -1,9 +1,12 @@
+import org.apache.commons.io.IOUtils;
 import org.apache.http.*;
 import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClients;
 import java.io.IOException;
+import java.io.InputStream;
+import java.nio.charset.StandardCharsets;
 
 public class Client {
     public static void sendGetRequest() throws IOException, InterruptedException, HttpException {
@@ -22,6 +25,11 @@ public class Client {
             Header header = headers[i];
             System.out.printf("header: %s: %s\n", header.getName(), header.getValue());
         }
+
+        HttpEntity responseBody = response.getEntity();
+        InputStream bodyStream = responseBody.getContent();
+        String responseString = IOUtils.toString(bodyStream, StandardCharsets.UTF_8.name());
+        System.out.println("response body = " + responseString);
 
         response.close();
     }

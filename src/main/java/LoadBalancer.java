@@ -1,11 +1,19 @@
+import org.apache.commons.io.IOUtils;
 import org.apache.http.*;
+import org.apache.http.client.methods.CloseableHttpResponse;
+import org.apache.http.client.methods.HttpGet;
 import org.apache.http.config.SocketConfig;
+import org.apache.http.conn.routing.HttpRoutePlanner;
 import org.apache.http.impl.bootstrap.HttpServer;
 import org.apache.http.impl.bootstrap.ServerBootstrap;
+import org.apache.http.impl.client.CloseableHttpClient;
+import org.apache.http.impl.client.HttpClients;
+import org.apache.http.impl.conn.DefaultProxyRoutePlanner;
 import org.apache.http.protocol.*;
 
 import java.io.*;
 import java.net.InetAddress;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
@@ -17,6 +25,11 @@ public class LoadBalancer {
                 @Override
                 public void handle(HttpRequest httpRequest, HttpResponse httpResponse, HttpContext httpContext) throws HttpException, IOException {
                     System.out.println("handling request");
+                    CloseableHttpClient httpClient = HttpClients.createDefault();
+                    HttpGet httpget = new HttpGet("http://127.0.0.1:6666");
+                    CloseableHttpResponse response = httpClient.execute(httpget);
+                    HttpEntity responseBody = response.getEntity();
+                    httpResponse.setEntity(responseBody);
                 }
             };
 
@@ -52,7 +65,8 @@ public class LoadBalancer {
                     .setTcpNoDelay(true)
                     .build();
 
-            InetAddress hostAddress = InetAddress.getLocalHost();
+//            InetAddress hostAddress = InetAddress.getLocalHost();
+            InetAddress hostAddress = InetAddress.getByName("127.0.0.1");
             System.out.println("hostaddress = " + hostAddress);
 
             final HttpServer server = ServerBootstrap.bootstrap()

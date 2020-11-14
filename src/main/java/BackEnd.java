@@ -1,5 +1,7 @@
+import org.apache.commons.io.IOUtils;
 import org.apache.http.*;
 import org.apache.http.config.SocketConfig;
+import org.apache.http.entity.BasicHttpEntity;
 import org.apache.http.impl.bootstrap.HttpServer;
 import org.apache.http.impl.bootstrap.ServerBootstrap;
 import org.apache.http.protocol.HttpContext;
@@ -8,7 +10,9 @@ import org.apache.http.protocol.HttpRequestHandler;
 import org.apache.http.protocol.ImmutableHttpProcessor;
 
 import java.io.IOException;
+import java.io.InputStream;
 import java.net.InetAddress;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
@@ -43,6 +47,9 @@ public class BackEnd {
                 public void process(HttpResponse httpResponse, HttpContext httpContext) throws HttpException, IOException {
                     StatusLine status = httpResponse.getStatusLine();
                     httpResponse.addHeader("Server", "philosophiaServer");
+                    BasicHttpEntity responseBody = new BasicHttpEntity();
+                    responseBody.setContent(IOUtils.toInputStream("hello world", StandardCharsets.UTF_8.name()));
+                    httpResponse.setEntity(responseBody);
                     System.out.printf("sending out request | protocol: %s | status: %d - %s", status.getProtocolVersion(),
                             status.getStatusCode(), status.getReasonPhrase());
                 }
@@ -55,7 +62,8 @@ public class BackEnd {
                     .setTcpNoDelay(true)
                     .build();
 
-            InetAddress hostAddress = InetAddress.getLocalHost();
+//            InetAddress hostAddress = InetAddress.getLocalHost();
+            InetAddress hostAddress = InetAddress.getByName("127.0.0.1");
             System.out.println("hostaddress = " + hostAddress);
 
             final HttpServer server = ServerBootstrap.bootstrap()
