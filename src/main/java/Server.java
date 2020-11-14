@@ -1,6 +1,5 @@
 import org.apache.http.*;
 import org.apache.http.config.SocketConfig;
-import org.apache.http.entity.StringEntity;
 import org.apache.http.impl.bootstrap.HttpServer;
 import org.apache.http.impl.bootstrap.ServerBootstrap;
 import org.apache.http.protocol.*;
@@ -8,6 +7,7 @@ import org.apache.http.protocol.*;
 import java.io.*;
 import java.net.InetAddress;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 
@@ -28,17 +28,10 @@ public class Server {
                 @Override
                 public void process(HttpRequest httpRequest, HttpContext httpContext) throws HttpException, IOException {
                     Header[] headers = httpRequest.getAllHeaders();
-
                     System.out.println("receiving http request " + httpRequest);
                     for (int i = 0; i < headers.length; i++) {
                         Header header = headers[i];
-                        HeaderElement[] headerElements = header.getElements();
-
-                        System.out.println("headers:");
-                        for (int j = 0; j < headerElements.length; j++) {
-                            HeaderElement headerElement = headerElements[j];
-                            System.out.printf("%s : %s \n", headerElement.getName(), headerElement.getValue());
-                        }
+                        System.out.printf("%s : %s \n", header.getName(), header.getValue());
                     }
                 }
             });
@@ -47,6 +40,7 @@ public class Server {
                 @Override
                 public void process(HttpResponse httpResponse, HttpContext httpContext) throws HttpException, IOException {
                     StatusLine status = httpResponse.getStatusLine();
+                    httpResponse.addHeader("Server", "philosophiaServer");
                     System.out.printf("sending out request | protocol: %s | status: %d - %s", status.getProtocolVersion(),
                             status.getStatusCode(), status.getReasonPhrase());
                 }
