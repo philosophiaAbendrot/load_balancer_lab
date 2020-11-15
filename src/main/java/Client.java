@@ -7,28 +7,46 @@ import org.apache.http.impl.client.HttpClients;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
+import java.util.concurrent.TimeUnit;
 
 public class Client implements Runnable {
+    CloseableHttpClient httpClient;
+
+    public Client() {
+        httpClient = HttpClients.createDefault();
+    }
+
     public void run() {
         try {
             start();
         } catch(IOException e) {
             System.out.println(e.getMessage());
             e.printStackTrace();
-        } catch(InterruptedException e) {
-            System.out.println(e.getMessage());
-            e.printStackTrace();
-        } catch (HttpException e) {
-            System.out.println(e.getMessage());
-            e.printStackTrace();
         }
     }
 
-    void start() throws IOException, InterruptedException, HttpException {
-        CloseableHttpClient httpClient = HttpClients.createDefault();
+    void start() throws IOException {
         HttpGet httpget = new HttpGet("http://127.0.0.1:8080");
-        System.out.println("client sent request");
-        CloseableHttpResponse response = httpClient.execute(httpget);
+
+        for (int i = 0; i < 5; i++) {
+            System.out.println("client sent request");
+            CloseableHttpResponse response = sendRequest(httpget);
+            printResponse(response);
+
+            try {
+                TimeUnit.MILLISECONDS.sleep(300);
+            } catch (InterruptedException e) {
+                System.out.println(e.getMessage());
+                e.printStackTrace();
+            }
+        }
+    }
+
+    private CloseableHttpResponse sendRequest(HttpGet httpget) throws IOException {
+        return httpClient.execute(httpget);
+    }
+
+    private void printResponse(CloseableHttpResponse response) throws IOException {
         StatusLine statusLine = response.getStatusLine();
         Header[] headers = response.getAllHeaders();
 
@@ -45,21 +63,5 @@ public class Client implements Runnable {
         System.out.println(responseString);
         bodyStream.close();
         response.close();
-    }
-
-    public static void main(String[] args) {
-        try {
-            new Client().start();
-        } catch (IOException e) {
-            System.out.println("IOException");
-            System.out.println(e.getMessage());
-            e.printStackTrace();
-        } catch (InterruptedException e) {
-            System.out.println("InterruptedException");
-            System.out.println(e.getMessage());
-        } catch (HttpException e) {
-            System.out.println("HTTPException");
-            System.out.println(e.getMessage());
-        }
     }
 }

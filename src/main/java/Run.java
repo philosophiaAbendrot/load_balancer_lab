@@ -11,7 +11,8 @@ public class Run {
         try {
             TimeUnit.SECONDS.sleep(5);
         } catch(InterruptedException e) {
-            e.getMessage();
+            System.out.println(e.getMessage());
+            e.printStackTrace();
         }
 
         clientThread.start();
