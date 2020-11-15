@@ -12,6 +12,7 @@ import java.io.*;
 import java.net.InetAddress;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Random;
 import java.util.concurrent.TimeUnit;
 
 public class LoadBalancer implements Runnable {
@@ -20,14 +21,21 @@ public class LoadBalancer implements Runnable {
     List<HttpResponseInterceptor> responseInterceptors = new ArrayList<HttpResponseInterceptor>();
     HttpRequestHandler requestHandler;
     HttpProcessor httpProcessor;
+    List<Integer> backendPorts = new ArrayList<Integer>();
 
     public LoadBalancer(int port) {
         this.port = port;
+        backendPorts.add(6666);
+        backendPorts.add(4000);
+
         requestHandler = new HttpRequestHandler() {
             @Override
             public void handle(HttpRequest httpRequest, HttpResponse httpResponse, HttpContext httpContext) throws HttpException, IOException {
+                Random rand = new Random();
+                int backendPort = backendPorts.get(rand.nextInt(backendPorts.size()));
                 CloseableHttpClient httpClient = HttpClients.createDefault();
-                HttpGet httpget = new HttpGet("http://127.0.0.1:6666");
+                System.out.printf("relaying message to port %d\n", backendPort);
+                HttpGet httpget = new HttpGet("http://127.0.0.1:" + backendPort);
                 CloseableHttpResponse response = httpClient.execute(httpget);
                 HttpEntity responseBody = response.getEntity();
                 httpResponse.setEntity(responseBody);
@@ -37,6 +45,7 @@ public class LoadBalancer implements Runnable {
         httpProcessor = new ImmutableHttpProcessor(requestInterceptors, responseInterceptors);
     }
 
+    @Override
     public void run() {
         SocketConfig config = SocketConfig.custom()
                 .setSoTimeout(15000)
