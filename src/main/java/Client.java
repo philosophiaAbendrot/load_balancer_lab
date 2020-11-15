@@ -8,35 +8,48 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
 
-public class Client {
-    public static void sendGetRequest() throws IOException, InterruptedException, HttpException {
+public class Client implements Runnable {
+    public void run() {
+        try {
+            start();
+        } catch(IOException e) {
+            System.out.println(e.getMessage());
+            e.printStackTrace();
+        } catch(InterruptedException e) {
+            System.out.println(e.getMessage());
+            e.printStackTrace();
+        } catch (HttpException e) {
+            System.out.println(e.getMessage());
+            e.printStackTrace();
+        }
+    }
+
+    void start() throws IOException, InterruptedException, HttpException {
         CloseableHttpClient httpClient = HttpClients.createDefault();
         HttpGet httpget = new HttpGet("http://127.0.0.1:8080");
-        System.out.println("started");
+        System.out.println("client sent request");
         CloseableHttpResponse response = httpClient.execute(httpget);
-        System.out.println("sent request");
-        System.out.println("received response");
         StatusLine statusLine = response.getStatusLine();
-        System.out.println("status = " + statusLine.getStatusCode());
         Header[] headers = response.getAllHeaders();
-        System.out.println("header length = " + headers.length);
 
+        System.out.println("response headers:");
         for (int i = 0; i < headers.length; i++) {
             Header header = headers[i];
             System.out.printf("header: %s: %s\n", header.getName(), header.getValue());
         }
 
+        System.out.println("response body:");
         HttpEntity responseBody = response.getEntity();
         InputStream bodyStream = responseBody.getContent();
         String responseString = IOUtils.toString(bodyStream, StandardCharsets.UTF_8.name());
-        System.out.println("response body = " + responseString);
-
+        System.out.println(responseString);
+        bodyStream.close();
         response.close();
     }
 
     public static void main(String[] args) {
         try {
-            sendGetRequest();
+            new Client().start();
         } catch (IOException e) {
             System.out.println("IOException");
             System.out.println(e.getMessage());
