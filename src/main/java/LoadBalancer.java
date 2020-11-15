@@ -16,17 +16,14 @@ import java.util.concurrent.TimeUnit;
 
 public class LoadBalancer implements Runnable {
     int port;
+    List<HttpRequestInterceptor> requestInterceptors = new ArrayList<HttpRequestInterceptor>();
+    List<HttpResponseInterceptor> responseInterceptors = new ArrayList<HttpResponseInterceptor>();
+    HttpRequestHandler requestHandler;
+    HttpProcessor httpProcessor;
 
     public LoadBalancer(int port) {
         this.port = port;
-    }
-
-    public void start() {
-       run();
-    }
-
-    public void run() {
-        HttpRequestHandler requestHandler = new HttpRequestHandler() {
+        requestHandler = new HttpRequestHandler() {
             @Override
             public void handle(HttpRequest httpRequest, HttpResponse httpResponse, HttpContext httpContext) throws HttpException, IOException {
                 CloseableHttpClient httpClient = HttpClients.createDefault();
@@ -37,37 +34,14 @@ public class LoadBalancer implements Runnable {
             }
         };
 
-        List<HttpRequestInterceptor> requestIntercepts = new ArrayList<HttpRequestInterceptor>();
-        List<HttpResponseInterceptor> responseIntercepts = new ArrayList<HttpResponseInterceptor>();
+        httpProcessor = new ImmutableHttpProcessor(requestInterceptors, responseInterceptors);
+    }
 
-        requestIntercepts.add(new HttpRequestInterceptor() {
-            @Override
-            public void process(HttpRequest httpRequest, HttpContext httpContext) throws HttpException, IOException {
-                Header[] headers = httpRequest.getAllHeaders();
-//                for (int i = 0; i < headers.length; i++) {
-//                    Header header = headers[i];
-//                    System.out.printf("%s : %s \n", header.getName(), header.getValue());
-//                }
-            }
-        });
-
-        responseIntercepts.add(new HttpResponseInterceptor() {
-            @Override
-            public void process(HttpResponse httpResponse, HttpContext httpContext) throws HttpException, IOException {
-                StatusLine status = httpResponse.getStatusLine();
-                httpResponse.addHeader("Server", "philosophiaServer");
-//                System.out.printf("sending out request | protocol: %s | status: %d - %s", status.getProtocolVersion(),
-//                        status.getStatusCode(), status.getReasonPhrase());
-            }
-        });
-
-        HttpProcessor httpProcessor = new ImmutableHttpProcessor(requestIntercepts, responseIntercepts);
-
+    public void run() {
         SocketConfig config = SocketConfig.custom()
                 .setSoTimeout(15000)
                 .setTcpNoDelay(true)
                 .build();
-
 
         try {
             InetAddress hostAddress = InetAddress.getByName("127.0.0.1");
