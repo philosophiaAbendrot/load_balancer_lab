@@ -11,6 +11,7 @@ import java.util.concurrent.TimeUnit;
 
 public class Client implements Runnable {
     CloseableHttpClient httpClient;
+    private static final int LOAD_BALANCER_PORT = 8080;
 
     public Client() {
         httpClient = HttpClients.createDefault();
@@ -27,10 +28,10 @@ public class Client implements Runnable {
     }
 
     void start() throws IOException {
-        HttpGet httpget = new HttpGet("http://127.0.0.1:8080");
+        HttpGet httpget = new HttpGet("http://127.0.0.1:" + LOAD_BALANCER_PORT + "/order");
 
         for (int i = 0; i < 5; i++) {
-            System.out.println("client sent request");
+            System.out.println("Client | client sent request");
             CloseableHttpResponse response = sendRequest(httpget);
             printResponse(response);
 
@@ -51,13 +52,13 @@ public class Client implements Runnable {
         StatusLine statusLine = response.getStatusLine();
         Header[] headers = response.getAllHeaders();
 
-        System.out.println("response headers:");
+        System.out.println("Client | response headers:");
         for (int i = 0; i < headers.length; i++) {
             Header header = headers[i];
-            System.out.printf("header: %s: %s\n", header.getName(), header.getValue());
+            System.out.printf("Client | header: %s: %s\n", header.getName(), header.getValue());
         }
 
-        System.out.println("response body:");
+        System.out.println("Client | response body:");
         HttpEntity responseBody = response.getEntity();
         InputStream bodyStream = responseBody.getContent();
         String responseString = IOUtils.toString(bodyStream, StandardCharsets.UTF_8.name());

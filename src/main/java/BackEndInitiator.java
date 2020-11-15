@@ -1,5 +1,8 @@
+import org.apache.commons.io.IOUtils;
 import org.apache.http.*;
 import org.apache.http.config.SocketConfig;
+import org.apache.http.entity.BasicHttpEntity;
+import org.apache.http.entity.StringEntity;
 import org.apache.http.impl.bootstrap.HttpServer;
 import org.apache.http.impl.bootstrap.ServerBootstrap;
 import org.apache.http.protocol.HttpContext;
@@ -8,7 +11,9 @@ import org.apache.http.protocol.HttpRequestHandler;
 import org.apache.http.protocol.ImmutableHttpProcessor;
 
 import java.io.IOException;
+import java.io.InputStream;
 import java.net.InetAddress;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
@@ -17,8 +22,8 @@ public class BackEndInitiator implements Runnable {
     int port;
     List<HttpRequestInterceptor> requestInterceptors = new ArrayList<HttpRequestInterceptor>();
     List<HttpResponseInterceptor> responseInterceptors = new ArrayList<HttpResponseInterceptor>();
-    HttpRequestHandler requestHandler;
     HttpProcessor httpProcessor;
+    int[] selectablePorts = new int[100];
 
     public BackEndInitiator() {
         port = 3000;
@@ -31,7 +36,10 @@ public class BackEndInitiator implements Runnable {
     }
 
     private void abstractConstructor() {
-        requestHandler = new DefaultRequestHandler();
+        for (int i = 0; i < selectablePorts.length; i++) {
+            selectablePorts[i] = 37100 + i;
+        }
+
         httpProcessor = new ImmutableHttpProcessor(requestInterceptors, responseInterceptors);
     }
 
@@ -50,7 +58,7 @@ public class BackEndInitiator implements Runnable {
                 .setListenerPort(port)
                 .setHttpProcessor(httpProcessor)
                 .setSocketConfig(config)
-                .registerHandler("/*", requestHandler)
+                .registerHandler("/backend/start", new InitiateRequestHandler())
                 .create();
 
             server.start();
@@ -71,10 +79,33 @@ public class BackEndInitiator implements Runnable {
         }
     }
 
-    private class DefaultRequestHandler implements HttpRequestHandler {
+    private class InitiateRequestHandler implements HttpRequestHandler {
         @Override
         public void handle(HttpRequest httpRequest, HttpResponse httpResponse, HttpContext httpContext) throws HttpException, IOException {
-            System.out.println("received request");
+            System.out.println("BackendInitiator | received backend initiate request");
+            BackEnd backend = new BackEnd();
+            Thread backendThread = new Thread(backend);
+            System.out.println("BackEndInitiator | started backend thread");
+            backendThread.start();
+            int backendPort = 0;
+            while (backend.port == 0) {
+                backendPort = backend.port;
+                System.out.println("BackEndInitiator | backendPort = " + backendPort);
+                try {
+                    Thread.sleep(20);
+                } catch(InterruptedException e) {
+                    System.out.println(e.getMessage());
+                    e.printStackTrace();
+                }
+            }
+
+            System.out.println("chosen backend port = " + backendPort);
+            BasicHttpEntity responseEntity = new BasicHttpEntity();
+            InputStream responseStream = IOUtils.toInputStream(String.valueOf(backend.port), StandardCharsets.UTF_8.name());
+            responseEntity.setContent(responseStream);
+            responseStream.close();
+            httpResponse.setEntity(responseEntity);
+
         }
     }
 }

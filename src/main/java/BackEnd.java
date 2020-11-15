@@ -12,19 +12,21 @@ import org.apache.http.protocol.ImmutableHttpProcessor;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.InetAddress;
+import java.net.UnknownHostException;
 import java.nio.charset.StandardCharsets;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 
 public class BackEnd implements Runnable {
-    int port;
+    public int port;
     List<HttpRequestInterceptor> requestInterceptors = new LinkedList<HttpRequestInterceptor>();
     List<HttpResponseInterceptor> responseInterceptors = new LinkedList<HttpResponseInterceptor>();
     HttpProcessor httpProcessor;
     HttpRequestHandler requestHandler;
+    int[] selectablePorts = new int[100];
 
-    public BackEnd(int port) {
+    public BackEnd() {
         this.port = port;
         httpProcessor = new ImmutableHttpProcessor(requestInterceptors, responseInterceptors);
         requestHandler = new HttpRequestHandler() {
@@ -37,6 +39,13 @@ public class BackEnd implements Runnable {
                 httpResponse.setEntity(responseBody);
             }
         };
+        initializeSelectablePorts();
+    }
+
+    private void initializeSelectablePorts() {
+        for (int i = 0; i < selectablePorts.length; i++) {
+            selectablePorts[i] = 37100 + i;
+        }
     }
 
     @Override
@@ -49,27 +58,39 @@ public class BackEnd implements Runnable {
 
             InetAddress hostAddress = InetAddress.getByName("127.0.0.1");
 
-            final HttpServer server = ServerBootstrap.bootstrap()
-                    .setLocalAddress(hostAddress)
-                    .setListenerPort(port)
-                    .setHttpProcessor(httpProcessor)
-                    .registerHandler("/*", requestHandler)
-                    .setSocketConfig(config)
-                    .create();
+            for (int i = 0; i < selectablePorts.length; i++) {
+                port = selectablePorts[i];
+                System.out.println("BackEnd | port = " + port);
+                final HttpServer server;
 
-            server.start();
-            server.awaitTermination(Long.MAX_VALUE, TimeUnit.DAYS);
+                try {
+                    server = ServerBootstrap.bootstrap()
+                            .setLocalAddress(hostAddress)
+                            .setListenerPort(port)
+                            .setHttpProcessor(httpProcessor)
+                            .registerHandler("/*", requestHandler)
+                            .setSocketConfig(config)
+                            .create();
 
-            Runtime.getRuntime().addShutdownHook(new Thread() {
-                    @Override
-            public void run() {
-                    server.shutdown(5, TimeUnit.SECONDS);
+                    server.start();
+                    server.awaitTermination(Long.MAX_VALUE, TimeUnit.DAYS);
+                    Runtime.getRuntime().addShutdownHook(new Thread() {
+                        @Override
+                        public void run() {
+                            server.shutdown(5, TimeUnit.SECONDS);
+                            }
+                    });
+                    break;
+                } catch (IOException e) {
+                    System.out.printf("BackEnd | port %d is in use. Attempting another port.\n", port);
+//                    System.out.println(e.getMessage());
+//                    e.printStackTrace();
                 }
-            });
-        } catch (IOException e) {
+            }
+        } catch (InterruptedException e) {
             System.out.println(e.getMessage());
             e.printStackTrace();
-        } catch (InterruptedException e) {
+        } catch (UnknownHostException e) {
             System.out.println(e.getMessage());
             e.printStackTrace();
         }
