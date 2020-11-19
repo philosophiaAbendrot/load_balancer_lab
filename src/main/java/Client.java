@@ -36,7 +36,7 @@ public class Client implements Runnable {
             System.out.println("Client | roll = " + roll);
             String path;
             if (roll == 1) {
-                path = "/order";
+                path = "/home";
             } else {
                 path = "/image";
             }

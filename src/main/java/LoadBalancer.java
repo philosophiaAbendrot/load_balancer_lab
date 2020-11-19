@@ -25,7 +25,7 @@ public class LoadBalancer implements Runnable {
     HttpProcessor httpProcessor;
     Map<BackEnd.Type, List<Integer>> backendPortIndex = new HashMap<>();
     private static final int BACKEND_INITIATOR_PORT = 3000;
-    private static final int STARTUP_BACKEND_DYNO_COUNT = 3;
+    private static final int STARTUP_BACKEND_DYNO_COUNT = 5;
     Random rand;
 
     public LoadBalancer(int port) {
@@ -49,8 +49,8 @@ public class LoadBalancer implements Runnable {
                     .setListenerPort(port)
                     .setHttpProcessor(httpProcessor)
                     .setSocketConfig(config)
-                    .registerHandler("/home", new ClientHomeRequestHandler())
                     .registerHandler("/image", new ClientImageRequestHandler())
+                    .registerHandler("/home", new ClientHomeRequestHandler())
                     .create();
 
             server.start();
@@ -78,8 +78,8 @@ public class LoadBalancer implements Runnable {
         public void handle(HttpRequest httpRequest, HttpResponse httpResponse, HttpContext httpContext) throws HttpException, IOException {
             int backendPort = selectPort(BackEnd.Type.IMAGE_FILE_SERVER);
             CloseableHttpClient httpClient = HttpClients.createDefault();
-            System.out.printf("LoadBalancer | relaying message to image file server at port %d\n" + backendPort);
-            HttpGet httpget = new HttpGet("http://127.0.0.1" + backendPort);
+            System.out.printf("LoadBalancer | relaying message to image file server at port %d\n", backendPort);
+            HttpGet httpget = new HttpGet("http://127.0.0.1:" + backendPort);
             CloseableHttpResponse response = httpClient.execute(httpget);
             HttpEntity responseBody = response.getEntity();
             httpResponse.setEntity(responseBody);
