@@ -15,9 +15,7 @@ import org.apache.http.protocol.*;
 import java.io.*;
 import java.net.InetAddress;
 import java.nio.charset.StandardCharsets;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Random;
+import java.util.*;
 import java.util.concurrent.TimeUnit;
 
 public class LoadBalancer implements Runnable {
@@ -25,13 +23,15 @@ public class LoadBalancer implements Runnable {
     List<HttpRequestInterceptor> requestInterceptors = new ArrayList<HttpRequestInterceptor>();
     List<HttpResponseInterceptor> responseInterceptors = new ArrayList<HttpResponseInterceptor>();
     HttpProcessor httpProcessor;
-    List<Integer> backendPorts = new ArrayList<Integer>();
+    Map<BackEnd.Type, List<Integer>> backendPortIndex = new HashMap<>();
     private static final int BACKEND_INITIATOR_PORT = 3000;
     private static final int STARTUP_BACKEND_DYNO_COUNT = 5;
 
     public LoadBalancer(int port) {
         this.port = port;
         httpProcessor = new ImmutableHttpProcessor(requestInterceptors, responseInterceptors);
+        backendPortIndex.put(BackEnd.Type.HOME_PAGE_SERVER, new ArrayList<Integer>());
+        backendPortIndex.put(BackEnd.Type.IMAGE_FILE_SERVER, new ArrayList<Integer>());
     }
 
     @Override
@@ -71,11 +71,15 @@ public class LoadBalancer implements Runnable {
 
     private void startupBackendCluster() {
         for (int i = 0; i < STARTUP_BACKEND_DYNO_COUNT; i++) {
-            startupBackend();
+            if (i % 2 == 0) {
+                startupBackend(BackEnd.Type.IMAGE_FILE_SERVER);
+            } else {
+                startupBackend(BackEnd.Type.HOME_PAGE_SERVER);
+            }
         }
     }
 
-    private void startupBackend() {
+    private void startupBackend(BackEnd.Type type) {
         CloseableHttpClient httpClient = HttpClients.createDefault();
         HttpPost httpPost = new HttpPost("http://127.0.0.1:" + BACKEND_INITIATOR_PORT + "/backend/start");
         List<NameValuePair> params = new ArrayList<NameValuePair>();
@@ -92,8 +96,11 @@ public class LoadBalancer implements Runnable {
                 String responseString = IOUtils.toString(responseStream, StandardCharsets.UTF_8.name());
                 responseStream.close();
                 System.out.println("LoadBalancer | new backend port = " + responseString);
-                backendPorts.add(Integer.valueOf(responseString));
-                System.out.println("LoadBalancer | backend ports: " + backendPorts);
+                backendPortIndex.get(type).add(Integer.valueOf(responseString));
+                System.out.println("LoadBalancer | backend ports:");
+                for (Map.Entry<BackEnd.Type, List<Integer>> entry : backendPortIndex.entrySet()) {
+                    System.out.printf("%s : %s\n", entry.getKey(), entry.getValue());
+                }
                 break;
             } catch (UnsupportedEncodingException | UnsupportedOperationException | ClientProtocolException e) {
                 System.out.println(e.getMessage());
@@ -112,7 +119,8 @@ public class LoadBalancer implements Runnable {
         @Override
         public void handle(HttpRequest httpRequest, HttpResponse httpResponse, HttpContext httpContext) throws HttpException, IOException {
             Random rand = new Random();
-            int backendPort = backendPorts.get(rand.nextInt(backendPorts.size()));
+            List<Integer> availablePorts = backendPortIndex.get(BackEnd.Type.HOME_PAGE_SERVER);
+            int backendPort = availablePorts.get(rand.nextInt(availablePorts.size()));
             CloseableHttpClient httpClient = HttpClients.createDefault();
             System.out.printf("LoadBalancer | relaying message to port %d\n", backendPort);
             HttpGet httpget = new HttpGet("http://127.0.0.1:" + backendPort);

@@ -19,6 +19,11 @@ import java.util.List;
 import java.util.concurrent.TimeUnit;
 
 public class BackEnd implements Runnable {
+    public enum Type {
+        HOME_PAGE_SERVER,
+        IMAGE_FILE_SERVER
+    }
+
     public int port;
     List<HttpRequestInterceptor> requestInterceptors = new LinkedList<HttpRequestInterceptor>();
     List<HttpResponseInterceptor> responseInterceptors = new LinkedList<HttpResponseInterceptor>();
