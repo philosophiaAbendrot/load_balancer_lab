@@ -7,6 +7,7 @@ import org.apache.http.impl.client.HttpClients;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
+import java.util.Random;
 import java.util.concurrent.TimeUnit;
 
 public class Client implements Runnable {
@@ -28,12 +29,22 @@ public class Client implements Runnable {
     }
 
     void start() throws IOException {
-        HttpGet httpget = new HttpGet("http://127.0.0.1:" + LOAD_BALANCER_PORT + "/order");
+        Random rand = new Random();
 
         for (int i = 0; i < 5; i++) {
-            System.out.println("Client | client sent request");
+            int roll = rand.nextInt(2);
+            System.out.println("Client | roll = " + roll);
+            String path;
+            if (roll == 1) {
+                path = "/order";
+            } else {
+                path = "/image";
+            }
+            HttpGet httpget = new HttpGet("http://127.0.0.1:" + LOAD_BALANCER_PORT + path);
+            System.out.println("Client | client sent request to path " + path);
             CloseableHttpResponse response = sendRequest(httpget);
             printResponse(response);
+            response.close();
 
             try {
                 TimeUnit.MILLISECONDS.sleep(300);
@@ -64,6 +75,5 @@ public class Client implements Runnable {
         String responseString = IOUtils.toString(bodyStream, StandardCharsets.UTF_8.name());
         System.out.println(responseString);
         bodyStream.close();
-        response.close();
     }
 }

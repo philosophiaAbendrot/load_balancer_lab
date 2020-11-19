@@ -25,13 +25,15 @@ public class LoadBalancer implements Runnable {
     HttpProcessor httpProcessor;
     Map<BackEnd.Type, List<Integer>> backendPortIndex = new HashMap<>();
     private static final int BACKEND_INITIATOR_PORT = 3000;
-    private static final int STARTUP_BACKEND_DYNO_COUNT = 5;
+    private static final int STARTUP_BACKEND_DYNO_COUNT = 3;
+    Random rand;
 
     public LoadBalancer(int port) {
         this.port = port;
         httpProcessor = new ImmutableHttpProcessor(requestInterceptors, responseInterceptors);
         backendPortIndex.put(BackEnd.Type.HOME_PAGE_SERVER, new ArrayList<Integer>());
         backendPortIndex.put(BackEnd.Type.IMAGE_FILE_SERVER, new ArrayList<Integer>());
+        rand = new Random();
     }
 
     @Override
@@ -47,7 +49,8 @@ public class LoadBalancer implements Runnable {
                     .setListenerPort(port)
                     .setHttpProcessor(httpProcessor)
                     .setSocketConfig(config)
-                    .registerHandler("/order", new ClientOrderRequestHandler())
+                    .registerHandler("/home", new ClientHomeRequestHandler())
+                    .registerHandler("/image", new ClientImageRequestHandler())
                     .create();
 
             server.start();
@@ -69,6 +72,34 @@ public class LoadBalancer implements Runnable {
         }
     }
 
+    // REQUEST HANDLERS
+    private class ClientImageRequestHandler implements HttpRequestHandler {
+        @Override
+        public void handle(HttpRequest httpRequest, HttpResponse httpResponse, HttpContext httpContext) throws HttpException, IOException {
+            int backendPort = selectPort(BackEnd.Type.IMAGE_FILE_SERVER);
+            CloseableHttpClient httpClient = HttpClients.createDefault();
+            System.out.printf("LoadBalancer | relaying message to image file server at port %d\n" + backendPort);
+            HttpGet httpget = new HttpGet("http://127.0.0.1" + backendPort);
+            CloseableHttpResponse response = httpClient.execute(httpget);
+            HttpEntity responseBody = response.getEntity();
+            httpResponse.setEntity(responseBody);
+        }
+    }
+
+    private class ClientHomeRequestHandler implements HttpRequestHandler {
+        @Override
+        public void handle(HttpRequest httpRequest, HttpResponse httpResponse, HttpContext httpContext) throws HttpException, IOException {
+            int backendPort = selectPort(BackEnd.Type.HOME_PAGE_SERVER);
+            CloseableHttpClient httpClient = HttpClients.createDefault();
+            System.out.printf("LoadBalancer | relaying message to home server at port %d\n", backendPort);
+            HttpGet httpget = new HttpGet("http://127.0.0.1:" + backendPort);
+            CloseableHttpResponse response = httpClient.execute(httpget);
+            HttpEntity responseBody = response.getEntity();
+            httpResponse.setEntity(responseBody);
+        }
+    }
+
+    // BACKEND INITIALIZATION CODE
     private void startupBackendCluster() {
         for (int i = 0; i < STARTUP_BACKEND_DYNO_COUNT; i++) {
             if (i % 2 == 0) {
@@ -115,19 +146,10 @@ public class LoadBalancer implements Runnable {
         }
     }
 
-    private class ClientOrderRequestHandler implements HttpRequestHandler {
-        @Override
-        public void handle(HttpRequest httpRequest, HttpResponse httpResponse, HttpContext httpContext) throws HttpException, IOException {
-            Random rand = new Random();
-            List<Integer> availablePorts = backendPortIndex.get(BackEnd.Type.HOME_PAGE_SERVER);
-            int backendPort = availablePorts.get(rand.nextInt(availablePorts.size()));
-            CloseableHttpClient httpClient = HttpClients.createDefault();
-            System.out.printf("LoadBalancer | relaying message to port %d\n", backendPort);
-            HttpGet httpget = new HttpGet("http://127.0.0.1:" + backendPort);
-            CloseableHttpResponse response = httpClient.execute(httpget);
-            HttpEntity responseBody = response.getEntity();
-            httpResponse.setEntity(responseBody);
-        }
+    // PRIVATE HELPER METHODS
+    private int selectPort(BackEnd.Type type) {
+        List<Integer> availablePorts = backendPortIndex.get(type);
+        return availablePorts.get(rand.nextInt(availablePorts.size()));
     }
 
     public static void main(String[] args) {
