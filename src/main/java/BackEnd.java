@@ -42,6 +42,13 @@ public class BackEnd implements Runnable {
                 responseBody.setContent(bodyStream);
                 bodyStream.close();
                 httpResponse.setEntity(responseBody);
+
+                try {
+                    TimeUnit.MILLISECONDS.sleep(300);
+                } catch (InterruptedException e) {
+                    System.out.println(e.getMessage());
+                    e.printStackTrace();
+                }
             }
         };
         initializeSelectablePorts();
