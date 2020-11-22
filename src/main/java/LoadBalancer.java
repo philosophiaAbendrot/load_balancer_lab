@@ -78,7 +78,7 @@ public class LoadBalancer implements Runnable {
         public void handle(HttpRequest httpRequest, HttpResponse httpResponse, HttpContext httpContext) throws HttpException, IOException {
             int backendPort = selectPort(BackEnd.Type.IMAGE_FILE_SERVER);
             CloseableHttpClient httpClient = HttpClients.createDefault();
-            System.out.printf("LoadBalancer | relaying message to image file server at port %d\n", backendPort);
+            Logger.log(String.format("LoadBalancer | relaying message to image file server at port %d", backendPort));
             HttpGet httpget = new HttpGet("http://127.0.0.1:" + backendPort);
             CloseableHttpResponse response = httpClient.execute(httpget);
             HttpEntity responseBody = response.getEntity();
@@ -91,7 +91,7 @@ public class LoadBalancer implements Runnable {
         public void handle(HttpRequest httpRequest, HttpResponse httpResponse, HttpContext httpContext) throws HttpException, IOException {
             int backendPort = selectPort(BackEnd.Type.HOME_PAGE_SERVER);
             CloseableHttpClient httpClient = HttpClients.createDefault();
-            System.out.printf("LoadBalancer | relaying message to home server at port %d\n", backendPort);
+            Logger.log(String.format("LoadBalancer | relaying message to home server at port %d", backendPort));
             HttpGet httpget = new HttpGet("http://127.0.0.1:" + backendPort);
             CloseableHttpResponse response = httpClient.execute(httpget);
             HttpEntity responseBody = response.getEntity();
@@ -119,18 +119,19 @@ public class LoadBalancer implements Runnable {
             try {
                 Thread.sleep(100);
                 httpPost.setEntity(new UrlEncodedFormEntity(params));
-                System.out.println("LoadBalancer | sent request to startup a backend");
+                Logger.log("LoadBalancer | sent request to startup a backend");
                 CloseableHttpResponse response = httpClient.execute(httpPost);
-                System.out.println("LoadBalancer | received response");
+                Logger.log("Load Balancer | received response");
                 HttpEntity responseBody = response.getEntity();
                 InputStream responseStream = responseBody.getContent();
                 String responseString = IOUtils.toString(responseStream, StandardCharsets.UTF_8.name());
                 responseStream.close();
-                System.out.println("LoadBalancer | new backend port = " + responseString);
+                Logger.log("LoadBalancer | new backend port = " + responseString);
                 backendPortIndex.get(type).add(Integer.valueOf(responseString));
+                Logger.log("LoadBalancer | backend ports:");
                 System.out.println("LoadBalancer | backend ports:");
                 for (Map.Entry<BackEnd.Type, List<Integer>> entry : backendPortIndex.entrySet()) {
-                    System.out.printf("%s : %s\n", entry.getKey(), entry.getValue());
+                    Logger.log(String.format("%s : %s", entry.getKey(), entry.getValue()));
                 }
                 break;
             } catch (UnsupportedEncodingException | UnsupportedOperationException | ClientProtocolException e) {

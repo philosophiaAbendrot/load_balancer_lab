@@ -1,10 +1,19 @@
+import java.util.ArrayList;
+import java.util.List;
 import java.util.concurrent.TimeUnit;
 
 public class Run {
+    final static int NUM_CLIENTS = 100;
+
     public static void main(String[] args) {
         Thread loadBalancerThread = new Thread(new LoadBalancer(8080));
         Thread backendInitiatorThread = new Thread(new BackEndInitiator());
-        Thread clientThread = new Thread(new Client());
+        List<Thread> clients = new ArrayList<Thread>();
+        for (int i = 0; i < NUM_CLIENTS; i++) {
+            Thread clientThread = new Thread(new Client(Integer.toString(i)));
+            clients.add(clientThread);
+        }
+
         loadBalancerThread.start();
         backendInitiatorThread.start();
 
@@ -15,6 +24,8 @@ public class Run {
             e.printStackTrace();
         }
 
-        clientThread.start();
+        for (Thread clientThread : clients) {
+            clientThread.start();
+        }
     }
 }

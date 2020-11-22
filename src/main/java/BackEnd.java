@@ -16,6 +16,7 @@ import java.net.UnknownHostException;
 import java.nio.charset.StandardCharsets;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Random;
 import java.util.concurrent.TimeUnit;
 
 public class BackEnd implements Runnable {
@@ -33,6 +34,7 @@ public class BackEnd implements Runnable {
 
     public BackEnd() {
         this.port = port;
+        Random rand = new Random();
         httpProcessor = new ImmutableHttpProcessor(requestInterceptors, responseInterceptors);
         requestHandler = new HttpRequestHandler() {
             @Override
@@ -44,7 +46,7 @@ public class BackEnd implements Runnable {
                 httpResponse.setEntity(responseBody);
 
                 try {
-                    TimeUnit.MILLISECONDS.sleep(300);
+                    TimeUnit.MILLISECONDS.sleep(rand.nextInt(1000) + 200);
                 } catch (InterruptedException e) {
                     System.out.println(e.getMessage());
                     e.printStackTrace();
@@ -72,7 +74,7 @@ public class BackEnd implements Runnable {
 
             for (int i = 0; i < selectablePorts.length; i++) {
                 port = selectablePorts[i];
-                System.out.println("BackEnd | port = " + port);
+                Logger.log(String.format("Backend | port = %d", port));
                 final HttpServer server;
 
                 try {
@@ -94,7 +96,6 @@ public class BackEnd implements Runnable {
                     });
                     break;
                 } catch (IOException e) {
-                    System.out.printf("BackEnd | port %d is in use. Attempting another port.\n", port);
 //                    System.out.println(e.getMessage());
 //                    e.printStackTrace();
                 }

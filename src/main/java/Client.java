@@ -13,9 +13,11 @@ import java.util.concurrent.TimeUnit;
 public class Client implements Runnable {
     CloseableHttpClient httpClient;
     private static final int LOAD_BALANCER_PORT = 8080;
+    String name;
 
-    public Client() {
+    public Client(String _name) {
         httpClient = HttpClients.createDefault();
+        name = _name;
     }
 
     @Override
@@ -33,7 +35,6 @@ public class Client implements Runnable {
 
         for (int i = 0; i < 5; i++) {
             int roll = rand.nextInt(2);
-            System.out.println("Client | roll = " + roll);
             String path;
             if (roll == 1) {
                 path = "/home";
@@ -41,7 +42,7 @@ public class Client implements Runnable {
                 path = "/image";
             }
             HttpGet httpget = new HttpGet("http://127.0.0.1:" + LOAD_BALANCER_PORT + path);
-            System.out.println("Client | client sent request to path " + path);
+            Logger.log(String.format("Client %s | path: %s", name, path));
             CloseableHttpResponse response = sendRequest(httpget);
             printResponse(response);
             response.close();
@@ -63,17 +64,16 @@ public class Client implements Runnable {
         StatusLine statusLine = response.getStatusLine();
         Header[] headers = response.getAllHeaders();
 
-        System.out.println("Client | response headers:");
-        for (int i = 0; i < headers.length; i++) {
-            Header header = headers[i];
-            System.out.printf("Client | header: %s: %s\n", header.getName(), header.getValue());
-        }
+//        System.out.printf("Client %s | response headers:\n", name);
+//        for (int i = 0; i < headers.length; i++) {
+//            Header header = headers[i];
+//            System.out.printf("Client | header: %s: %s\n", header.getName(), header.getValue());
+//        }
 
-        System.out.println("Client | response body:");
         HttpEntity responseBody = response.getEntity();
         InputStream bodyStream = responseBody.getContent();
         String responseString = IOUtils.toString(bodyStream, StandardCharsets.UTF_8.name());
-        System.out.println(responseString);
+        Logger.log(String.format("Client %s | response body: %s", name, responseString));
         bodyStream.close();
     }
 }
