@@ -24,6 +24,7 @@ public class LoadBalancer implements Runnable {
     List<HttpResponseInterceptor> responseInterceptors = new ArrayList<HttpResponseInterceptor>();
     HttpProcessor httpProcessor;
     Map<BackEnd.Type, List<Integer>> backendPortIndex = new HashMap<>();
+    Map<Integer, List<RequestAnalytics>> processingTimes;
     private static final int BACKEND_INITIATOR_PORT = 3000;
     private static final int STARTUP_BACKEND_DYNO_COUNT = 5;
     Random rand;
@@ -34,6 +35,22 @@ public class LoadBalancer implements Runnable {
         backendPortIndex.put(BackEnd.Type.HOME_PAGE_SERVER, new ArrayList<Integer>());
         backendPortIndex.put(BackEnd.Type.IMAGE_FILE_SERVER, new ArrayList<Integer>());
         rand = new Random();
+        processingTimes = Collections.synchronizedMap(new HashMap<>());
+    }
+
+    // stores information about handled requests
+    class RequestAnalytics {
+        long processingTime, startTime, endTime;
+
+        public RequestAnalytics(long startTime, long endTime) {
+            this.processingTime = endTime - startTime;
+            this.startTime = startTime;
+            this.endTime = endTime;
+        }
+
+        public String toString() {
+            return String.format("processing time : %d | start time: %d", processingTime, startTime);
+        }
     }
 
     @Override
@@ -80,7 +97,22 @@ public class LoadBalancer implements Runnable {
             CloseableHttpClient httpClient = HttpClients.createDefault();
             Logger.log(String.format("LoadBalancer | relaying message to image file server at port %d", backendPort));
             HttpGet httpget = new HttpGet("http://127.0.0.1:" + backendPort);
+            long startTime = System.currentTimeMillis();
             CloseableHttpResponse response = httpClient.execute(httpget);
+            long endTime = System.currentTimeMillis();
+
+            if (processingTimes.containsKey(backendPort)) {
+                List<RequestAnalytics> analytics = processingTimes.get(backendPort);
+                analytics.add(new RequestAnalytics(startTime, endTime));
+            } else {
+                List<RequestAnalytics> newAnalyticsList = new LinkedList<RequestAnalytics>();
+                newAnalyticsList.add(new RequestAnalytics(startTime, endTime));
+                processingTimes.put(backendPort, Collections.synchronizedList(newAnalyticsList));
+            }
+
+            System.out.println("processing times: ");
+            System.out.println(processingTimes);
+
             HttpEntity responseBody = response.getEntity();
             httpResponse.setEntity(responseBody);
         }
@@ -93,7 +125,23 @@ public class LoadBalancer implements Runnable {
             CloseableHttpClient httpClient = HttpClients.createDefault();
             Logger.log(String.format("LoadBalancer | relaying message to home server at port %d", backendPort));
             HttpGet httpget = new HttpGet("http://127.0.0.1:" + backendPort);
+            long startTime = System.currentTimeMillis();
             CloseableHttpResponse response = httpClient.execute(httpget);
+            long endTime = System.currentTimeMillis();
+
+            if (processingTimes.containsKey(backendPort)) {
+                List<RequestAnalytics> analytics = processingTimes.get(backendPort);
+                analytics.add(new RequestAnalytics(startTime, endTime));
+            } else {
+                List<RequestAnalytics> newAnalyticsList = new LinkedList<RequestAnalytics>();
+                newAnalyticsList.add(new RequestAnalytics(startTime, endTime));
+                processingTimes.put(backendPort, Collections.synchronizedList(newAnalyticsList));
+            }
+
+            System.out.println("processing times: ");
+            System.out.println(processingTimes);
+
+
             HttpEntity responseBody = response.getEntity();
             httpResponse.setEntity(responseBody);
         }
