@@ -19,6 +19,7 @@ import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.TimeUnit;
+import java.util.function.BiConsumer;
 import java.util.function.BiFunction;
 
 public class LoadBalancer implements Runnable {
@@ -28,6 +29,7 @@ public class LoadBalancer implements Runnable {
     HttpProcessor httpProcessor;
     Map<BackEnd.Type, List<Integer>> backendPortIndex = new HashMap<>();
     ConcurrentMap<Integer, Queue<RequestAnalytics>> processingTimes;
+    ConcurrentMap<Integer, Double> capacityFactors;
     private static final int BACKEND_INITIATOR_PORT = 3000;
     private static final int STARTUP_BACKEND_DYNO_COUNT = 5;
     Random rand;
@@ -39,6 +41,7 @@ public class LoadBalancer implements Runnable {
         backendPortIndex.put(BackEnd.Type.IMAGE_FILE_SERVER, new ArrayList<>());
         rand = new Random();
         processingTimes = new ConcurrentHashMap<>();
+        capacityFactors = new ConcurrentHashMap<>();
     }
 
     // stores information about handled requests
@@ -57,6 +60,31 @@ public class LoadBalancer implements Runnable {
     }
 
     class CapacityFactorCalculator implements Runnable {
+        BiConsumer<Integer, Queue<RequestAnalytics>> biConsumer;
+
+        public CapacityFactorCalculator() {
+            biConsumer = (port, queue) -> {
+                if (queue.isEmpty()) {
+                    capacityFactors.replace(port, -1.0);
+                } else {
+                    long startTime = queue.peek().startTime;
+                    long endTime = System.currentTimeMillis();
+                    long processingTime = 0;
+
+                    for (RequestAnalytics analytics : queue) {
+                        processingTime += analytics.processingTime;
+                    }
+
+                    System.out.println("===========================");
+                    System.out.println("processingTime = " + processingTime);
+                    System.out.println("endTime - startTime = " + (double)(endTime - startTime));
+
+                    Double result = processingTime / (double)(endTime - startTime);
+                    capacityFactors.replace(port, result);
+                }
+            };
+        }
+
         @Override
         public void run() {
             while(true) {
@@ -69,6 +97,10 @@ public class LoadBalancer implements Runnable {
                 System.out.println("=====================================");
                 System.out.println("capacity factor calculator running");
                 System.out.println("=====================================");
+
+                processingTimes.forEach(biConsumer);
+
+                System.out.println("capacity factors = " + capacityFactors);
             }
         }
     }
@@ -192,6 +224,7 @@ public class LoadBalancer implements Runnable {
                 int portInt = Integer.valueOf(responseString);
                 backendPortIndex.get(type).add(portInt);
                 processingTimes.put(portInt, new LinkedList<>());
+                capacityFactors.put(portInt, -1.0);
                 Logger.log("LoadBalancer | backend ports:");
                 System.out.println("LoadBalancer | backend ports:");
                 for (Map.Entry<BackEnd.Type, List<Integer>> entry : backendPortIndex.entrySet()) {
