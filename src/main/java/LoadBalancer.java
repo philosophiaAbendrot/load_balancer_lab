@@ -19,6 +19,7 @@ import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.TimeUnit;
+import java.util.function.BiConsumer;
 import java.util.function.BiFunction;
 
 public class LoadBalancer implements Runnable {
@@ -27,7 +28,6 @@ public class LoadBalancer implements Runnable {
     List<HttpResponseInterceptor> responseInterceptors = new ArrayList<>();
     HttpProcessor httpProcessor;
     Map<BackEnd.Type, List<Integer>> backendPortIndex = new HashMap<>();
-//    Map<Integer, List<RequestAnalytics>> processingTimes;
     ConcurrentMap<Integer, List<RequestAnalytics>> processingTimes;
     private static final int BACKEND_INITIATOR_PORT = 3000;
     private static final int STARTUP_BACKEND_DYNO_COUNT = 5;
@@ -58,6 +58,23 @@ public class LoadBalancer implements Runnable {
         }
     }
 
+    class CapacityFactorCalculator implements Runnable {
+        @Override
+        public void run() {
+            while(true) {
+                try {
+                    Thread.sleep(500);
+                } catch(InterruptedException e) {
+                    System.out.println(e.getMessage());
+                    e.printStackTrace();
+                }
+                System.out.println("=====================================");
+                System.out.println("capacity factor calculator running");
+                System.out.println("=====================================");
+            }
+        }
+    }
+
     @Override
     public void run() {
         SocketConfig config = SocketConfig.custom()
@@ -77,6 +94,8 @@ public class LoadBalancer implements Runnable {
 
             server.start();
             startupBackendCluster();
+            Thread capacityFactorMonitor = new Thread(new CapacityFactorCalculator());
+            capacityFactorMonitor.start();
             server.awaitTermination(Long.MAX_VALUE, TimeUnit.DAYS);
             Runtime.getRuntime().addShutdownHook(new Thread() {
                 @Override

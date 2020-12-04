@@ -8,7 +8,7 @@ public class Run {
     public static void main(String[] args) {
         Thread loadBalancerThread = new Thread(new LoadBalancer(8080));
         Thread backendInitiatorThread = new Thread(new BackEndInitiator());
-        List<Thread> clients = new ArrayList<Thread>();
+        List<Thread> clients = new ArrayList<>();
         for (int i = 0; i < NUM_CLIENTS; i++) {
             Thread clientThread = new Thread(new Client(Integer.toString(i)));
             clients.add(clientThread);
