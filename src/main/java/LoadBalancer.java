@@ -19,7 +19,6 @@ import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.TimeUnit;
-import java.util.function.BiConsumer;
 import java.util.function.BiFunction;
 
 public class LoadBalancer implements Runnable {
@@ -28,7 +27,7 @@ public class LoadBalancer implements Runnable {
     List<HttpResponseInterceptor> responseInterceptors = new ArrayList<>();
     HttpProcessor httpProcessor;
     Map<BackEnd.Type, List<Integer>> backendPortIndex = new HashMap<>();
-    ConcurrentMap<Integer, List<RequestAnalytics>> processingTimes;
+    ConcurrentMap<Integer, Queue<RequestAnalytics>> processingTimes;
     private static final int BACKEND_INITIATOR_PORT = 3000;
     private static final int STARTUP_BACKEND_DYNO_COUNT = 5;
     Random rand;
@@ -40,7 +39,6 @@ public class LoadBalancer implements Runnable {
         backendPortIndex.put(BackEnd.Type.IMAGE_FILE_SERVER, new ArrayList<>());
         rand = new Random();
         processingTimes = new ConcurrentHashMap<>();
-//        processingTimes = Collections.synchronizedMap(new HashMap<>());
     }
 
     // stores information about handled requests
@@ -162,7 +160,7 @@ public class LoadBalancer implements Runnable {
     }
 
     private void updateAnalytics(int port, long startTime, long endTime) {
-        BiFunction<Integer, List<RequestAnalytics>, List<RequestAnalytics>> analyticsUpdater = (k, v) -> {
+        BiFunction<Integer, Queue<RequestAnalytics>, Queue<RequestAnalytics>> analyticsUpdater = (k, v) -> {
             v.add(new RequestAnalytics(startTime, endTime));
             return v;
         };
@@ -193,7 +191,7 @@ public class LoadBalancer implements Runnable {
                 Logger.log("LoadBalancer | new backend port = " + responseString);
                 int portInt = Integer.valueOf(responseString);
                 backendPortIndex.get(type).add(portInt);
-                processingTimes.put(portInt, new ArrayList<>());
+                processingTimes.put(portInt, new LinkedList<>());
                 Logger.log("LoadBalancer | backend ports:");
                 System.out.println("LoadBalancer | backend ports:");
                 for (Map.Entry<BackEnd.Type, List<Integer>> entry : backendPortIndex.entrySet()) {
