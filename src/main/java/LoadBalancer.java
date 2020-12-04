@@ -23,8 +23,8 @@ import java.util.function.BiFunction;
 
 public class LoadBalancer implements Runnable {
     int port;
-    List<HttpRequestInterceptor> requestInterceptors = new ArrayList<HttpRequestInterceptor>();
-    List<HttpResponseInterceptor> responseInterceptors = new ArrayList<HttpResponseInterceptor>();
+    List<HttpRequestInterceptor> requestInterceptors = new ArrayList<>();
+    List<HttpResponseInterceptor> responseInterceptors = new ArrayList<>();
     HttpProcessor httpProcessor;
     Map<BackEnd.Type, List<Integer>> backendPortIndex = new HashMap<>();
 //    Map<Integer, List<RequestAnalytics>> processingTimes;
@@ -36,8 +36,8 @@ public class LoadBalancer implements Runnable {
     public LoadBalancer(int port) {
         this.port = port;
         httpProcessor = new ImmutableHttpProcessor(requestInterceptors, responseInterceptors);
-        backendPortIndex.put(BackEnd.Type.HOME_PAGE_SERVER, new ArrayList<Integer>());
-        backendPortIndex.put(BackEnd.Type.IMAGE_FILE_SERVER, new ArrayList<Integer>());
+        backendPortIndex.put(BackEnd.Type.HOME_PAGE_SERVER, new ArrayList<>());
+        backendPortIndex.put(BackEnd.Type.IMAGE_FILE_SERVER, new ArrayList<>());
         rand = new Random();
         processingTimes = new ConcurrentHashMap<>();
 //        processingTimes = Collections.synchronizedMap(new HashMap<>());
@@ -97,7 +97,7 @@ public class LoadBalancer implements Runnable {
     // REQUEST HANDLERS
     private class ClientImageRequestHandler implements HttpRequestHandler {
         @Override
-        public void handle(HttpRequest httpRequest, HttpResponse httpResponse, HttpContext httpContext) throws HttpException, IOException {
+        public void handle(HttpRequest httpRequest, HttpResponse httpResponse, HttpContext httpContext) throws IOException {
             int backendPort = selectPort(BackEnd.Type.IMAGE_FILE_SERVER);
             CloseableHttpClient httpClient = HttpClients.createDefault();
             Logger.log(String.format("LoadBalancer | relaying message to image file server at port %d", backendPort));
@@ -106,15 +106,7 @@ public class LoadBalancer implements Runnable {
             CloseableHttpResponse response = httpClient.execute(httpget);
             long endTime = System.currentTimeMillis();
 
-            BiFunction<Integer, List<RequestAnalytics>, List<RequestAnalytics>> analyticsUpdater = (k, v) -> {
-                v.add(new RequestAnalytics(startTime, endTime));
-                return v;
-            };
-
-            processingTimes.computeIfPresent(backendPort, analyticsUpdater);
-
-            System.out.println("processing times: ");
-            System.out.println(processingTimes);
+            updateAnalytics(backendPort, startTime, endTime);
 
             HttpEntity responseBody = response.getEntity();
             httpResponse.setEntity(responseBody);
@@ -123,7 +115,7 @@ public class LoadBalancer implements Runnable {
 
     private class ClientHomeRequestHandler implements HttpRequestHandler {
         @Override
-        public void handle(HttpRequest httpRequest, HttpResponse httpResponse, HttpContext httpContext) throws HttpException, IOException {
+        public void handle(HttpRequest httpRequest, HttpResponse httpResponse, HttpContext httpContext) throws IOException {
             int backendPort = selectPort(BackEnd.Type.HOME_PAGE_SERVER);
             CloseableHttpClient httpClient = HttpClients.createDefault();
             Logger.log(String.format("LoadBalancer | relaying message to home server at port %d", backendPort));
@@ -132,15 +124,7 @@ public class LoadBalancer implements Runnable {
             CloseableHttpResponse response = httpClient.execute(httpget);
             long endTime = System.currentTimeMillis();
 
-            BiFunction<Integer, List<RequestAnalytics>, List<RequestAnalytics>> analyticsUpdater = (k, v) -> {
-                v.add(new RequestAnalytics(startTime, endTime));
-                return v;
-            };
-
-            processingTimes.computeIfPresent(backendPort, analyticsUpdater);
-
-            System.out.println("processing times: ");
-            System.out.println(processingTimes);
+            updateAnalytics(backendPort, startTime, endTime);
 
             HttpEntity responseBody = response.getEntity();
             httpResponse.setEntity(responseBody);
@@ -158,10 +142,23 @@ public class LoadBalancer implements Runnable {
         }
     }
 
+    private void updateAnalytics(int port, long startTime, long endTime) {
+        BiFunction<Integer, List<RequestAnalytics>, List<RequestAnalytics>> analyticsUpdater = (k, v) -> {
+            v.add(new RequestAnalytics(startTime, endTime));
+            return v;
+        };
+
+        processingTimes.computeIfPresent(port, analyticsUpdater);
+        System.out.println("=============================");
+        System.out.println("processing times: ");
+        System.out.println(processingTimes);
+        System.out.println("=============================");
+    }
+
     private void startupBackend(BackEnd.Type type) {
         CloseableHttpClient httpClient = HttpClients.createDefault();
         HttpPost httpPost = new HttpPost("http://127.0.0.1:" + BACKEND_INITIATOR_PORT + "/backend/start");
-        List<NameValuePair> params = new ArrayList<NameValuePair>();
+        List<NameValuePair> params = new ArrayList<>();
 
         while(true) {
             try {
@@ -177,7 +174,7 @@ public class LoadBalancer implements Runnable {
                 Logger.log("LoadBalancer | new backend port = " + responseString);
                 int portInt = Integer.valueOf(responseString);
                 backendPortIndex.get(type).add(portInt);
-                processingTimes.put(portInt, new ArrayList<RequestAnalytics>());
+                processingTimes.put(portInt, new ArrayList<>());
                 Logger.log("LoadBalancer | backend ports:");
                 System.out.println("LoadBalancer | backend ports:");
                 for (Map.Entry<BackEnd.Type, List<Integer>> entry : backendPortIndex.entrySet()) {
