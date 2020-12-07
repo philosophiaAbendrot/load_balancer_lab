@@ -1,12 +1,13 @@
 import com.sun.net.httpserver.HttpExchange;
 import com.sun.net.httpserver.HttpHandler;
 import com.sun.net.httpserver.HttpServer;
-
+import org.apache.commons.text.StringEscapeUtils;
 import java.io.IOException;
 import java.io.OutputStream;
-import java.net.InetAddress;
 import java.net.InetSocketAddress;
 import java.util.Random;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ThreadPoolExecutor;
 
 public class BackEnd implements Runnable {
     public enum Type {
@@ -14,6 +15,7 @@ public class BackEnd implements Runnable {
         IMAGE_FILE_SERVER
     }
 
+    // http handler that is fed into HttpServer upon initialization
     private class CustomHttpHandler implements HttpHandler {
         @Override
         public void handle(HttpExchange httpExchange) throws IOException {
@@ -32,7 +34,13 @@ public class BackEnd implements Runnable {
                     .append("</html>");
 
             // encode html content
-//            String htmlResponse = StringEscapeUtils.escapeHtml4(htmlBuilder.toString());
+            String htmlResponse = StringEscapeUtils.escapeHtml4(htmlBuilder.toString());
+
+            // send out response
+            httpExchange.sendResponseHeaders(200, htmlResponse.length());
+            outputStream.write(htmlResponse.getBytes());
+            outputStream.flush();
+            outputStream.close();
         }
 
         private String extractParams(HttpExchange httpExchange) {
@@ -44,89 +52,41 @@ public class BackEnd implements Runnable {
     }
 
     public int port;
-//    List<HttpRequestInterceptor> requestInterceptors = new LinkedList<HttpRequestInterceptor>();
-//    List<HttpResponseInterceptor> responseInterceptors = new LinkedList<HttpResponseInterceptor>();
-//    HttpProcessor httpProcessor;
-//    HttpRequestHandler requestHandler;
-
     int[] selectablePorts = new int[100];
 
     public BackEnd() {
         this.port = port;
         Random rand = new Random();
-//        httpProcessor = new ImmutableHttpProcessor(requestInterceptors, responseInterceptors);
-//        requestHandler = new HttpRequestHandler() {
-//            @Override
-//            public void handle(HttpRequest httpRequest, HttpResponse httpResponse, HttpContext httpContext) throws HttpException, IOException {
-//                BasicHttpEntity responseBody = new BasicHttpEntity();
-//                InputStream bodyStream = IOUtils.toInputStream("hello world", StandardCharsets.UTF_8);
-//                responseBody.setContent(bodyStream);
-//                bodyStream.close();
-//                httpResponse.setEntity(responseBody);
-//
-//                try {
-//                    TimeUnit.MILLISECONDS.sleep(rand.nextInt(1000) + 200);
-//                } catch (InterruptedException e) {
-//                    System.out.println(e.getMessage());
-//                    e.printStackTrace();
-//                }
-//            }
-//        };
+        // initialize list of ports 37000 - 37099 as selectable ports for backend server to run on
         initializeSelectablePorts();
     }
 
     private void initializeSelectablePorts() {
-        for (int i = 0; i < selectablePorts.length; i++) {
+        for (int i = 0; i < selectablePorts.length; i++)
             selectablePorts[i] = 37100 + i;
-        }
     }
 
     @Override
     public void run() {
         try {
-            HttpServer server = HttpServer.create(new InetSocketAddress("localhost", 8001), 0);
-            server.createContext("/", new CustomHttpHandler());
-    //        server.setExecutor(threadPoolExecutor);
-            server.start();
-            Logger.log("Server started on port 8001");
+            // start server
+            ThreadPoolExecutor threadPoolExecutor = (ThreadPoolExecutor) Executors.newFixedThreadPool(1);
+            HttpHandler customHttpHandler = new CustomHttpHandler();
+
+            // cycle through selectable ports and start the server on an unused port
+            for (int i = 0; i < selectablePorts.length; i++) {
+                port = selectablePorts[i];
+                Logger.log(String.format("attempting to start server on port %d\n", port));
+                InetSocketAddress socketAddress = new InetSocketAddress("localhost", port);
+                HttpServer server = HttpServer.create(socketAddress, 0);
+                server.createContext("/", customHttpHandler);
+                server.setExecutor(threadPoolExecutor);
+                server.start();
+                Logger.log("Server started on port " + port);
+            }
         } catch (IOException e) {
+            System.out.println("failed to start server on port " + port);
             e.printStackTrace();
         }
-
-//            for (int i = 0; i < selectablePorts.length; i++) {
-//                port = selectablePorts[i];
-//                Logger.log(String.format("Backend | port = %d", port));
-//                final HttpServer server;
-//
-//                try {
-//                    server = ServerBootstrap.bootstrap()
-//                            .setLocalAddress(hostAddress)
-//                            .setListenerPort(port)
-//                            .setHttpProcessor(httpProcessor)
-//                            .registerHandler("/*", requestHandler)
-//                            .setSocketConfig(config)
-//                            .create();
-//
-//                    server.start();
-//                    server.awaitTermination(Long.MAX_VALUE, TimeUnit.DAYS);
-//                    Runtime.getRuntime().addShutdownHook(new Thread() {
-//                        @Override
-//                        public void run() {
-//                            server.shutdown(5, TimeUnit.SECONDS);
-//                            }
-//                    });
-//                    break;
-//                } catch (IOException e) {
-////                    System.out.println(e.getMessage());
-////                    e.printStackTrace();
-//                }
-//            }
-//        } catch (InterruptedException e) {
-//            System.out.println(e.getMessage());
-//            e.printStackTrace();
-//        } catch (UnknownHostException e) {
-//            System.out.println(e.getMessage());
-//            e.printStackTrace();
-//        }
     }
 }
