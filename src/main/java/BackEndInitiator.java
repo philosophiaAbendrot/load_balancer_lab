@@ -87,25 +87,26 @@ public class BackEndInitiator implements Runnable {
             Thread backendThread = new Thread(backend);
             System.out.println("BackEndInitiator | started backend thread");
             backendThread.start();
-            int backendPort = 0;
+
+            // wait for backend port to be selected by backend
+            int tryNumber = 1;
             while (backend.port == 0) {
-                backendPort = backend.port;
-                System.out.println("BackEndInitiator | backendPort = " + backendPort);
+                // check periodically for the backend port
                 try {
                     Thread.sleep(20);
                 } catch(InterruptedException e) {
                     System.out.println(e.getMessage());
                     e.printStackTrace();
                 }
+                Logger.log("BackEndInitiator | backendPort = " + backend.port + " tryNumber = " + tryNumber++);
             }
 
-            System.out.println("chosen backend port = " + backendPort);
+            Logger.log("chosen backend port = " + backend.port);
             BasicHttpEntity responseEntity = new BasicHttpEntity();
             InputStream responseStream = IOUtils.toInputStream(String.valueOf(backend.port), StandardCharsets.UTF_8.name());
             responseEntity.setContent(responseStream);
             responseStream.close();
             httpResponse.setEntity(responseEntity);
-
         }
     }
 }

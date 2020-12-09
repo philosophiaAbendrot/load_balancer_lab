@@ -31,7 +31,7 @@ public class LoadBalancer implements Runnable {
     ConcurrentMap<Integer, Queue<RequestAnalytics>> processingTimes;
     ConcurrentMap<Integer, Double> capacityFactors;
     private static final int BACKEND_INITIATOR_PORT = 3000;
-    private static final int STARTUP_BACKEND_DYNO_COUNT = 5;
+    private static final int STARTUP_BACKEND_DYNO_COUNT = 3;
     Random rand;
 
     public LoadBalancer(int port) {

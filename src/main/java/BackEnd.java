@@ -24,6 +24,8 @@ public class BackEnd implements Runnable {
         }
 
         private void handleResponse(HttpExchange httpExchange, String requestParams) throws IOException {
+            Logger.log("=========================================");
+            Logger.log("CustomHttpHandler received request");
             OutputStream outputStream = httpExchange.getResponseBody();
             StringBuilder htmlBuilder = new StringBuilder();
             htmlBuilder.append("<html>").append("<body>")
@@ -55,7 +57,6 @@ public class BackEnd implements Runnable {
     int[] selectablePorts = new int[100];
 
     public BackEnd() {
-        this.port = port;
         Random rand = new Random();
         // initialize list of ports 37000 - 37099 as selectable ports for backend server to run on
         initializeSelectablePorts();
@@ -68,25 +69,30 @@ public class BackEnd implements Runnable {
 
     @Override
     public void run() {
-        try {
-            // start server
-            ThreadPoolExecutor threadPoolExecutor = (ThreadPoolExecutor) Executors.newFixedThreadPool(1);
-            HttpHandler customHttpHandler = new CustomHttpHandler();
+        // start server
+        ThreadPoolExecutor threadPoolExecutor = (ThreadPoolExecutor) Executors.newFixedThreadPool(1);
+        HttpHandler customHttpHandler = new CustomHttpHandler();
+        HttpServer server = null;
 
-            // cycle through selectable ports and start the server on an unused port
-            for (int i = 0; i < selectablePorts.length; i++) {
-                port = selectablePorts[i];
-                Logger.log(String.format("attempting to start server on port %d\n", port));
-                InetSocketAddress socketAddress = new InetSocketAddress("localhost", port);
-                HttpServer server = HttpServer.create(socketAddress, 0);
+        for (int i = 0; i < selectablePorts.length; i++) {
+            port = selectablePorts[i];
+            Logger.log(String.format("attempting to start server on port %d\n", port));
+            InetSocketAddress socketAddress = new InetSocketAddress("localhost", port);
+            try {
+                server = HttpServer.create(socketAddress, 0);
                 server.createContext("/", customHttpHandler);
                 server.setExecutor(threadPoolExecutor);
-                server.start();
-                Logger.log("Server started on port " + port);
+                break;
+            } catch(IOException e) {
+                Logger.log(String.format("BackEnd | Failed to start server on socket %s", socketAddress.toString()));
             }
-        } catch (IOException e) {
-            System.out.println("failed to start server on port " + port);
-            e.printStackTrace();
+        }
+
+        if (server != null) {
+            server.start();
+            Logger.log("Server started on port " + port);
+        } else {
+            Logger.log("Failed to start server on any port");
         }
     }
 }

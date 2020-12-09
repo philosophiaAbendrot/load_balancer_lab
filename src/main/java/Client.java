@@ -13,6 +13,7 @@ import java.util.concurrent.TimeUnit;
 public class Client implements Runnable {
     CloseableHttpClient httpClient;
     private static final int LOAD_BALANCER_PORT = 8080;
+    private static final int NUM_REQUESTS = 1;
     String name;
 
     public Client(String _name) {
@@ -25,6 +26,7 @@ public class Client implements Runnable {
         try {
             start();
         } catch(IOException e) {
+            System.out.println("Client did not receive a response.");
             System.out.println(e.getMessage());
             e.printStackTrace();
         }
@@ -33,7 +35,7 @@ public class Client implements Runnable {
     void start() throws IOException {
         Random rand = new Random();
 
-        for (int i = 0; i < 5; i++) {
+        for (int i = 0; i < NUM_REQUESTS; i++) {
             int roll = rand.nextInt(2);
             String path;
             if (roll == 1) {
