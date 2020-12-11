@@ -4,6 +4,7 @@ import com.sun.net.httpserver.HttpServer;
 import org.apache.commons.text.StringEscapeUtils;
 import java.io.IOException;
 import java.io.OutputStream;
+import java.net.InetAddress;
 import java.net.InetSocketAddress;
 import java.util.Random;
 import java.util.concurrent.Executors;
@@ -24,8 +25,8 @@ public class BackEnd implements Runnable {
         }
 
         private void handleResponse(HttpExchange httpExchange, String requestParams) throws IOException {
-            Logger.log("=========================================");
-            Logger.log("CustomHttpHandler received request");
+            Logger.log("BackEnd | =========================================");
+            Logger.log("BackEnd | CustomHttpHandler received request");
             OutputStream outputStream = httpExchange.getResponseBody();
             StringBuilder htmlBuilder = new StringBuilder();
             htmlBuilder.append("<html>").append("<body>")
@@ -46,10 +47,12 @@ public class BackEnd implements Runnable {
         }
 
         private String extractParams(HttpExchange httpExchange) {
-            return httpExchange.getRequestURI()
-                    .toString()
-                    .split("\\?")[1]
-                    .split("=")[1];
+            String[] intermediate1 = httpExchange.getRequestURI().toString().split("\\?");
+
+            if (intermediate1.length > 1)
+                return intermediate1[1];
+            else
+                return "";
         }
     }
 
@@ -77,14 +80,17 @@ public class BackEnd implements Runnable {
         for (int i = 0; i < selectablePorts.length; i++) {
             port = selectablePorts[i];
             Logger.log(String.format("attempting to start server on port %d\n", port));
-            InetSocketAddress socketAddress = new InetSocketAddress("localhost", port);
+
             try {
+                InetAddress host = InetAddress.getByName("127.0.0.1");
+                InetSocketAddress socketAddress = new InetSocketAddress(host, port);
                 server = HttpServer.create(socketAddress, 0);
                 server.createContext("/", customHttpHandler);
                 server.setExecutor(threadPoolExecutor);
+                Logger.log(String.format("BackEnd | Server started on %s", socketAddress.toString()));
                 break;
             } catch(IOException e) {
-                Logger.log(String.format("BackEnd | Failed to start server on socket %s", socketAddress.toString()));
+                Logger.log(String.format("BackEnd | Failed to start server on port %d", port));
             }
         }
 
