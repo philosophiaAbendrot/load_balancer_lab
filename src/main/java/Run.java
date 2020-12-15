@@ -3,7 +3,7 @@ import java.util.List;
 import java.util.concurrent.TimeUnit;
 
 public class Run {
-    final static int NUM_CLIENTS = 4;
+    final static int NUM_CLIENTS = 20;
 
     public static void main(String[] args) {
         Thread loadBalancerThread = new Thread(new LoadBalancer(8080));

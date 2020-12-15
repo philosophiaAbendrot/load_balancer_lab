@@ -50,7 +50,7 @@ public class Client implements Runnable {
             response.close();
 
             try {
-                TimeUnit.MILLISECONDS.sleep(300);
+                TimeUnit.MILLISECONDS.sleep(1500);
             } catch (InterruptedException e) {
                 System.out.println(e.getMessage());
                 e.printStackTrace();
