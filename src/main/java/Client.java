@@ -13,7 +13,7 @@ import java.util.concurrent.TimeUnit;
 public class Client implements Runnable {
     CloseableHttpClient httpClient;
     private static final int LOAD_BALANCER_PORT = 8080;
-    private static final int NUM_REQUESTS = 1;
+    private static final int NUM_REQUESTS = 50;
     String name;
 
     public Client(String _name) {

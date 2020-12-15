@@ -9,6 +9,7 @@ import java.net.InetSocketAddress;
 import java.util.Random;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ThreadPoolExecutor;
+import java.util.concurrent.TimeUnit;
 
 public class BackEnd implements Runnable {
     public enum Type {
@@ -27,6 +28,13 @@ public class BackEnd implements Runnable {
         private void handleResponse(HttpExchange httpExchange, String requestParams) throws IOException {
             Logger.log("BackEnd | =========================================");
             Logger.log("BackEnd | CustomHttpHandler received request");
+            Logger.log("BackEnd | CustomHttpHandler processing request");
+            try {
+                TimeUnit.MILLISECONDS.sleep(200);
+            } catch(InterruptedException e) {
+                e.printStackTrace();
+            }
+
             OutputStream outputStream = httpExchange.getResponseBody();
             StringBuilder htmlBuilder = new StringBuilder();
             htmlBuilder.append("<html>").append("<body>")
@@ -39,6 +47,7 @@ public class BackEnd implements Runnable {
             // encode html content
             String htmlResponse = StringEscapeUtils.escapeHtml4(htmlBuilder.toString());
 
+            Logger.log("BackEnd | CustomHttpHandler processed request");
             // send out response
             httpExchange.sendResponseHeaders(200, htmlResponse.length());
             outputStream.write(htmlResponse.getBytes());
