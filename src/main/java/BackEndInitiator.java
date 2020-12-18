@@ -2,7 +2,6 @@ import org.apache.commons.io.IOUtils;
 import org.apache.http.*;
 import org.apache.http.config.SocketConfig;
 import org.apache.http.entity.BasicHttpEntity;
-import org.apache.http.entity.StringEntity;
 import org.apache.http.impl.bootstrap.HttpServer;
 import org.apache.http.impl.bootstrap.ServerBootstrap;
 import org.apache.http.protocol.HttpContext;
