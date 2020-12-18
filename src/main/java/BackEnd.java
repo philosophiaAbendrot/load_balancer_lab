@@ -6,6 +6,9 @@ import java.io.IOException;
 import java.io.OutputStream;
 import java.net.InetAddress;
 import java.net.InetSocketAddress;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
 import java.util.Random;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ThreadPoolExecutor;
@@ -17,6 +20,24 @@ public class BackEnd implements Runnable {
         IMAGE_FILE_SERVER
     }
 
+    private class RequestParametric {
+        long startTime;
+        long endTime;
+        long processingTime;
+
+        public RequestParametric(long startTime, long endTime) {
+            this.startTime = startTime;
+            this.endTime = endTime;
+            this.processingTime = endTime - startTime;
+        }
+
+        public String toString() {
+            return String.format("startTime = %d | endTime = %d | processingTime = %d", startTime, endTime, processingTime);
+        }
+    }
+
+    List<RequestParametric> requestParametrics = Collections.synchronizedList(new ArrayList<>());
+
     // http handler that is fed into HttpServer upon initialization
     private class CustomHttpHandler implements HttpHandler {
         @Override
@@ -26,6 +47,7 @@ public class BackEnd implements Runnable {
         }
 
         private void handleResponse(HttpExchange httpExchange, String requestParams) throws IOException {
+            long startTime = System.currentTimeMillis();
             Logger.log("BackEnd | =========================================");
             Logger.log("BackEnd | CustomHttpHandler received request");
             Logger.log("BackEnd | CustomHttpHandler processing request");
@@ -53,6 +75,8 @@ public class BackEnd implements Runnable {
             outputStream.write(htmlResponse.getBytes());
             outputStream.flush();
             outputStream.close();
+            long endTime = System.currentTimeMillis();
+            requestParametrics.add(new RequestParametric(startTime, endTime));
         }
 
         private String extractParams(HttpExchange httpExchange) {

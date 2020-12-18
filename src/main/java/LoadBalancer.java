@@ -98,8 +98,8 @@ public class LoadBalancer implements Runnable {
 
             server.start();
             startupBackendCluster();
-            Thread capacityFactorMonitor = new Thread(new CapacityFactorCalculator());
-            capacityFactorMonitor.start();
+//            Thread capacityFactorMonitor = new Thread(new CapacityFactorCalculator());
+//            capacityFactorMonitor.start();
             server.awaitTermination(Long.MAX_VALUE, TimeUnit.DAYS);
             Runtime.getRuntime().addShutdownHook(new Thread() {
                 @Override
