@@ -171,6 +171,7 @@ public class LoadBalancer implements Runnable {
                 InputStream responseStream = responseBody.getContent();
                 String responseString = IOUtils.toString(responseStream, StandardCharsets.UTF_8.name());
                 responseStream.close();
+                httpClient.close();
                 Logger.log("LoadBalancer | new backend port = " + responseString);
                 int portInt = Integer.valueOf(responseString);
                 backendPortIndex.get(type).add(portInt);
