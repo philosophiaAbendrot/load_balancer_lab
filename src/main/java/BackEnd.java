@@ -39,6 +39,34 @@ public class BackEnd implements Runnable {
     List<RequestParametric> requestParametrics = Collections.synchronizedList(new ArrayList<>());
 
     // http handler that is fed into HttpServer upon initialization
+    // serves direct requests from load balancer for updates on capacity factor
+    private class CapacityFactorRequestHandler implements HttpHandler {
+        @Override
+        public void handle(HttpExchange httpExchange) throws IOException {
+            OutputStream outputStream = httpExchange.getResponseBody();
+            StringBuilder htmlBuilder = new StringBuilder();
+            htmlBuilder.append("<html>")
+                    .append("<body>")
+                    .append("<h1>")
+                    .append("Test")
+                    .append("</h1>")
+                    .append("</body>")
+                    .append("</html>");
+
+            // encode html content
+            String htmlResponse = StringEscapeUtils.escapeHtml4(htmlBuilder.toString());
+
+            Logger.log("BackEnd | CapacityFactorRequestHandler processed request");
+            // send out response
+            httpExchange.sendResponseHeaders(200, htmlResponse.length());
+            outputStream.write(htmlResponse.getBytes());
+            outputStream.flush();
+            outputStream.close();
+        }
+    }
+
+    // http handler that is fed into HttpServer upon initialization
+    // serves requests from load balancer that are from client
     private class CustomHttpHandler implements HttpHandler {
         @Override
         public void handle(HttpExchange httpExchange) throws IOException {
