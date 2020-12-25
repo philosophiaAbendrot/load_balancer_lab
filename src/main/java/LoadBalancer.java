@@ -40,24 +40,40 @@ public class LoadBalancer implements Runnable {
         backendPortIndex.put(BackEnd.Type.IMAGE_FILE_SERVER, new ArrayList<>());
         rand = new Random();
         capacityFactors = new ConcurrentHashMap<>();
+        Thread capacityFactorMonitor = new Thread(new CapacityFactorMonitor());
+        capacityFactorMonitor.start();
     }
 
-    class CapacityFactorCalculator implements Runnable {
-        public CapacityFactorCalculator() {
-
-        }
-
+    class CapacityFactorMonitor implements Runnable {
         @Override
         public void run() {
             while(true) {
                 try {
                     Thread.sleep(500);
+
+                    for (Map.Entry<Integer, Double> entry : capacityFactors.entrySet()) {
+                        int backendPort = entry.getKey();
+                        CloseableHttpClient httpClient = HttpClients.createDefault();
+                        Logger.log(String.format("LoadBalancer | sending request for update on capacity factor to port %d", backendPort));
+                        HttpGet httpget = new HttpGet("http://127.0.0.1:" + backendPort + "/capacity_factor");
+                        try {
+                            CloseableHttpResponse response = httpClient.execute(httpget);
+                            HttpEntity responseBody = response.getEntity();
+                            InputStream responseStream = responseBody.getContent();
+                            String responseString = IOUtils.toString(responseStream, StandardCharsets.UTF_8.name());
+                            responseStream.close();
+                            Logger.log(String.format("LoadBalancer | received update on capacity factor: %s", responseString));
+                            httpClient.close();
+                        } catch(IOException e) {
+                            e.printStackTrace();
+                        }
+                    }
                 } catch(InterruptedException e) {
                     System.out.println(e.getMessage());
                     e.printStackTrace();
                 }
                 System.out.println("=====================================");
-                System.out.println("capacity factor calculator running");
+                System.out.println("capacity factor monitor running");
                 System.out.println("=====================================");
                 System.out.println("capacity factors = " + capacityFactors);
             }

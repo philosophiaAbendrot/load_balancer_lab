@@ -136,6 +136,7 @@ public class BackEnd implements Runnable {
         // start server
         ThreadPoolExecutor threadPoolExecutor = (ThreadPoolExecutor) Executors.newFixedThreadPool(1);
         HttpHandler customHttpHandler = new CustomHttpHandler();
+        HttpHandler capacityFactorRequestHandler = new CapacityFactorRequestHandler();
         HttpServer server = null;
 
         for (int i = 0; i < selectablePorts.length; i++) {
@@ -147,6 +148,7 @@ public class BackEnd implements Runnable {
                 InetSocketAddress socketAddress = new InetSocketAddress(host, port);
                 server = HttpServer.create(socketAddress, 0);
                 server.createContext("/", customHttpHandler);
+                server.createContext("/capacity_factor", capacityFactorRequestHandler);
                 server.setExecutor(threadPoolExecutor);
                 Logger.log(String.format("BackEnd | Server started on %s", socketAddress.toString()));
                 break;
