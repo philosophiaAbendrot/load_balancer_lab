@@ -6,7 +6,7 @@ public class Run {
     final static int NUM_CLIENTS = 20;
 
     public static void main(String[] args) {
-        Thread loadBalancerThread = new Thread(new LoadBalancer(8080));
+        Thread loadBalancerThread = new Thread(new LoadBalancer(8080)); 
         Thread backendInitiatorThread = new Thread(new BackEndInitiator());
         List<Thread> clients = new ArrayList<>();
         for (int i = 0; i < NUM_CLIENTS; i++) {

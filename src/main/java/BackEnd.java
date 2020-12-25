@@ -44,11 +44,29 @@ public class BackEnd implements Runnable {
         @Override
         public void handle(HttpExchange httpExchange) throws IOException {
             OutputStream outputStream = httpExchange.getResponseBody();
+
+            double capacityFactor = 0;
+
+            // calculate capacity factor
+            if (!requestParametrics.isEmpty()) {
+                long startTime = requestParametrics.get(0).startTime;
+                long endTime = System.currentTimeMillis();
+                long runningTime = 0;
+
+                for (RequestParametric parametric : requestParametrics)
+                    runningTime += parametric.processingTime;
+
+                capacityFactor = runningTime / (double)(endTime - startTime);
+            }
+
+            Logger.log(String.format("Backend | capacityFactor = %f", capacityFactor));
+
+
             StringBuilder htmlBuilder = new StringBuilder();
             htmlBuilder.append("<html>")
                     .append("<body>")
                     .append("<h1>")
-                    .append("Test")
+                    .append(capacityFactor)
                     .append("</h1>")
                     .append("</body>")
                     .append("</html>");
