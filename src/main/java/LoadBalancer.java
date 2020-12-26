@@ -1,4 +1,5 @@
 import org.apache.commons.io.IOUtils;
+import org.apache.commons.text.StringEscapeUtils;
 import org.apache.http.*;
 import org.apache.http.client.ClientProtocolException;
 import org.apache.http.client.entity.UrlEncodedFormEntity;
@@ -11,6 +12,7 @@ import org.apache.http.impl.bootstrap.ServerBootstrap;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClients;
 import org.apache.http.protocol.*;
+import org.json.JSONObject;
 
 import java.io.*;
 import java.net.InetAddress;
@@ -62,7 +64,8 @@ public class LoadBalancer implements Runnable {
                             InputStream responseStream = responseBody.getContent();
                             String responseString = IOUtils.toString(responseStream, StandardCharsets.UTF_8.name());
                             responseStream.close();
-                            Logger.log(String.format("LoadBalancer | received update on capacity factor: %s", responseString));
+                            JSONObject responseJson = new JSONObject(StringEscapeUtils.unescapeJson(responseString));
+                            Logger.log(String.format("LoadBalancer | received update on capacity factor: %s", responseJson.get("capacity_factor")));
                             httpClient.close();
                         } catch(IOException e) {
                             e.printStackTrace();
@@ -114,8 +117,6 @@ public class LoadBalancer implements Runnable {
 
             server.start();
             startupBackendCluster();
-//            Thread capacityFactorMonitor = new Thread(new CapacityFactorCalculator());
-//            capacityFactorMonitor.start();
             server.awaitTermination(Long.MAX_VALUE, TimeUnit.DAYS);
             Runtime.getRuntime().addShutdownHook(new Thread() {
                 @Override
