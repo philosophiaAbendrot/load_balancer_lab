@@ -2,6 +2,8 @@ import com.sun.net.httpserver.HttpExchange;
 import com.sun.net.httpserver.HttpHandler;
 import com.sun.net.httpserver.HttpServer;
 import org.apache.commons.text.StringEscapeUtils;
+import org.json.JSONObject;
+
 import java.io.IOException;
 import java.io.OutputStream;
 import java.net.InetAddress;
@@ -61,19 +63,12 @@ public class BackEnd implements Runnable {
 
             Logger.log(String.format("Backend | capacityFactor = %f", capacityFactor));
 
-
-            StringBuilder htmlBuilder = new StringBuilder();
-            htmlBuilder.append("<html>")
-                    .append("<body>")
-                    .append("<h1>")
-                    .append(capacityFactor)
-                    .append("</h1>")
-                    .append("</body>")
-                    .append("</html>");
+            JSONObject outputJsonObj = new JSONObject();
+            outputJsonObj.put("capacity_factor", capacityFactor);
 
             // encode html content
-            String htmlResponse = StringEscapeUtils.escapeHtml4(htmlBuilder.toString());
-
+            String htmlResponse = StringEscapeUtils.escapeJson(outputJsonObj.toString());
+//            String htmlResponse = StringEscapeUtils.escapeHtml4(htmlBuilder.toString());
             Logger.log("BackEnd | CapacityFactorRequestHandler processed request");
             // send out response
             httpExchange.sendResponseHeaders(200, htmlResponse.length());
