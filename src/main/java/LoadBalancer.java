@@ -21,8 +21,6 @@ import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.TimeUnit;
-import java.util.function.BiConsumer;
-import java.util.function.BiFunction;
 
 public class LoadBalancer implements Runnable {
     int port;
@@ -65,7 +63,9 @@ public class LoadBalancer implements Runnable {
                             String responseString = IOUtils.toString(responseStream, StandardCharsets.UTF_8.name());
                             responseStream.close();
                             JSONObject responseJson = new JSONObject(StringEscapeUtils.unescapeJson(responseString));
-                            Logger.log(String.format("LoadBalancer | received update on capacity factor: %s", responseJson.get("capacity_factor")));
+                            double capacityFactor = responseJson.getDouble("capacity_factor");
+                            Logger.log(String.format("LoadBalancer | received update on capacity factor: %s", capacityFactor));
+                            entry.setValue(capacityFactor);
                             httpClient.close();
                         } catch(IOException e) {
                             e.printStackTrace();
