@@ -117,7 +117,7 @@ public class BackEnd implements Runnable {
             outputStream.flush();
             outputStream.close();
             long endTime = System.currentTimeMillis();
-            requestParametrics.add(new RequestParametric(startTime, endTime));
+            updateRequestParametrics(startTime, endTime);
         }
 
         private String extractParams(HttpExchange httpExchange) {
@@ -137,6 +137,20 @@ public class BackEnd implements Runnable {
         Random rand = new Random();
         // initialize list of ports 37000 - 37099 as selectable ports for backend server to run on
         initializeSelectablePorts();
+    }
+
+    private void updateRequestParametrics(long startTime, long endTime) {
+        // add request parametric
+        requestParametrics.add(new RequestParametric(startTime, endTime));
+        // delete request parametrics which are out of date
+        long currentTime = System.currentTimeMillis();
+
+        for (RequestParametric parametric : requestParametrics) {
+            if (parametric.startTime > currentTime)
+                break;
+            else
+                parametric.remove();
+        }
     }
 
     private void initializeSelectablePorts() {
