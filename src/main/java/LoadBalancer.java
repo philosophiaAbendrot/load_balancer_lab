@@ -123,6 +123,10 @@ public class LoadBalancer implements Runnable {
         public void handle(HttpRequest httpRequest, HttpResponse httpResponse, HttpContext httpContext) throws IOException {
             int backendPort = selectPort(BackEnd.Type.IMAGE_FILE_SERVER);
             CloseableHttpClient httpClient = HttpClients.createDefault();
+            String uri = httpRequest.getRequestLine().getUri();
+            String[] uriArr = uri.split("/", 0);
+            int resourceId = Integer.parseInt(uriArr[uriArr.length - 1]);
+            Logger.log(String.format("LoadBalancer | resourceId = %d", resourceId));
             Logger.log(String.format("LoadBalancer | relaying message to image file server at port %d", backendPort));
             HttpGet httpget = new HttpGet("http://127.0.0.1:" + backendPort);
             CloseableHttpResponse response = httpClient.execute(httpget);
