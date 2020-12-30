@@ -102,7 +102,6 @@ public class BackEnd implements Runnable {
 
             // encode html content
             String htmlResponse = StringEscapeUtils.escapeJson(outputJsonObj.toString());
-//            String htmlResponse = StringEscapeUtils.escapeHtml4(htmlBuilder.toString());
             Logger.log("BackEnd | CapacityFactorRequestHandler processed request");
             // send out response
             httpExchange.sendResponseHeaders(200, htmlResponse.length());

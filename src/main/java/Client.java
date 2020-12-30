@@ -14,11 +14,14 @@ public class Client implements Runnable {
     CloseableHttpClient httpClient;
     private static final int LOAD_BALANCER_PORT = 8080;
     private static final int NUM_REQUESTS = 50;
+    int resourceId;
     String name;
 
     public Client(String _name) {
         httpClient = HttpClients.createDefault();
         name = _name;
+        Random random = new Random();
+        resourceId = random.nextInt(20);
     }
 
     @Override
@@ -33,16 +36,9 @@ public class Client implements Runnable {
     }
 
     void start() throws IOException {
-        Random rand = new Random();
-
         for (int i = 0; i < NUM_REQUESTS; i++) {
-            int roll = rand.nextInt(2);
             String path;
-            if (roll == 1) {
-                path = "/home";
-            } else {
-                path = "/image";
-            }
+            path = "/api/" + resourceId;
             HttpGet httpget = new HttpGet("http://127.0.0.1:" + LOAD_BALANCER_PORT + path);
             Logger.log(String.format("Client %s | path: %s", name, path));
             CloseableHttpResponse response = sendRequest(httpget);
@@ -63,15 +59,6 @@ public class Client implements Runnable {
     }
 
     private void printResponse(CloseableHttpResponse response) throws IOException {
-        StatusLine statusLine = response.getStatusLine();
-        Header[] headers = response.getAllHeaders();
-
-//        System.out.printf("Client %s | response headers:\n", name);
-//        for (int i = 0; i < headers.length; i++) {
-//            Header header = headers[i];
-//            System.out.printf("Client | header: %s: %s\n", header.getName(), header.getValue());
-//        }
-
         HttpEntity responseBody = response.getEntity();
         InputStream bodyStream = responseBody.getContent();
         String responseString = IOUtils.toString(bodyStream, StandardCharsets.UTF_8.name());
