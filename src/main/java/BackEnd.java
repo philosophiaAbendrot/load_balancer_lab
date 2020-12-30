@@ -38,6 +38,40 @@ public class BackEnd implements Runnable {
         }
     }
 
+    // class for periodically clearing out oudated telemetry
+    private class TelemetryCurator implements Runnable {
+        @Override
+        public void run() {
+            while (true) {
+                try {
+                    Thread.sleep(300);
+                    clearOutTelemetry();
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
+            }
+        }
+
+        private void clearOutTelemetry() {
+            Logger.log("Backend | clearOutTelemetry running");
+            // delete request telemetry which are out of date
+            Iterator<RequestTelemetry> iterator = requestTelemetrics.iterator();
+            long currentTime = System.currentTimeMillis();
+            int deleteCount = 0;
+
+            while (iterator.hasNext()) {
+                RequestTelemetry parametric = iterator.next();
+                if (parametric.startTime + parametricStorageTime < currentTime) {
+                    iterator.remove();
+                    deleteCount++;
+                } else
+                    break;
+            }
+
+            Logger.log("Backend | " + deleteCount + " telemetrics deleted.");
+        }
+    }
+
     List<RequestTelemetry> requestTelemetrics = Collections.synchronizedList(new ArrayList<>());
 
     // http handler that is fed into HttpServer upon initialization
@@ -144,22 +178,6 @@ public class BackEnd implements Runnable {
         requestTelemetrics.add(new RequestTelemetry(startTime, endTime));
     }
 
-    private void clearOutTelemetry() {
-        // delete request telemetry which are out of date
-        Iterator<RequestTelemetry> iterator = requestTelemetrics.iterator();
-        long currentTime = System.currentTimeMillis();
-        int deleteCount = 0;
-
-        while (iterator.hasNext()) {
-            RequestTelemetry parametric = iterator.next();
-            if (parametric.startTime + parametricStorageTime < currentTime) {
-                iterator.remove();
-                deleteCount++;
-            } else
-                break;
-        }
-    }
-
     private void initializeSelectablePorts() {
         for (int i = 0; i < selectablePorts.length; i++)
             selectablePorts[i] = 37100 + i;
@@ -190,6 +208,9 @@ public class BackEnd implements Runnable {
                 Logger.log(String.format("BackEnd | Failed to start server on port %d", port));
             }
         }
+
+        // start request telemetry curator
+        (new Thread(new TelemetryCurator())).start();
 
         if (server != null) {
             server.start();
