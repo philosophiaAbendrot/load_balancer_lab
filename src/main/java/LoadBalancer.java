@@ -83,21 +83,6 @@ public class LoadBalancer implements Runnable {
         }
     }
 
-    // stores information about handled requests
-    class RequestAnalytics {
-        long processingTime, startTime, endTime;
-
-        public RequestAnalytics(long startTime, long endTime) {
-            this.processingTime = endTime - startTime;
-            this.startTime = startTime;
-            this.endTime = endTime;
-        }
-
-        public String toString() {
-            return String.format("processing time : %d | start time: %d", processingTime, startTime);
-        }
-    }
-
     @Override
     public void run() {
         SocketConfig config = SocketConfig.custom()
@@ -111,8 +96,7 @@ public class LoadBalancer implements Runnable {
                     .setListenerPort(port)
                     .setHttpProcessor(httpProcessor)
                     .setSocketConfig(config)
-                    .registerHandler("/image", new ClientImageRequestHandler())
-                    .registerHandler("/home", new ClientHomeRequestHandler())
+                    .registerHandler("/api/*", new ClientRequestHandler())
                     .create();
 
             server.start();
@@ -134,7 +118,7 @@ public class LoadBalancer implements Runnable {
     }
 
     // REQUEST HANDLERS
-    private class ClientImageRequestHandler implements HttpRequestHandler {
+    private class ClientRequestHandler implements HttpRequestHandler {
         @Override
         public void handle(HttpRequest httpRequest, HttpResponse httpResponse, HttpContext httpContext) throws IOException {
             int backendPort = selectPort(BackEnd.Type.IMAGE_FILE_SERVER);
@@ -143,19 +127,6 @@ public class LoadBalancer implements Runnable {
             HttpGet httpget = new HttpGet("http://127.0.0.1:" + backendPort);
             CloseableHttpResponse response = httpClient.execute(httpget);
 
-            HttpEntity responseBody = response.getEntity();
-            httpResponse.setEntity(responseBody);
-        }
-    }
-
-    private class ClientHomeRequestHandler implements HttpRequestHandler {
-        @Override
-        public void handle(HttpRequest httpRequest, HttpResponse httpResponse, HttpContext httpContext) throws IOException {
-            int backendPort = selectPort(BackEnd.Type.HOME_PAGE_SERVER);
-            CloseableHttpClient httpClient = HttpClients.createDefault();
-            Logger.log(String.format("LoadBalancer | relaying message to home server at port %d", backendPort));
-            HttpGet httpget = new HttpGet("http://127.0.0.1:" + backendPort);
-            CloseableHttpResponse response = httpClient.execute(httpget);
             HttpEntity responseBody = response.getEntity();
             httpResponse.setEntity(responseBody);
         }
