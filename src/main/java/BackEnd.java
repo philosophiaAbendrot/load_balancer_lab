@@ -8,10 +8,7 @@ import java.io.IOException;
 import java.io.OutputStream;
 import java.net.InetAddress;
 import java.net.InetSocketAddress;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-import java.util.Random;
+import java.util.*;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
@@ -22,12 +19,15 @@ public class BackEnd implements Runnable {
         IMAGE_FILE_SERVER
     }
 
-    private class RequestParametric {
+    static final int parametricStorageTime = 10_000; // 10 seconds of parametric storage time
+
+    // class for storing information on requests
+    private class RequestTelemetry {
         long startTime;
         long endTime;
         long processingTime;
 
-        public RequestParametric(long startTime, long endTime) {
+        public RequestTelemetry(long startTime, long endTime) {
             this.startTime = startTime;
             this.endTime = endTime;
             this.processingTime = endTime - startTime;
@@ -38,7 +38,7 @@ public class BackEnd implements Runnable {
         }
     }
 
-    List<RequestParametric> requestParametrics = Collections.synchronizedList(new ArrayList<>());
+    List<RequestTelemetry> requestTelemetrics = Collections.synchronizedList(new ArrayList<>());
 
     // http handler that is fed into HttpServer upon initialization
     // serves direct requests from load balancer for updates on capacity factor
@@ -50,13 +50,13 @@ public class BackEnd implements Runnable {
             double capacityFactor = 0;
 
             // calculate capacity factor
-            if (!requestParametrics.isEmpty()) {
-                long startTime = requestParametrics.get(0).startTime;
+            if (!requestTelemetrics.isEmpty()) {
+                long startTime = requestTelemetrics.get(0).startTime;
                 long endTime = System.currentTimeMillis();
                 long runningTime = 0;
 
-                for (RequestParametric parametric : requestParametrics)
-                    runningTime += parametric.processingTime;
+                for (RequestTelemetry telemetry : requestTelemetrics)
+                    runningTime += telemetry.processingTime;
 
                 capacityFactor = runningTime / (double)(endTime - startTime);
             }
@@ -117,7 +117,7 @@ public class BackEnd implements Runnable {
             outputStream.flush();
             outputStream.close();
             long endTime = System.currentTimeMillis();
-            updateRequestParametrics(startTime, endTime);
+            recordRequestTelemetry(startTime, endTime);
         }
 
         private String extractParams(HttpExchange httpExchange) {
@@ -139,17 +139,24 @@ public class BackEnd implements Runnable {
         initializeSelectablePorts();
     }
 
-    private void updateRequestParametrics(long startTime, long endTime) {
-        // add request parametric
-        requestParametrics.add(new RequestParametric(startTime, endTime));
-        // delete request parametrics which are out of date
-        long currentTime = System.currentTimeMillis();
+    private void recordRequestTelemetry(long startTime, long endTime) {
+        // add request telemetry
+        requestTelemetrics.add(new RequestTelemetry(startTime, endTime));
+    }
 
-        for (RequestParametric parametric : requestParametrics) {
-            if (parametric.startTime > currentTime)
+    private void clearOutTelemetry() {
+        // delete request telemetry which are out of date
+        Iterator<RequestTelemetry> iterator = requestTelemetrics.iterator();
+        long currentTime = System.currentTimeMillis();
+        int deleteCount = 0;
+
+        while (iterator.hasNext()) {
+            RequestTelemetry parametric = iterator.next();
+            if (parametric.startTime + parametricStorageTime < currentTime) {
+                iterator.remove();
+                deleteCount++;
+            } else
                 break;
-            else
-                parametric.remove();
         }
     }
 
