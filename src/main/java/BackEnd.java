@@ -14,11 +14,6 @@ import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 
 public class BackEnd implements Runnable {
-    public enum Type {
-        HOME_PAGE_SERVER,
-        IMAGE_FILE_SERVER
-    }
-
     static final int parametricStorageTime = 10_000; // 10 seconds of parametric storage time
 
     // class for storing information on requests

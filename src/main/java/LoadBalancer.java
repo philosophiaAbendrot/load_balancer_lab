@@ -27,7 +27,7 @@ public class LoadBalancer implements Runnable {
     List<HttpRequestInterceptor> requestInterceptors = new ArrayList<>();
     List<HttpResponseInterceptor> responseInterceptors = new ArrayList<>();
     HttpProcessor httpProcessor;
-    Map<BackEnd.Type, List<Integer>> backendPortIndex = new HashMap<>();
+    List<Integer> backendPortIndex = new ArrayList<>();
     ConcurrentMap<Integer, Double> capacityFactors;
     private static final int BACKEND_INITIATOR_PORT = 3000;
     private static final int STARTUP_BACKEND_DYNO_COUNT = 4;
@@ -36,8 +36,6 @@ public class LoadBalancer implements Runnable {
     public LoadBalancer(int port) {
         this.port = port;
         httpProcessor = new ImmutableHttpProcessor(requestInterceptors, responseInterceptors);
-        backendPortIndex.put(BackEnd.Type.HOME_PAGE_SERVER, new ArrayList<>());
-        backendPortIndex.put(BackEnd.Type.IMAGE_FILE_SERVER, new ArrayList<>());
         rand = new Random();
         capacityFactors = new ConcurrentHashMap<>();
         Thread capacityFactorMonitor = new Thread(new CapacityFactorMonitor());
@@ -121,7 +119,7 @@ public class LoadBalancer implements Runnable {
     private class ClientRequestHandler implements HttpRequestHandler {
         @Override
         public void handle(HttpRequest httpRequest, HttpResponse httpResponse, HttpContext httpContext) throws IOException {
-            int backendPort = selectPort(BackEnd.Type.IMAGE_FILE_SERVER);
+            int backendPort = selectPort();
             CloseableHttpClient httpClient = HttpClients.createDefault();
             String uri = httpRequest.getRequestLine().getUri();
             String[] uriArr = uri.split("/", 0);
@@ -140,14 +138,14 @@ public class LoadBalancer implements Runnable {
     private void startupBackendCluster() {
         for (int i = 0; i < STARTUP_BACKEND_DYNO_COUNT; i++) {
             if (i % 2 == 0) {
-                startupBackend(BackEnd.Type.IMAGE_FILE_SERVER);
+                startupBackend();
             } else {
-                startupBackend(BackEnd.Type.HOME_PAGE_SERVER);
+                startupBackend();
             }
         }
     }
 
-    private void startupBackend(BackEnd.Type type) {
+    private void startupBackend() {
         CloseableHttpClient httpClient = HttpClients.createDefault();
         HttpPost httpPost = new HttpPost("http://127.0.0.1:" + BACKEND_INITIATOR_PORT + "/backend/start");
         List<NameValuePair> params = new ArrayList<>();
@@ -166,13 +164,11 @@ public class LoadBalancer implements Runnable {
                 httpClient.close();
                 Logger.log("LoadBalancer | new backend port = " + responseString);
                 int portInt = Integer.valueOf(responseString);
-                backendPortIndex.get(type).add(portInt);
+                backendPortIndex.add(portInt);
                 capacityFactors.put(portInt, -1.0);
                 Logger.log("LoadBalancer | backend ports:");
                 System.out.println("LoadBalancer | backend ports:");
-                for (Map.Entry<BackEnd.Type, List<Integer>> entry : backendPortIndex.entrySet()) {
-                    Logger.log(String.format("%s : %s", entry.getKey(), entry.getValue()));
-                }
+                Logger.log(String.format("ports: %s", backendPortIndex));
                 break;
             } catch (UnsupportedEncodingException | UnsupportedOperationException | ClientProtocolException e) {
                 System.out.println(e.getMessage());
@@ -188,9 +184,8 @@ public class LoadBalancer implements Runnable {
     }
 
     // PRIVATE HELPER METHODS
-    private int selectPort(BackEnd.Type type) {
-        List<Integer> availablePorts = backendPortIndex.get(type);
-        return availablePorts.get(rand.nextInt(availablePorts.size()));
+    private int selectPort() {
+        return backendPortIndex.get(rand.nextInt(backendPortIndex.size()));
     }
 
     public static void main(String[] args) {
