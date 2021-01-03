@@ -23,11 +23,13 @@ import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.TimeUnit;
 
 public class LoadBalancer implements Runnable {
+    private final int HASH_RING_DENOMINATIONS = 60;
+
     int port;
     List<HttpRequestInterceptor> requestInterceptors = new ArrayList<>();
     List<HttpResponseInterceptor> responseInterceptors = new ArrayList<>();
     HttpProcessor httpProcessor;
-    List<Integer> backendPortIndex = new ArrayList<>();
+    Map<Integer, Integer> backendPortIndex = new HashMap<>();
     ConcurrentMap<Integer, Double> capacityFactors;
     private static final int BACKEND_INITIATOR_PORT = 3000;
     private static final int STARTUP_BACKEND_DYNO_COUNT = 4;
@@ -136,19 +138,21 @@ public class LoadBalancer implements Runnable {
 
     // BACKEND INITIALIZATION CODE
     private void startupBackendCluster() {
+        int step = HASH_RING_DENOMINATIONS / STARTUP_BACKEND_DYNO_COUNT;
+        int hashRingIndex = 0;
+
         for (int i = 0; i < STARTUP_BACKEND_DYNO_COUNT; i++) {
-            if (i % 2 == 0) {
-                startupBackend();
-            } else {
-                startupBackend();
-            }
+            int portInt = startupBackend();
+            backendPortIndex.put(hashRingIndex, portInt);
+            hashRingIndex += step;
         }
     }
 
-    private void startupBackend() {
+    private int startupBackend() {
         CloseableHttpClient httpClient = HttpClients.createDefault();
         HttpPost httpPost = new HttpPost("http://127.0.0.1:" + BACKEND_INITIATOR_PORT + "/backend/start");
         List<NameValuePair> params = new ArrayList<>();
+        int portInt = -1;
 
         while(true) {
             try {
@@ -163,12 +167,14 @@ public class LoadBalancer implements Runnable {
                 responseStream.close();
                 httpClient.close();
                 Logger.log("LoadBalancer | new backend port = " + responseString);
-                int portInt = Integer.valueOf(responseString);
-                backendPortIndex.add(portInt);
+                portInt = Integer.valueOf(responseString);
                 capacityFactors.put(portInt, -1.0);
                 Logger.log("LoadBalancer | backend ports:");
                 System.out.println("LoadBalancer | backend ports:");
-                Logger.log(String.format("ports: %s", backendPortIndex));
+
+                for (Map.Entry<Integer, Integer> entry : backendPortIndex.entrySet())
+                    Logger.log(String.format("LoadBalancer | Index: %s | Port: %s", entry.getKey(), entry.getValue()));
+
                 break;
             } catch (UnsupportedEncodingException | UnsupportedOperationException | ClientProtocolException e) {
                 System.out.println(e.getMessage());
@@ -181,11 +187,14 @@ public class LoadBalancer implements Runnable {
                 e.printStackTrace();
             }
         }
+
+        return portInt;
     }
 
     // PRIVATE HELPER METHODS
     private int selectPort() {
-        return backendPortIndex.get(rand.nextInt(backendPortIndex.size()));
+        List<Integer> ports = new ArrayList<>(backendPortIndex.values());
+        return ports.get(rand.nextInt(backendPortIndex.size()));
     }
 
     public static void main(String[] args) {
