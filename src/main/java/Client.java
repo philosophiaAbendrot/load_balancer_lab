@@ -21,7 +21,7 @@ public class Client implements Runnable {
         httpClient = HttpClients.createDefault();
         name = _name;
         Random random = new Random();
-        resourceId = random.nextInt(20);
+        resourceId = random.nextInt(3000);
     }
 
     @Override

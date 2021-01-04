@@ -34,9 +34,11 @@ public class LoadBalancer implements Runnable {
     private static final int BACKEND_INITIATOR_PORT = 3000;
     private static final int STARTUP_BACKEND_DYNO_COUNT = 4;
     Random rand;
+    long initiationTime;
 
     public LoadBalancer(int port) {
         this.port = port;
+        this.initiationTime = System.currentTimeMillis();
         httpProcessor = new ImmutableHttpProcessor(requestInterceptors, responseInterceptors);
         rand = new Random();
         capacityFactors = new ConcurrentHashMap<>();
@@ -45,10 +47,13 @@ public class LoadBalancer implements Runnable {
     }
 
     class CapacityFactorMonitor implements Runnable {
+        final int restInterval = 10_000;
+
         @Override
         public void run() {
             while(true) {
                 try {
+                    // update capacity factors every 0.5s by pinging each backend
                     Thread.sleep(500);
 
                     for (Map.Entry<Integer, Double> entry : capacityFactors.entrySet()) {
@@ -67,6 +72,21 @@ public class LoadBalancer implements Runnable {
                             Logger.log(String.format("LoadBalancer | received update on capacity factor: %s", capacityFactor));
                             entry.setValue(capacityFactor);
                             httpClient.close();
+
+                            if (System.currentTimeMillis() > initiationTime + 10_000 + restInterval) {
+                                // startup a new dyno
+                                int overloadedServerHashRingLocation = -1;
+
+                                for (Map.Entry<Integer, Integer> entry : backendPortIndex.entrySet())
+                                    if (entry.getValue() == backendPort)
+                                        overloadedServerHashRingLocation = entry.getKey();
+
+                                int newServerHashRingLocation = selectHashRingLocation(overloadedServerHashRingLocation);
+                                // start a new server at the new hash ring location
+                                int newServerPort = startupBackend();
+                                // record location of new dyno along with port
+                                backendPortIndex.put(newServerHashRingLocation, newServerPort);
+                            }
                         } catch(IOException e) {
                             e.printStackTrace();
                         }
@@ -121,13 +141,15 @@ public class LoadBalancer implements Runnable {
     private class ClientRequestHandler implements HttpRequestHandler {
         @Override
         public void handle(HttpRequest httpRequest, HttpResponse httpResponse, HttpContext httpContext) throws IOException {
-            int backendPort = selectPort();
             CloseableHttpClient httpClient = HttpClients.createDefault();
             String uri = httpRequest.getRequestLine().getUri();
             String[] uriArr = uri.split("/", 0);
             int resourceId = Integer.parseInt(uriArr[uriArr.length - 1]);
+            int backendPort = selectPort(resourceId);
+
             Logger.log(String.format("LoadBalancer | resourceId = %d", resourceId));
-            Logger.log(String.format("LoadBalancer | relaying message to image file server at port %d", backendPort));
+            Logger.log(String.format("LoadBalancer | relaying message to backend server at port %d", backendPort));
+
             HttpGet httpget = new HttpGet("http://127.0.0.1:" + backendPort);
             CloseableHttpResponse response = httpClient.execute(httpget);
 
@@ -151,13 +173,12 @@ public class LoadBalancer implements Runnable {
     private int startupBackend() {
         CloseableHttpClient httpClient = HttpClients.createDefault();
         HttpPost httpPost = new HttpPost("http://127.0.0.1:" + BACKEND_INITIATOR_PORT + "/backend/start");
-        List<NameValuePair> params = new ArrayList<>();
+
         int portInt = -1;
 
         while(true) {
             try {
                 Thread.sleep(100);
-                httpPost.setEntity(new UrlEncodedFormEntity(params));
                 Logger.log("LoadBalancer | sent request to startup a backend");
                 CloseableHttpResponse response = httpClient.execute(httpPost);
                 Logger.log("Load Balancer | received response");
@@ -170,7 +191,6 @@ public class LoadBalancer implements Runnable {
                 portInt = Integer.valueOf(responseString);
                 capacityFactors.put(portInt, -1.0);
                 Logger.log("LoadBalancer | backend ports:");
-                System.out.println("LoadBalancer | backend ports:");
 
                 for (Map.Entry<Integer, Integer> entry : backendPortIndex.entrySet())
                     Logger.log(String.format("LoadBalancer | Index: %s | Port: %s", entry.getKey(), entry.getValue()));
@@ -192,9 +212,25 @@ public class LoadBalancer implements Runnable {
     }
 
     // PRIVATE HELPER METHODS
-    private int selectPort() {
-        List<Integer> ports = new ArrayList<>(backendPortIndex.values());
-        return ports.get(rand.nextInt(backendPortIndex.size()));
+    private int selectPort(int resourceId) {
+        int hashRingPointer = resourceId % HASH_RING_DENOMINATIONS;
+
+        while (true) {
+            if (backendPortIndex.containsKey(hashRingPointer))
+                break;
+
+            if (hashRingPointer == HASH_RING_DENOMINATIONS)
+                hashRingPointer = 0;
+            else
+                hashRingPointer++;
+        }
+
+        return backendPortIndex.get(hashRingPointer);
+    }
+
+    // takes location of overloaded server as input and returns the location where a new server should be placed
+    private int selectHashRingLocation(int overLoadedLocation) {
+
     }
 
     public static void main(String[] args) {
