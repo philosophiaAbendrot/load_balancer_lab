@@ -2,7 +2,6 @@ import org.apache.commons.io.IOUtils;
 import org.apache.commons.text.StringEscapeUtils;
 import org.apache.http.*;
 import org.apache.http.client.ClientProtocolException;
-import org.apache.http.client.entity.UrlEncodedFormEntity;
 import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.methods.HttpPost;
@@ -24,6 +23,8 @@ import java.util.concurrent.TimeUnit;
 
 public class LoadBalancer implements Runnable {
     private final int HASH_RING_DENOMINATIONS = 60;
+    private final double CAPACITY_FACTOR_MAX = 0.3;
+    private final int REST_INTERVAL = 5_000;
 
     int port;
     List<HttpRequestInterceptor> requestInterceptors = new ArrayList<>();
@@ -32,7 +33,7 @@ public class LoadBalancer implements Runnable {
     Map<Integer, Integer> backendPortIndex = new HashMap<>();
     ConcurrentMap<Integer, Double> capacityFactors;
     private static final int BACKEND_INITIATOR_PORT = 3000;
-    private static final int STARTUP_BACKEND_DYNO_COUNT = 4;
+    private static final int STARTUP_BACKEND_DYNO_COUNT = 1;
     Random rand;
     long initiationTime;
 
@@ -47,8 +48,6 @@ public class LoadBalancer implements Runnable {
     }
 
     class CapacityFactorMonitor implements Runnable {
-        final int restInterval = 10_000;
-
         @Override
         public void run() {
             while(true) {
@@ -73,15 +72,11 @@ public class LoadBalancer implements Runnable {
                             entry.setValue(capacityFactor);
                             httpClient.close();
 
-                            if (System.currentTimeMillis() > initiationTime + 10_000 + restInterval) {
+                            if (System.currentTimeMillis() > initiationTime + REST_INTERVAL && capacityFactor > CAPACITY_FACTOR_MAX) {
                                 // startup a new dyno
-                                int overloadedServerHashRingLocation = -1;
-
-                                for (Map.Entry<Integer, Integer> entry : backendPortIndex.entrySet())
-                                    if (entry.getValue() == backendPort)
-                                        overloadedServerHashRingLocation = entry.getKey();
-
-                                int newServerHashRingLocation = selectHashRingLocation(overloadedServerHashRingLocation);
+                                Logger.log(String.format("Load Balancer | backendPort %d is overloaded with cf = %f", backendPort, capacityFactor));
+                                int newServerHashRingLocation = selectHashRingLocation(backendPort);
+                                Logger.log(String.format("Load Balancer | selected location %d for new server", newServerHashRingLocation));
                                 // start a new server at the new hash ring location
                                 int newServerPort = startupBackend();
                                 // record location of new dyno along with port
@@ -229,8 +224,42 @@ public class LoadBalancer implements Runnable {
     }
 
     // takes location of overloaded server as input and returns the location where a new server should be placed
-    private int selectHashRingLocation(int overLoadedLocation) {
+    private int selectHashRingLocation(int backendPort) {
+        Integer currLoc = null, prevLoc = null;
 
+        List<Integer> locations = new ArrayList<>(backendPortIndex.keySet());
+        List<Integer> ports = new ArrayList<>(backendPortIndex.values());
+        Logger.log(String.format("LoadBalancer | locations = %s", locations));
+        Logger.log(String.format("LoadBalancer | ports = %s", ports));
+
+        if (ports.size() < 2) {
+            int selectedPort = HASH_RING_DENOMINATIONS / 2;
+            Logger.log(String.format("LoadBalancer | selectedPort = %d", selectedPort));
+            return selectedPort;
+        } else {
+            if (ports.get(0) == backendPort) {
+                // if backend is in the first pair in backendPortIndex
+                currLoc = locations.get(0);
+                prevLoc = locations.get(locations.size() - 1);
+            } else {
+                // otherwise
+                for (int i = 0; i < ports.size(); i++) {
+                    if (ports.get(i) == backendPort) {
+                        prevLoc = currLoc;
+                        currLoc = locations.get(i);
+                        break;
+                    } else {
+                        currLoc = locations.get(i);
+                    }
+                }
+            }
+
+            Logger.log(String.format("LoadBalancer | currLoc = %d, prevLoc = %d", currLoc, prevLoc));
+            int selectedPort = (currLoc + prevLoc) / 2;
+            Logger.log(String.format("LoadBalancer | backendPort = %d, prevLoc = %d, currLoc = %d, selectedPort = %d", backendPort, prevLoc, currLoc, selectedPort));
+
+            return selectedPort;
+        }
     }
 
     public static void main(String[] args) {
