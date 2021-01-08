@@ -68,12 +68,25 @@ public class LoadBalancer implements Runnable {
                             HttpEntity responseBody = response.getEntity();
                             InputStream responseStream = responseBody.getContent();
                             String responseString = IOUtils.toString(responseStream, StandardCharsets.UTF_8.name());
-                            responseStream.close();
+//                            responseStream.close();
                             JSONObject responseJson = new JSONObject(StringEscapeUtils.unescapeJson(responseString));
                             double capacityFactor = responseJson.getDouble("capacity_factor");
                             Logger.log(String.format("LoadBalancer | received update on capacity factor: %s", capacityFactor), "telemetryUpdate");
                             entry.setValue(capacityFactor);
-                            httpClient.close();
+//                            httpClient.close();
+
+                            Runtime.getRuntime().addShutdownHook(new Thread() {
+                                @Override
+                                public void run() {
+                                    try {
+                                        response.close();
+                                        responseStream.close();
+                                        httpClient.close();
+                                    } catch(IOException e) {
+                                        e.printStackTrace();
+                                    }
+                                }
+                            });
 
                             if (System.currentTimeMillis() > initiationTime + REST_INTERVAL && capacityFactor > CAPACITY_FACTOR_MAX) {
                                 if (reinforcedTimes.containsKey(backendPort)) {
@@ -206,6 +219,17 @@ public class LoadBalancer implements Runnable {
 
                 for (Map.Entry<Integer, Integer> entry : backendPortIndex.entrySet())
                     Logger.log(String.format("LoadBalancer | Index: %s | Port: %s", entry.getKey(), entry.getValue()), "loadBalancerStartup");
+
+                Runtime.getRuntime().addShutdownHook(new Thread() {
+                    @Override
+                    public void run() {
+                        try {
+                            response.close();
+                        } catch(IOException e) {
+                            e.printStackTrace();
+                        }
+                    }
+                });
 
                 break;
             } catch (UnsupportedEncodingException | UnsupportedOperationException | ClientProtocolException e) {
