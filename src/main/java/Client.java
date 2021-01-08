@@ -40,7 +40,7 @@ public class Client implements Runnable {
             String path;
             path = "/api/" + resourceId;
             HttpGet httpget = new HttpGet("http://127.0.0.1:" + LOAD_BALANCER_PORT + path);
-            Logger.log(String.format("Client %s | path: %s", name, path));
+            Logger.log(String.format("Client %s | path: %s", name, path), "clientStartup");
             CloseableHttpResponse response = sendRequest(httpget);
             printResponse(response);
             response.close();
@@ -62,7 +62,7 @@ public class Client implements Runnable {
         HttpEntity responseBody = response.getEntity();
         InputStream bodyStream = responseBody.getContent();
         String responseString = IOUtils.toString(bodyStream, StandardCharsets.UTF_8.name());
-        Logger.log(String.format("Client %s | response body: %s", name, responseString));
+        Logger.log(String.format("Client %s | response body: %s", name, responseString), "requestPassing");
         bodyStream.close();
     }
 }

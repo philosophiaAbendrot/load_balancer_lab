@@ -61,7 +61,7 @@ public class LoadBalancer implements Runnable {
                     for (Map.Entry<Integer, Double> entry : capacityFactors.entrySet()) {
                         int backendPort = entry.getKey();
                         CloseableHttpClient httpClient = HttpClients.createDefault();
-                        Logger.log(String.format("LoadBalancer | sending request for update on capacity factor to port %d", backendPort));
+                        Logger.log(String.format("LoadBalancer | sending request for update on capacity factor to port %d", backendPort), "telemetryUpdate");
                         HttpGet httpget = new HttpGet("http://127.0.0.1:" + backendPort + "/capacity_factor");
                         try {
                             CloseableHttpResponse response = httpClient.execute(httpget);
@@ -71,7 +71,7 @@ public class LoadBalancer implements Runnable {
                             responseStream.close();
                             JSONObject responseJson = new JSONObject(StringEscapeUtils.unescapeJson(responseString));
                             double capacityFactor = responseJson.getDouble("capacity_factor");
-                            Logger.log(String.format("LoadBalancer | received update on capacity factor: %s", capacityFactor));
+                            Logger.log(String.format("LoadBalancer | received update on capacity factor: %s", capacityFactor), "telemetryUpdate");
                             entry.setValue(capacityFactor);
                             httpClient.close();
 
@@ -79,23 +79,23 @@ public class LoadBalancer implements Runnable {
                                 if (reinforcedTimes.containsKey(backendPort)) {
                                     // if a server has been started up to reinforce backendPort recently
                                     long lastReinforced = reinforcedTimes.get(backendPort);
-                                    Logger.log(String.format("Load Balancer | last reinforced = %d", lastReinforced));
+                                    Logger.log(String.format("Load Balancer | last reinforced = %d", lastReinforced), "capacityModulation");
 
                                     if (System.currentTimeMillis() > lastReinforced + REINFORCEMENT_INTERVAL) {
                                         // if the backend port was reinforced a while ago, clear it out from the record
-                                        Logger.log(String.format("Load Balancer | clearing backendPort %d from reinforcedTimes", backendPort));
+                                        Logger.log(String.format("Load Balancer | clearing backendPort %d from reinforcedTimes", backendPort), "capacityModulation");
                                         reinforcedTimes.remove(backendPort);
                                     } else {
                                         // if the backend port was reinforced recently, do not reinforce it again
-                                        Logger.log(String.format("Load Balancer | skipping reinforcement of port %d", backendPort));
+                                        Logger.log(String.format("Load Balancer | skipping reinforcement of port %d", backendPort), "capacityModulation");
                                         continue;
                                     }
                                 }
 
                                 // startup a new dyno
-                                Logger.log(String.format("Load Balancer | backendPort %d is overloaded with cf = %f", backendPort, capacityFactor));
+                                Logger.log(String.format("Load Balancer | backendPort %d is overloaded with cf = %f", backendPort, capacityFactor), "capacityModulation");
                                 int newServerHashRingLocation = selectHashRingLocation(backendPort);
-                                Logger.log(String.format("Load Balancer | selected location %d for new server", newServerHashRingLocation));
+                                Logger.log(String.format("Load Balancer | selected location %d for new server", newServerHashRingLocation), "capacityModulation");
                                 // start a new server at the new hash ring location
                                 int newServerPort = startupBackend();
                                 // record location of new dyno along with port
@@ -111,10 +111,6 @@ public class LoadBalancer implements Runnable {
                     System.out.println(e.getMessage());
                     e.printStackTrace();
                 }
-                System.out.println("=====================================");
-                System.out.println("capacity factor monitor running");
-                System.out.println("=====================================");
-                System.out.println("capacity factors = " + capacityFactors);
             }
         }
     }
@@ -163,8 +159,8 @@ public class LoadBalancer implements Runnable {
             int resourceId = Integer.parseInt(uriArr[uriArr.length - 1]);
             int backendPort = selectPort(resourceId);
 
-            Logger.log(String.format("LoadBalancer | resourceId = %d", resourceId));
-            Logger.log(String.format("LoadBalancer | relaying message to backend server at port %d", backendPort));
+            Logger.log(String.format("LoadBalancer | resourceId = %d", resourceId), "requestPassing");
+            Logger.log(String.format("LoadBalancer | relaying message to backend server at port %d", backendPort), "requestPassing");
 
             HttpGet httpget = new HttpGet("http://127.0.0.1:" + backendPort);
             CloseableHttpResponse response = httpClient.execute(httpget);
@@ -195,21 +191,21 @@ public class LoadBalancer implements Runnable {
         while(true) {
             try {
                 Thread.sleep(100);
-                Logger.log("LoadBalancer | sent request to startup a backend");
+                Logger.log("LoadBalancer | sent request to startup a backend", "loadBalancerStartup");
                 CloseableHttpResponse response = httpClient.execute(httpPost);
-                Logger.log("Load Balancer | received response");
+                Logger.log("Load Balancer | received response", "loadBalancerStartup");
                 HttpEntity responseBody = response.getEntity();
                 InputStream responseStream = responseBody.getContent();
                 String responseString = IOUtils.toString(responseStream, StandardCharsets.UTF_8.name());
                 responseStream.close();
                 httpClient.close();
-                Logger.log("LoadBalancer | new backend port = " + responseString);
+                Logger.log("LoadBalancer | new backend port = " + responseString, "loadBalancerStartup");
                 portInt = Integer.valueOf(responseString);
                 capacityFactors.put(portInt, -1.0);
-                Logger.log("LoadBalancer | backend ports:");
+                Logger.log("LoadBalancer | backend ports:", "loadBalancerStartup");
 
                 for (Map.Entry<Integer, Integer> entry : backendPortIndex.entrySet())
-                    Logger.log(String.format("LoadBalancer | Index: %s | Port: %s", entry.getKey(), entry.getValue()));
+                    Logger.log(String.format("LoadBalancer | Index: %s | Port: %s", entry.getKey(), entry.getValue()), "loadBalancerStartup");
 
                 break;
             } catch (UnsupportedEncodingException | UnsupportedOperationException | ClientProtocolException e) {
@@ -250,12 +246,12 @@ public class LoadBalancer implements Runnable {
 
         List<Integer> locations = new ArrayList<>(backendPortIndex.keySet());
         List<Integer> ports = new ArrayList<>(backendPortIndex.values());
-        Logger.log(String.format("LoadBalancer | locations = %s", locations));
-        Logger.log(String.format("LoadBalancer | ports = %s", ports));
+        Logger.log(String.format("LoadBalancer | locations = %s", locations), "capacityModulation");
+        Logger.log(String.format("LoadBalancer | ports = %s", ports), "capacityModulation");
 
         if (ports.size() < 2) {
             int selectedPort = HASH_RING_DENOMINATIONS / 2;
-            Logger.log(String.format("LoadBalancer | selectedPort = %d", selectedPort));
+            Logger.log(String.format("LoadBalancer | selectedPort = %d", selectedPort), "capacityModulation");
             return selectedPort;
         } else {
             if (ports.get(0) == backendPort) {
@@ -275,9 +271,9 @@ public class LoadBalancer implements Runnable {
                 }
             }
 
-            Logger.log(String.format("LoadBalancer | currLoc = %d, prevLoc = %d", currLoc, prevLoc));
+            Logger.log(String.format("LoadBalancer | currLoc = %d, prevLoc = %d", currLoc, prevLoc), "capacityModulation");
             int selectedPort = (currLoc + prevLoc) / 2;
-            Logger.log(String.format("LoadBalancer | backendPort = %d, prevLoc = %d, currLoc = %d, selectedPort = %d", backendPort, prevLoc, currLoc, selectedPort));
+            Logger.log(String.format("LoadBalancer | backendPort = %d, prevLoc = %d, currLoc = %d, selectedPort = %d", backendPort, prevLoc, currLoc, selectedPort), "capacityModulation");
 
             return selectedPort;
         }

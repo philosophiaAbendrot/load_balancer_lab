@@ -81,10 +81,10 @@ public class BackEndInitiator implements Runnable {
     private class InitiateRequestHandler implements HttpRequestHandler {
         @Override
         public void handle(HttpRequest httpRequest, HttpResponse httpResponse, HttpContext httpContext) throws HttpException, IOException {
-            System.out.println("BackendInitiator | received backend initiate request");
+            Logger.log("BackendInitiator | received backend initiate request", "backendStartup");
             BackEnd backend = new BackEnd();
             Thread backendThread = new Thread(backend);
-            System.out.println("BackEndInitiator | started backend thread");
+            Logger.log("BackendInitiator | started backend thread", "backendStartup");
             backendThread.start();
 
             // wait for backend port to be selected by backend
@@ -97,10 +97,10 @@ public class BackEndInitiator implements Runnable {
                     System.out.println(e.getMessage());
                     e.printStackTrace();
                 }
-                Logger.log("BackEndInitiator | backendPort = " + backend.port + " tryNumber = " + tryNumber++);
+                Logger.log("BackEndInitiator | backendPort = " + backend.port + " tryNumber = " + tryNumber++, "backendStartup");
             }
 
-            Logger.log("chosen backend port = " + backend.port);
+            Logger.log("chosen backend port = " + backend.port, "backendStartup");
             BasicHttpEntity responseEntity = new BasicHttpEntity();
             InputStream responseStream = IOUtils.toInputStream(String.valueOf(backend.port), StandardCharsets.UTF_8.name());
             responseEntity.setContent(responseStream);
