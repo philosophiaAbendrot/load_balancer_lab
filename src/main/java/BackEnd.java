@@ -48,7 +48,7 @@ public class BackEnd implements Runnable {
         }
 
         private void clearOutTelemetry() {
-            Logger.log("Backend | clearOutTelemetry running");
+            Logger.log("Backend | clearOutTelemetry running", "telemetryUpdate");
             // delete request telemetry which are out of date
             Iterator<RequestTelemetry> iterator = requestTelemetrics.iterator();
             long currentTime = System.currentTimeMillis();
@@ -63,7 +63,7 @@ public class BackEnd implements Runnable {
                     break;
             }
 
-            Logger.log("Backend | " + deleteCount + " telemetrics deleted.");
+            Logger.log("Backend | " + deleteCount + " telemetrics deleted.", "telemetryUpdate");
         }
     }
 
@@ -90,14 +90,14 @@ public class BackEnd implements Runnable {
                 capacityFactor = runningTime / (double)(endTime - startTime);
             }
 
-            Logger.log(String.format("Backend | capacityFactor = %f", capacityFactor));
+            Logger.log(String.format("Backend | capacityFactor = %f", capacityFactor), "requestPassing");
 
             JSONObject outputJsonObj = new JSONObject();
             outputJsonObj.put("capacity_factor", capacityFactor);
 
             // encode html content
             String htmlResponse = StringEscapeUtils.escapeJson(outputJsonObj.toString());
-            Logger.log("BackEnd | CapacityFactorRequestHandler processed request");
+            Logger.log("BackEnd | CapacityFactorRequestHandler processed request", "requestPassing");
             // send out response
             httpExchange.sendResponseHeaders(200, htmlResponse.length());
             outputStream.write(htmlResponse.getBytes());
@@ -117,9 +117,7 @@ public class BackEnd implements Runnable {
 
         private void handleResponse(HttpExchange httpExchange, String requestParams) throws IOException {
             long startTime = System.currentTimeMillis();
-            Logger.log("BackEnd | =========================================");
-            Logger.log("BackEnd | CustomHttpHandler received request");
-            Logger.log("BackEnd | CustomHttpHandler processing request");
+            Logger.log("BackEnd | received request from load balancer", "requestPassing");
             try {
                 TimeUnit.MILLISECONDS.sleep(200);
             } catch(InterruptedException e) {
@@ -138,10 +136,10 @@ public class BackEnd implements Runnable {
             // encode html content
             String htmlResponse = StringEscapeUtils.escapeHtml4(htmlBuilder.toString());
 
-            Logger.log("BackEnd | CustomHttpHandler processed request");
             // send out response
             httpExchange.sendResponseHeaders(200, htmlResponse.length());
             outputStream.write(htmlResponse.getBytes());
+            Logger.log("BackEnd | sent request back to load balancer", "requestPassing");
             outputStream.flush();
             outputStream.close();
             long endTime = System.currentTimeMillis();
@@ -187,7 +185,7 @@ public class BackEnd implements Runnable {
 
         for (int i = 0; i < selectablePorts.length; i++) {
             port = selectablePorts[i];
-            Logger.log(String.format("attempting to start server on port %d\n", port));
+            Logger.log(String.format("attempting to start server on port %d\n", port), "backendStartup");
 
             try {
                 InetAddress host = InetAddress.getByName("127.0.0.1");
@@ -196,10 +194,10 @@ public class BackEnd implements Runnable {
                 server.createContext("/", customHttpHandler);
                 server.createContext("/capacity_factor", capacityFactorRequestHandler);
                 server.setExecutor(threadPoolExecutor);
-                Logger.log(String.format("BackEnd | Server started on %s", socketAddress.toString()));
+                Logger.log(String.format("BackEnd | Server started on %s", socketAddress.toString()), "backendStartup");
                 break;
             } catch(IOException e) {
-                Logger.log(String.format("BackEnd | Failed to start server on port %d", port));
+                Logger.log(String.format("BackEnd | Failed to start server on port %d", port), "backendStartup");
             }
         }
 
@@ -208,9 +206,9 @@ public class BackEnd implements Runnable {
 
         if (server != null) {
             server.start();
-            Logger.log("Server started on port " + port);
+            Logger.log("Server started on port " + port, "backendStartup");
         } else {
-            Logger.log("Failed to start server on any port");
+            Logger.log("Failed to start server on any port", "backendStartup");
         }
     }
 }
