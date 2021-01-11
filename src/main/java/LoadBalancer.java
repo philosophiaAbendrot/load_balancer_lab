@@ -65,15 +65,30 @@ public class LoadBalancer implements Runnable {
                         HttpGet httpget = new HttpGet("http://127.0.0.1:" + backendPort + "/capacity_factor");
                         try {
                             CloseableHttpResponse response = httpClient.execute(httpget);
+                            Runtime.getRuntime().addShutdownHook(new Thread() {
+                               @Override
+                               public void run() {
+                                   try {
+                                        response.close();
+                                   } catch(IOException e) {
+                                       e.printStackTrace();
+                                   }
+                               }
+                            });
+
                             HttpEntity responseBody = response.getEntity();
                             InputStream responseStream = responseBody.getContent();
-                            String responseString = IOUtils.toString(responseStream, StandardCharsets.UTF_8.name());
-//                            responseStream.close();
-                            JSONObject responseJson = new JSONObject(StringEscapeUtils.unescapeJson(responseString));
-                            double capacityFactor = responseJson.getDouble("capacity_factor");
-                            Logger.log(String.format("LoadBalancer | received update on capacity factor: %s", capacityFactor), "telemetryUpdate");
-                            entry.setValue(capacityFactor);
-//                            httpClient.close();
+                            Runtime.getRuntime().addShutdownHook(new Thread() {
+                                @Override
+                                public void run() {
+                                    try {
+                                        responseStream.close();
+                                    } catch(IOException e) {
+                                        e.printStackTrace();
+                                    }
+                                }
+                            });
+
 
                             Runtime.getRuntime().addShutdownHook(new Thread() {
                                 @Override
@@ -87,6 +102,14 @@ public class LoadBalancer implements Runnable {
                                     }
                                 }
                             });
+
+                            String responseString = IOUtils.toString(responseStream, StandardCharsets.UTF_8.name());
+                            responseStream.close();
+                            JSONObject responseJson = new JSONObject(StringEscapeUtils.unescapeJson(responseString));
+                            double capacityFactor = responseJson.getDouble("capacity_factor");
+                            Logger.log(String.format("LoadBalancer | received update on capacity factor: %s", capacityFactor), "telemetryUpdate");
+                            entry.setValue(capacityFactor);
+                            httpClient.close();
 
                             if (System.currentTimeMillis() > initiationTime + REST_INTERVAL && capacityFactor > CAPACITY_FACTOR_MAX) {
                                 if (reinforcedTimes.containsKey(backendPort)) {
@@ -167,6 +190,17 @@ public class LoadBalancer implements Runnable {
         @Override
         public void handle(HttpRequest httpRequest, HttpResponse httpResponse, HttpContext httpContext) throws IOException {
             CloseableHttpClient httpClient = HttpClients.createDefault();
+            Runtime.getRuntime().addShutdownHook(new Thread() {
+                @Override
+                public void run() {
+                    try {
+                        httpClient.close();
+                    } catch(IOException e) {
+                        e.printStackTrace();
+                    }
+                }
+            });
+
             String uri = httpRequest.getRequestLine().getUri();
             String[] uriArr = uri.split("/", 0);
             int resourceId = Integer.parseInt(uriArr[uriArr.length - 1]);
@@ -176,10 +210,25 @@ public class LoadBalancer implements Runnable {
             Logger.log(String.format("LoadBalancer | relaying message to backend server at port %d", backendPort), "requestPassing");
 
             HttpGet httpget = new HttpGet("http://127.0.0.1:" + backendPort);
+
             CloseableHttpResponse response = httpClient.execute(httpget);
+            Runtime.getRuntime().addShutdownHook(new Thread() {
+                @Override
+                public void run() {
+                    try {
+                        response.close();
+                    } catch(IOException e) {
+                        e.printStackTrace();
+                    }
+                }
+            });
 
             HttpEntity responseBody = response.getEntity();
             httpResponse.setEntity(responseBody);
+
+            //            closing these cause a sun.net.SocketException for some reason
+//            response.close();
+//            httpClient.close();
         }
     }
 
@@ -197,6 +246,18 @@ public class LoadBalancer implements Runnable {
 
     private int startupBackend() {
         CloseableHttpClient httpClient = HttpClients.createDefault();
+
+        Runtime.getRuntime().addShutdownHook(new Thread() {
+            @Override
+            public void run() {
+                try {
+                    httpClient.close();
+                } catch(IOException e) {
+                    e.printStackTrace();
+                }
+            }
+        });
+
         HttpPost httpPost = new HttpPost("http://127.0.0.1:" + BACKEND_INITIATOR_PORT + "/backend/start");
 
         int portInt = -1;
@@ -206,19 +267,6 @@ public class LoadBalancer implements Runnable {
                 Thread.sleep(100);
                 Logger.log("LoadBalancer | sent request to startup a backend", "loadBalancerStartup");
                 CloseableHttpResponse response = httpClient.execute(httpPost);
-                Logger.log("Load Balancer | received response", "loadBalancerStartup");
-                HttpEntity responseBody = response.getEntity();
-                InputStream responseStream = responseBody.getContent();
-                String responseString = IOUtils.toString(responseStream, StandardCharsets.UTF_8.name());
-                responseStream.close();
-                httpClient.close();
-                Logger.log("LoadBalancer | new backend port = " + responseString, "loadBalancerStartup");
-                portInt = Integer.valueOf(responseString);
-                capacityFactors.put(portInt, -1.0);
-                Logger.log("LoadBalancer | backend ports:", "loadBalancerStartup");
-
-                for (Map.Entry<Integer, Integer> entry : backendPortIndex.entrySet())
-                    Logger.log(String.format("LoadBalancer | Index: %s | Port: %s", entry.getKey(), entry.getValue()), "loadBalancerStartup");
 
                 Runtime.getRuntime().addShutdownHook(new Thread() {
                     @Override
@@ -230,6 +278,33 @@ public class LoadBalancer implements Runnable {
                         }
                     }
                 });
+
+                Logger.log("Load Balancer | received response", "loadBalancerStartup");
+                HttpEntity responseBody = response.getEntity();
+                InputStream responseStream = responseBody.getContent();
+
+                Runtime.getRuntime().addShutdownHook(new Thread() {
+                    @Override
+                    public void run() {
+                        try {
+                            responseStream.close();
+                        } catch(IOException e) {
+                            e.printStackTrace();
+                        }
+                    }
+                });
+
+                String responseString = IOUtils.toString(responseStream, StandardCharsets.UTF_8.name());
+                response.close();
+                responseStream.close();
+                httpClient.close();
+                Logger.log("LoadBalancer | new backend port = " + responseString, "loadBalancerStartup");
+                portInt = Integer.valueOf(responseString);
+                capacityFactors.put(portInt, -1.0);
+                Logger.log("LoadBalancer | backend ports:", "loadBalancerStartup");
+
+                for (Map.Entry<Integer, Integer> entry : backendPortIndex.entrySet())
+                    Logger.log(String.format("LoadBalancer | Index: %s | Port: %s", entry.getKey(), entry.getValue()), "loadBalancerStartup");
 
                 break;
             } catch (UnsupportedEncodingException | UnsupportedOperationException | ClientProtocolException e) {
