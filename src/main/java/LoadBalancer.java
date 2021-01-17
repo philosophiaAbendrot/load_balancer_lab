@@ -52,8 +52,8 @@ public class LoadBalancer implements Runnable {
     class CapacityFactorMonitor implements Runnable {
         @Override
         public void run() {
-
-            while(true) {
+            long startTime = System.currentTimeMillis();
+            while(System.currentTimeMillis() < startTime + 15_000) {
                 try {
                     // update capacity factors every 0.5s by pinging each backend
                     Thread.sleep(500);

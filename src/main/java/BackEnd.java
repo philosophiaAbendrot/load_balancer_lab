@@ -37,7 +37,9 @@ public class BackEnd implements Runnable {
     private class TelemetryCurator implements Runnable {
         @Override
         public void run() {
-            while (true) {
+            long startTime = System.currentTimeMillis();
+
+            while (System.currentTimeMillis() < startTime + 15_000) {
                 try {
                     Thread.sleep(300);
                     clearOutTelemetry();
@@ -75,6 +77,17 @@ public class BackEnd implements Runnable {
         @Override
         public void handle(HttpExchange httpExchange) throws IOException {
             OutputStream outputStream = httpExchange.getResponseBody();
+
+            Runtime.getRuntime().addShutdownHook(new Thread() {
+                @Override
+                public void run() {
+                    try {
+                        outputStream.close();
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                    }
+                }
+            });
 
             double capacityFactor = 0;
 
@@ -125,6 +138,18 @@ public class BackEnd implements Runnable {
             }
 
             OutputStream outputStream = httpExchange.getResponseBody();
+
+            Runtime.getRuntime().addShutdownHook(new Thread() {
+               @Override
+               public void run() {
+                   try {
+                       outputStream.close();
+                   } catch(IOException e) {
+                        e.printStackTrace();
+                   }
+               }
+            });
+
             StringBuilder htmlBuilder = new StringBuilder();
             htmlBuilder.append("<html>").append("<body>")
                     .append("<h1>")
