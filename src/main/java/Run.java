@@ -3,10 +3,11 @@ import java.util.List;
 import java.util.concurrent.TimeUnit;
 
 public class Run {
-    final static int NUM_CLIENTS = 20;
+    final static int NUM_CLIENTS = 5;
 
     public static void main(String[] args) {
-        Logger.configure(new String[] {"telemetryUpdate", "capacityModulation"});
+        Logger.configure(new String[] { "requestPassing" });
+//        Logger.configure(new String[] {"telemetryUpdate", "capacityModulation"});
         Thread loadBalancerThread = new Thread(new LoadBalancer(8080)); 
         Thread backendInitiatorThread = new Thread(new BackEndInitiator());
         List<Thread> clients = new ArrayList<>();
