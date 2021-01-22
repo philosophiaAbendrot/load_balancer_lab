@@ -65,43 +65,8 @@ public class LoadBalancer implements Runnable {
                         HttpGet httpget = new HttpGet("http://127.0.0.1:" + backendPort + "/capacity_factor");
                         try {
                             CloseableHttpResponse response = httpClient.execute(httpget);
-                            Runtime.getRuntime().addShutdownHook(new Thread() {
-                               @Override
-                               public void run() {
-                                   try {
-                                        response.close();
-                                   } catch(IOException e) {
-                                       e.printStackTrace();
-                                   }
-                               }
-                            });
-
                             HttpEntity responseBody = response.getEntity();
                             InputStream responseStream = responseBody.getContent();
-                            Runtime.getRuntime().addShutdownHook(new Thread() {
-                                @Override
-                                public void run() {
-                                    try {
-                                        responseStream.close();
-                                    } catch(IOException e) {
-                                        e.printStackTrace();
-                                    }
-                                }
-                            });
-
-
-                            Runtime.getRuntime().addShutdownHook(new Thread() {
-                                @Override
-                                public void run() {
-                                    try {
-                                        response.close();
-                                        responseStream.close();
-                                        httpClient.close();
-                                    } catch(IOException e) {
-                                        e.printStackTrace();
-                                    }
-                                }
-                            });
 
                             String responseString = IOUtils.toString(responseStream, StandardCharsets.UTF_8.name());
                             responseStream.close();
@@ -190,16 +155,6 @@ public class LoadBalancer implements Runnable {
         @Override
         public void handle(HttpRequest httpRequest, HttpResponse httpResponse, HttpContext httpContext) throws IOException {
             CloseableHttpClient httpClient = HttpClients.createDefault();
-            Runtime.getRuntime().addShutdownHook(new Thread() {
-                @Override
-                public void run() {
-                    try {
-                        httpClient.close();
-                    } catch(IOException e) {
-                        e.printStackTrace();
-                    }
-                }
-            });
 
             String uri = httpRequest.getRequestLine().getUri();
             String[] uriArr = uri.split("/", 0);
@@ -212,16 +167,6 @@ public class LoadBalancer implements Runnable {
             HttpGet httpget = new HttpGet("http://127.0.0.1:" + backendPort);
 
             CloseableHttpResponse response = httpClient.execute(httpget);
-            Runtime.getRuntime().addShutdownHook(new Thread() {
-                @Override
-                public void run() {
-                    try {
-                        response.close();
-                    } catch(IOException e) {
-                        e.printStackTrace();
-                    }
-                }
-            });
 
             HttpEntity responseBody = response.getEntity();
             httpResponse.setEntity(responseBody);
@@ -247,17 +192,6 @@ public class LoadBalancer implements Runnable {
     private int startupBackend() {
         CloseableHttpClient httpClient = HttpClients.createDefault();
 
-        Runtime.getRuntime().addShutdownHook(new Thread() {
-            @Override
-            public void run() {
-                try {
-                    httpClient.close();
-                } catch(IOException e) {
-                    e.printStackTrace();
-                }
-            }
-        });
-
         HttpPost httpPost = new HttpPost("http://127.0.0.1:" + BACKEND_INITIATOR_PORT + "/backend/start");
 
         int portInt = -1;
@@ -268,31 +202,9 @@ public class LoadBalancer implements Runnable {
                 Logger.log("LoadBalancer | sent request to startup a backend", "loadBalancerStartup");
                 CloseableHttpResponse response = httpClient.execute(httpPost);
 
-                Runtime.getRuntime().addShutdownHook(new Thread() {
-                    @Override
-                    public void run() {
-                        try {
-                            response.close();
-                        } catch(IOException e) {
-                            e.printStackTrace();
-                        }
-                    }
-                });
-
                 Logger.log("Load Balancer | received response", "loadBalancerStartup");
                 HttpEntity responseBody = response.getEntity();
                 InputStream responseStream = responseBody.getContent();
-
-                Runtime.getRuntime().addShutdownHook(new Thread() {
-                    @Override
-                    public void run() {
-                        try {
-                            responseStream.close();
-                        } catch(IOException e) {
-                            e.printStackTrace();
-                        }
-                    }
-                });
 
                 String responseString = IOUtils.toString(responseStream, StandardCharsets.UTF_8.name());
                 response.close();

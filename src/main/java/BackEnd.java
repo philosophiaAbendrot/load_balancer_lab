@@ -78,17 +78,6 @@ public class BackEnd implements Runnable {
         public void handle(HttpExchange httpExchange) throws IOException {
             OutputStream outputStream = httpExchange.getResponseBody();
 
-            Runtime.getRuntime().addShutdownHook(new Thread() {
-                @Override
-                public void run() {
-                    try {
-                        outputStream.close();
-                    } catch (IOException e) {
-                        e.printStackTrace();
-                    }
-                }
-            });
-
             double capacityFactor = 0;
 
             // calculate capacity factor
@@ -138,17 +127,6 @@ public class BackEnd implements Runnable {
             }
 
             OutputStream outputStream = httpExchange.getResponseBody();
-
-            Runtime.getRuntime().addShutdownHook(new Thread() {
-               @Override
-               public void run() {
-                   try {
-                       outputStream.close();
-                   } catch(IOException e) {
-                        e.printStackTrace();
-                   }
-               }
-            });
 
             StringBuilder htmlBuilder = new StringBuilder();
             htmlBuilder.append("<html>").append("<body>")

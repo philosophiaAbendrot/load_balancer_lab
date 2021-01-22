@@ -22,17 +22,6 @@ public class Client implements Runnable {
         name = _name;
         Random random = new Random();
         resourceId = random.nextInt(3000);
-
-        Runtime.getRuntime().addShutdownHook(new Thread() {
-            @Override
-            public void run() {
-                try {
-                    httpClient.close();
-                } catch(IOException e) {
-                    e.printStackTrace();
-                }
-            }
-        });
     }
 
     @Override
@@ -53,17 +42,6 @@ public class Client implements Runnable {
             HttpGet httpget = new HttpGet("http://127.0.0.1:" + LOAD_BALANCER_PORT + path);
             Logger.log(String.format("Client %s | path: %s", name, path), "clientStartup");
             CloseableHttpResponse response = sendRequest(httpget);
-
-            Runtime.getRuntime().addShutdownHook(new Thread() {
-                @Override
-                public void run() {
-                    try {
-                        response.close();
-                    } catch (IOException e) {
-                        e.printStackTrace();
-                    }
-                }
-            });
 
             printResponse(response);
             response.close();
