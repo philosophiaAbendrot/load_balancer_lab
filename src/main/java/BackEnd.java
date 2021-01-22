@@ -15,6 +15,8 @@ import java.util.concurrent.TimeUnit;
 
 public class BackEnd implements Runnable {
     static final int parametricStorageTime = 10_000; // 10 seconds of parametric storage time
+    final int TELEMETRY_CURATOR_RUNNING_TIME = 10_000;
+    final int BACKEND_RUNNING_TIME = 15_000;
 
     // class for storing information on requests
     private class RequestTelemetry {
@@ -39,7 +41,7 @@ public class BackEnd implements Runnable {
         public void run() {
             long startTime = System.currentTimeMillis();
 
-            while (System.currentTimeMillis() < startTime + 15_000) {
+            while (System.currentTimeMillis() < startTime + TELEMETRY_CURATOR_RUNNING_TIME) {
                 try {
                     Thread.sleep(300);
                     clearOutTelemetry();
@@ -210,6 +212,14 @@ public class BackEnd implements Runnable {
         if (server != null) {
             server.start();
             Logger.log("Server started on port " + port, "backendStartup");
+
+            try {
+                Thread.sleep(BACKEND_RUNNING_TIME);
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+
+            server.stop(5);
         } else {
             Logger.log("Failed to start server on any port", "backendStartup");
         }

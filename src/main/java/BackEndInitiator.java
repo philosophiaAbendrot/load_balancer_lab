@@ -69,6 +69,8 @@ public class BackEndInitiator implements Runnable {
                     server.shutdown(5, TimeUnit.SECONDS);
                 }
             });
+
+            server.shutdown(5, TimeUnit.SECONDS);
         } catch(IOException e) {
             System.out.println(e.getMessage());
             e.printStackTrace();

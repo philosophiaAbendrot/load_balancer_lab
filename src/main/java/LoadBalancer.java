@@ -141,6 +141,9 @@ public class LoadBalancer implements Runnable {
                     server.shutdown(5, TimeUnit.SECONDS);
                 }
             });
+
+            Thread.sleep(25_000);
+            server.shutdown(5, TimeUnit.SECONDS);
         } catch(IOException e) {
             System.out.println(e.getMessage());
             e.printStackTrace();
