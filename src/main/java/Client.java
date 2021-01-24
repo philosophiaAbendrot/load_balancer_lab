@@ -18,7 +18,7 @@ public class Client implements Runnable {
     String name;
 
     public Client(String _name) {
-        httpClient = HttpClients.createDefault();
+//        httpClient = HttpClients.createDefault();
         name = _name;
         Random random = new Random();
         resourceId = random.nextInt(3000);
@@ -26,6 +26,8 @@ public class Client implements Runnable {
 
     @Override
     public void run() {
+        Logger.log("Client | Started Client thread", "threadManagement");
+
         try {
             start();
         } catch(IOException e) {
@@ -33,10 +35,13 @@ public class Client implements Runnable {
             System.out.println(e.getMessage());
             e.printStackTrace();
         }
+
+        Logger.log("Client | Terminated Client thread", "threadManagement");
     }
 
     void start() throws IOException {
         for (int i = 0; i < NUM_REQUESTS; i++) {
+            httpClient = HttpClients.createDefault();
             String path;
             path = "/api/" + resourceId;
             HttpGet httpget = new HttpGet("http://127.0.0.1:" + LOAD_BALANCER_PORT + path);
@@ -52,6 +57,7 @@ public class Client implements Runnable {
                 System.out.println(e.getMessage());
                 e.printStackTrace();
             }
+            httpClient.close();
         }
     }
 

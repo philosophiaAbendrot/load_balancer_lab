@@ -44,6 +44,7 @@ public class BackEndInitiator implements Runnable {
 
     @Override
     public void run() {
+        Logger.log("BackEndInitiator | Started BackendInitiator thread", "threadManagement");
         SocketConfig config = SocketConfig.custom()
                 .setSoTimeout(15000)
                 .setTcpNoDelay(true)
@@ -61,7 +62,8 @@ public class BackEndInitiator implements Runnable {
                 .create();
 
             server.start();
-            server.awaitTermination(Long.MAX_VALUE, TimeUnit.DAYS);
+//            server.awaitTermination(Long.MAX_VALUE, TimeUnit.DAYS);
+            server.awaitTermination(1000, TimeUnit.MILLISECONDS);
 
             Runtime.getRuntime().addShutdownHook(new Thread() {
                 @Override
@@ -72,12 +74,11 @@ public class BackEndInitiator implements Runnable {
 
             server.shutdown(5, TimeUnit.SECONDS);
         } catch(IOException e) {
-            System.out.println(e.getMessage());
             e.printStackTrace();
-        } catch(InterruptedException e) {
-            System.out.println(e.getMessage());
+        } catch (InterruptedException e) {
             e.printStackTrace();
         }
+        Logger.log("BackEnd | Terminated BackEndInitiator thread", "threadManagement");
     }
 
     private class InitiateRequestHandler implements HttpRequestHandler {

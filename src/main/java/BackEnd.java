@@ -39,6 +39,7 @@ public class BackEnd implements Runnable {
     private class TelemetryCurator implements Runnable {
         @Override
         public void run() {
+            Logger.log("BackEnd | Started TelemetryCurator thread", "threadManagement");
             long startTime = System.currentTimeMillis();
 
             while (System.currentTimeMillis() < startTime + TELEMETRY_CURATOR_RUNNING_TIME) {
@@ -49,6 +50,7 @@ public class BackEnd implements Runnable {
                     e.printStackTrace();
                 }
             }
+            Logger.log("BackEnd | Terminated TelemetryCurator thread", "threadManagement");
         }
 
         private void clearOutTelemetry() {
@@ -182,6 +184,7 @@ public class BackEnd implements Runnable {
 
     @Override
     public void run() {
+        Logger.log("BackEnd | Started BackEnd thread", "threadManagement");
         // start server
         ThreadPoolExecutor threadPoolExecutor = (ThreadPoolExecutor) Executors.newFixedThreadPool(1);
         HttpHandler customHttpHandler = new CustomHttpHandler();
@@ -223,5 +226,7 @@ public class BackEnd implements Runnable {
         } else {
             Logger.log("Failed to start server on any port", "backendStartup");
         }
+
+        Logger.log("BackEnd | Terminated BackEnd thread", "threadManagement");
     }
 }

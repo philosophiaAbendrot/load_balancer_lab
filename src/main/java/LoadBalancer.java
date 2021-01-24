@@ -52,6 +52,7 @@ public class LoadBalancer implements Runnable {
     class CapacityFactorMonitor implements Runnable {
         @Override
         public void run() {
+            Logger.log("LoadBalancer | Started CapacityFactorMonitor thread", "threadManagement");
             long startTime = System.currentTimeMillis();
             while(System.currentTimeMillis() < startTime + 15_000) {
                 try {
@@ -113,11 +114,15 @@ public class LoadBalancer implements Runnable {
                     e.printStackTrace();
                 }
             }
+
+            Logger.log("LoadBalancer | Terminated CapacityFactorMonitor thread", "threadManagement");
         }
     }
 
     @Override
     public void run() {
+        Logger.log("LoadBalancer | LoadBalancer thread started", "threadManagement");
+
         SocketConfig config = SocketConfig.custom()
                 .setSoTimeout(15000)
                 .setTcpNoDelay(true)
@@ -134,7 +139,8 @@ public class LoadBalancer implements Runnable {
 
             server.start();
             startupBackendCluster();
-            server.awaitTermination(Long.MAX_VALUE, TimeUnit.DAYS);
+//            server.awaitTermination(Long.MAX_VALUE, TimeUnit.DAYS);
+            server.awaitTermination(25_000, TimeUnit.MILLISECONDS);
             Runtime.getRuntime().addShutdownHook(new Thread() {
                 @Override
                 public void run() {
@@ -142,7 +148,7 @@ public class LoadBalancer implements Runnable {
                 }
             });
 
-            Thread.sleep(25_000);
+//            Thread.sleep(25_000);
             server.shutdown(5, TimeUnit.SECONDS);
         } catch(IOException e) {
             System.out.println(e.getMessage());
@@ -151,6 +157,8 @@ public class LoadBalancer implements Runnable {
             System.out.println(e.getMessage());
             e.printStackTrace();
         }
+
+        Logger.log("LoadBalancer | LoadBalancer thread terminated", "threadManagement");
     }
 
     // REQUEST HANDLERS
@@ -212,7 +220,6 @@ public class LoadBalancer implements Runnable {
                 String responseString = IOUtils.toString(responseStream, StandardCharsets.UTF_8.name());
                 response.close();
                 responseStream.close();
-                httpClient.close();
                 Logger.log("LoadBalancer | new backend port = " + responseString, "loadBalancerStartup");
                 portInt = Integer.valueOf(responseString);
                 capacityFactors.put(portInt, -1.0);
@@ -231,6 +238,12 @@ public class LoadBalancer implements Runnable {
             } catch (IOException e) {
                 System.out.println(e.getMessage());
                 e.printStackTrace();
+            } finally {
+                try {
+                    httpClient.close();
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
             }
         }
 

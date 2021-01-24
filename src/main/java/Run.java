@@ -6,7 +6,8 @@ public class Run {
     final static int NUM_CLIENTS = 5;
 
     public static void main(String[] args) {
-        Logger.configure(new String[] { "terminationCheck" });
+        Logger.configure(new String[] { "threadManagement" });
+        Logger.log("Run | started Run thread", "threadManagement");
 //        Logger.configure(new String[] {"telemetryUpdate", "capacityModulation"});
         Thread loadBalancerThread = new Thread(new LoadBalancer(8080)); 
         Thread backendInitiatorThread = new Thread(new BackEndInitiator());
@@ -30,5 +31,6 @@ public class Run {
         for (Thread clientThread : clients) {
             clientThread.start();
         }
+        Logger.log("Run | terminated Run thread", "threadManagement");
     }
 }
