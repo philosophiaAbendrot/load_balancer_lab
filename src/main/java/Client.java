@@ -50,6 +50,7 @@ public class Client implements Runnable {
 
             printResponse(response);
             response.close();
+            httpClient.close();
 
             try {
                 TimeUnit.MILLISECONDS.sleep(1500);
@@ -59,7 +60,6 @@ public class Client implements Runnable {
                 Thread.currentThread().interrupt();
                 break;
             }
-            httpClient.close();
         }
     }
 

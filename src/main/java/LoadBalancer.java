@@ -15,6 +15,7 @@ import org.json.JSONObject;
 
 import java.io.*;
 import java.net.InetAddress;
+import java.net.UnknownHostException;
 import java.nio.charset.StandardCharsets;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
@@ -68,11 +69,12 @@ public class LoadBalancer implements Runnable {
                             InputStream responseStream = responseBody.getContent();
 
                             String responseString = IOUtils.toString(responseStream, StandardCharsets.UTF_8.name());
-                            responseStream.close();
                             JSONObject responseJson = new JSONObject(StringEscapeUtils.unescapeJson(responseString));
                             double capacityFactor = responseJson.getDouble("capacity_factor");
                             Logger.log(String.format("LoadBalancer | received update on capacity factor: %s", capacityFactor), "telemetryUpdate");
                             entry.setValue(capacityFactor);
+
+                            responseStream.close();
                             httpClient.close();
 
                             if (System.currentTimeMillis() > initiationTime + REST_INTERVAL && capacityFactor > CAPACITY_FACTOR_MAX) {
@@ -123,21 +125,28 @@ public class LoadBalancer implements Runnable {
     @Override
     public void run() {
         Logger.log("LoadBalancer | LoadBalancer thread started", "threadManagement");
+        InetAddress hostAddress = null;
+
+        try {
+            hostAddress = InetAddress.getByName("127.0.0.1");
+        } catch(UnknownHostException e) {
+            e.printStackTrace();
+        }
 
         SocketConfig config = SocketConfig.custom()
                 .setSoTimeout(15000)
                 .setTcpNoDelay(true)
                 .build();
-        try {
-            InetAddress hostAddress = InetAddress.getByName("127.0.0.1");
-            final HttpServer server = ServerBootstrap.bootstrap()
-                    .setLocalAddress(hostAddress)
-                    .setListenerPort(port)
-                    .setHttpProcessor(httpProcessor)
-                    .setSocketConfig(config)
-                    .registerHandler("/api/*", new ClientRequestHandler())
-                    .create();
 
+        final HttpServer server = ServerBootstrap.bootstrap()
+                .setLocalAddress(hostAddress)
+                .setListenerPort(port)
+                .setHttpProcessor(httpProcessor)
+                .setSocketConfig(config)
+                .registerHandler("/api/*", new ClientRequestHandler())
+                .create();
+
+        try {
             server.start();
             startupBackendCluster();
             Thread capacityFactorMonitor = new Thread(new CapacityFactorMonitor());
@@ -154,7 +163,7 @@ public class LoadBalancer implements Runnable {
             System.out.println(e.getMessage());
             e.printStackTrace();
         } catch(InterruptedException e) {
-            System.out.println(e.getMessage());
+            server.shutdown(5, TimeUnit.SECONDS);
             e.printStackTrace();
             Thread.currentThread().interrupt();
         }

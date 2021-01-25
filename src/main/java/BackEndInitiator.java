@@ -12,6 +12,7 @@ import org.apache.http.protocol.ImmutableHttpProcessor;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.InetAddress;
+import java.net.UnknownHostException;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
@@ -45,15 +46,20 @@ public class BackEndInitiator implements Runnable {
     @Override
     public void run() {
         Logger.log("BackEndInitiator | Started BackendInitiator thread", "threadManagement");
+        InetAddress hostAddress = null;
+
+        try {
+            hostAddress = InetAddress.getByName("127.0.0.1");
+        } catch (UnknownHostException e) {
+            e.printStackTrace();
+        }
+
         SocketConfig config = SocketConfig.custom()
                 .setSoTimeout(15000)
                 .setTcpNoDelay(true)
                 .build();
 
-        try {
-            InetAddress hostAddress = InetAddress.getByName("127.0.0.1");
-
-            final HttpServer server = ServerBootstrap.bootstrap()
+        final HttpServer server = ServerBootstrap.bootstrap()
                 .setLocalAddress(hostAddress)
                 .setListenerPort(port)
                 .setHttpProcessor(httpProcessor)
@@ -61,18 +67,19 @@ public class BackEndInitiator implements Runnable {
                 .registerHandler("/backend/start", new InitiateRequestHandler())
                 .create();
 
+        try {
             server.start();
-            server.awaitTermination(Long.MAX_VALUE, TimeUnit.SECONDS);
-
             Runtime.getRuntime().addShutdownHook(new Thread() {
                 @Override
                 public void run() {
                     server.shutdown(5, TimeUnit.SECONDS);
                 }
             });
+            server.awaitTermination(Long.MAX_VALUE, TimeUnit.SECONDS);
         } catch(IOException e) {
             e.printStackTrace();
         } catch (InterruptedException e) {
+            server.shutdown(5, TimeUnit.SECONDS);
             e.printStackTrace();
             Thread.currentThread().interrupt();
         }

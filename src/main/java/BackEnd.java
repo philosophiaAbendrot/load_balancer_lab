@@ -210,21 +210,23 @@ public class BackEnd implements Runnable {
         }
 
         // start request telemetry curator
-        (new Thread(new TelemetryCurator())).start();
+        Thread telemetryCuratorThread = new Thread(new TelemetryCurator());
+        telemetryCuratorThread.start();
+        server.start();
+        Logger.log("Server started on port " + port, "backendStartup");
 
-        if (server != null) {
-            server.start();
-            Logger.log("Server started on port " + port, "backendStartup");
-
+        while(true) {
             try {
-                Thread.sleep(BACKEND_RUNNING_TIME);
+                Thread.sleep(500);
             } catch (InterruptedException e) {
                 e.printStackTrace();
+                Thread.currentThread().interrupt();
+                server.stop(2_000);
+                threadPoolExecutor.shutdown();
+                if (Thread.currentThread().isInterrupted()) {
+                    break;
+                }
             }
-
-            server.stop(5);
-        } else {
-            Logger.log("Failed to start server on any port", "backendStartup");
         }
 
         Logger.log("BackEnd | Terminated BackEnd thread", "threadManagement");
