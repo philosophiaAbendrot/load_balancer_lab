@@ -9,7 +9,7 @@ public class Run {
         Logger.configure(new String[] { "threadManagement" });
         Logger.log("Run | started Run thread", "threadManagement");
 //        Logger.configure(new String[] {"telemetryUpdate", "capacityModulation"});
-        Thread loadBalancerThread = new Thread(new LoadBalancer(8080)); 
+        Thread loadBalancerThread = new Thread(new LoadBalancer(8080));
         Thread backendInitiatorThread = new Thread(new BackEndInitiator());
         List<Thread> clients = new ArrayList<>();
 
@@ -28,9 +28,33 @@ public class Run {
             e.printStackTrace();
         }
 
+        // shutdown backendInitiator
+        backendInitiatorThread.interrupt();
+
         for (Thread clientThread : clients) {
             clientThread.start();
         }
+
+        try {
+            Thread.sleep(10_000);
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
+
+        for (Thread client: clients) {
+            // shutdown client threads
+            client.interrupt();
+        }
+
+        try {
+            Thread.sleep(10_000);
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
+
+        // shutdown load balancer
+        loadBalancerThread.interrupt();
+
         Logger.log("Run | terminated Run thread", "threadManagement");
     }
 }

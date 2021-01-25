@@ -62,8 +62,7 @@ public class BackEndInitiator implements Runnable {
                 .create();
 
             server.start();
-//            server.awaitTermination(Long.MAX_VALUE, TimeUnit.DAYS);
-            server.awaitTermination(1000, TimeUnit.MILLISECONDS);
+            server.awaitTermination(Long.MAX_VALUE, TimeUnit.SECONDS);
 
             Runtime.getRuntime().addShutdownHook(new Thread() {
                 @Override
@@ -71,12 +70,11 @@ public class BackEndInitiator implements Runnable {
                     server.shutdown(5, TimeUnit.SECONDS);
                 }
             });
-
-            server.shutdown(5, TimeUnit.SECONDS);
         } catch(IOException e) {
             e.printStackTrace();
         } catch (InterruptedException e) {
             e.printStackTrace();
+            Thread.currentThread().interrupt();
         }
         Logger.log("BackEnd | Terminated BackEndInitiator thread", "threadManagement");
     }

@@ -45,8 +45,6 @@ public class LoadBalancer implements Runnable {
         httpProcessor = new ImmutableHttpProcessor(requestInterceptors, responseInterceptors);
         rand = new Random();
         capacityFactors = new ConcurrentHashMap<>();
-        Thread capacityFactorMonitor = new Thread(new CapacityFactorMonitor());
-        capacityFactorMonitor.start();
     }
 
     class CapacityFactorMonitor implements Runnable {
@@ -54,7 +52,7 @@ public class LoadBalancer implements Runnable {
         public void run() {
             Logger.log("LoadBalancer | Started CapacityFactorMonitor thread", "threadManagement");
             long startTime = System.currentTimeMillis();
-            while(System.currentTimeMillis() < startTime + 15_000) {
+            while(true) {
                 try {
                     // update capacity factors every 0.5s by pinging each backend
                     Thread.sleep(500);
@@ -110,8 +108,11 @@ public class LoadBalancer implements Runnable {
                         }
                     }
                 } catch(InterruptedException e) {
-                    System.out.println(e.getMessage());
                     e.printStackTrace();
+                    if (Thread.currentThread().isInterrupted())
+                        break;
+
+                    Thread.currentThread().interrupt();
                 }
             }
 
@@ -139,23 +140,23 @@ public class LoadBalancer implements Runnable {
 
             server.start();
             startupBackendCluster();
-//            server.awaitTermination(Long.MAX_VALUE, TimeUnit.DAYS);
-            server.awaitTermination(25_000, TimeUnit.MILLISECONDS);
+            Thread capacityFactorMonitor = new Thread(new CapacityFactorMonitor());
+            capacityFactorMonitor.setDaemon(true);
+            capacityFactorMonitor.start();
+            server.awaitTermination(Long.MAX_VALUE, TimeUnit.SECONDS);
             Runtime.getRuntime().addShutdownHook(new Thread() {
                 @Override
                 public void run() {
                     server.shutdown(5, TimeUnit.SECONDS);
                 }
             });
-
-//            Thread.sleep(25_000);
-            server.shutdown(5, TimeUnit.SECONDS);
         } catch(IOException e) {
             System.out.println(e.getMessage());
             e.printStackTrace();
         } catch(InterruptedException e) {
             System.out.println(e.getMessage());
             e.printStackTrace();
+            Thread.currentThread().interrupt();
         }
 
         Logger.log("LoadBalancer | LoadBalancer thread terminated", "threadManagement");

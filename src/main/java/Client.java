@@ -40,7 +40,7 @@ public class Client implements Runnable {
     }
 
     void start() throws IOException {
-        for (int i = 0; i < NUM_REQUESTS; i++) {
+        while (true) {
             httpClient = HttpClients.createDefault();
             String path;
             path = "/api/" + resourceId;
@@ -56,6 +56,8 @@ public class Client implements Runnable {
             } catch (InterruptedException e) {
                 System.out.println(e.getMessage());
                 e.printStackTrace();
+                Thread.currentThread().interrupt();
+                break;
             }
             httpClient.close();
         }
