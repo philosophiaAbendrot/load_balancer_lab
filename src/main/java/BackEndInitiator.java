@@ -52,6 +52,7 @@ public class BackEndInitiator implements Runnable {
         try {
             hostAddress = InetAddress.getByName("127.0.0.1");
         } catch (UnknownHostException e) {
+            System.out.println("UnknownHostException within BackendInitiator#run");
             e.printStackTrace();
         }
 
@@ -78,6 +79,7 @@ public class BackEndInitiator implements Runnable {
             });
             server.awaitTermination(Long.MAX_VALUE, TimeUnit.SECONDS);
         } catch(IOException e) {
+            System.out.println("IOException Within BackEndInitiator#run");
             e.printStackTrace();
         } catch (InterruptedException e) {
             // shutdown server
@@ -89,6 +91,7 @@ public class BackEndInitiator implements Runnable {
                 Logger.log("BackEndInitiator | Terminating backend thread " + threadId, "threadManagement");
             }
 
+            System.out.println("InterruptedException Within BackEndInitiator#run");
             e.printStackTrace();
             Thread.currentThread().interrupt();
         }
@@ -112,7 +115,7 @@ public class BackEndInitiator implements Runnable {
                 try {
                     Thread.sleep(20);
                 } catch(InterruptedException e) {
-                    System.out.println(e.getMessage());
+                    System.out.println("InterruptedException within BackendInitiator::InitiateRequestHandler#run");
                     e.printStackTrace();
                 }
                 Logger.log("BackEndInitiator | backendPort = " + backend.port + " tryNumber = " + tryNumber++, "backendStartup");

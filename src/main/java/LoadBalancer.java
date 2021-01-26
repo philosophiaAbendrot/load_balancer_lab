@@ -35,6 +35,7 @@ public class LoadBalancer implements Runnable {
     HttpProcessor httpProcessor;
     Map<Integer, Integer> backendPortIndex = new HashMap<>();
     ConcurrentMap<Integer, Double> capacityFactors;
+    Thread capacityFactorMonitorThread = null;
     private static final int BACKEND_INITIATOR_PORT = 3000;
     private static final int STARTUP_BACKEND_DYNO_COUNT = 1;
     Random rand;
@@ -106,15 +107,18 @@ public class LoadBalancer implements Runnable {
                                 reinforcedTimes.put(backendPort, System.currentTimeMillis());
                             }
                         } catch(IOException e) {
+                            System.out.println("IOException thrown in LoadBalancer::CapacityFactorMonitor#run");
                             e.printStackTrace();
                         }
                     }
                 } catch(InterruptedException e) {
+                    System.out.println("InterruptedException thrown in LoadBalancer#run");
                     e.printStackTrace();
-                    if (Thread.currentThread().isInterrupted())
-                        break;
 
-                    Thread.currentThread().interrupt();
+                    if (Thread.currentThread().isInterrupted()) {
+                        Thread.currentThread().interrupt();
+                        break;
+                    }
                 }
             }
 
@@ -130,6 +134,7 @@ public class LoadBalancer implements Runnable {
         try {
             hostAddress = InetAddress.getByName("127.0.0.1");
         } catch(UnknownHostException e) {
+            System.out.println("UnknownHostException Within LoadBalancer#run");
             e.printStackTrace();
         }
 
@@ -149,9 +154,8 @@ public class LoadBalancer implements Runnable {
         try {
             server.start();
             startupBackendCluster();
-            Thread capacityFactorMonitor = new Thread(new CapacityFactorMonitor());
-            capacityFactorMonitor.setDaemon(true);
-            capacityFactorMonitor.start();
+            capacityFactorMonitorThread = new Thread(new CapacityFactorMonitor());
+            capacityFactorMonitorThread.start();
             server.awaitTermination(Long.MAX_VALUE, TimeUnit.SECONDS);
             Runtime.getRuntime().addShutdownHook(new Thread() {
                 @Override
@@ -160,11 +164,14 @@ public class LoadBalancer implements Runnable {
                 }
             });
         } catch(IOException e) {
-            System.out.println(e.getMessage());
+            System.out.println("IOException within LoadBalancer#run");
             e.printStackTrace();
         } catch(InterruptedException e) {
             server.shutdown(5, TimeUnit.SECONDS);
+            System.out.println("InterruptedException within LoadBalancer#run");
             e.printStackTrace();
+            // shut down capacity factor monitor thread
+            capacityFactorMonitorThread.interrupt();
             Thread.currentThread().interrupt();
         }
 
@@ -240,18 +247,19 @@ public class LoadBalancer implements Runnable {
 
                 break;
             } catch (UnsupportedEncodingException | UnsupportedOperationException | ClientProtocolException e) {
-                System.out.println(e.getMessage());
+                System.out.println(e.toString() + " thrown in LoadBalancer#startupBackend");
                 e.printStackTrace();
             } catch (InterruptedException e) {
-                System.out.println(e.getMessage());
+                System.out.println("InterruptedException thrown in LoadBalancer#startupBackend");
                 e.printStackTrace();
             } catch (IOException e) {
-                System.out.println(e.getMessage());
+                System.out.println("IOException thrown in position 1 in LoadBalancer#startupBackend");
                 e.printStackTrace();
             } finally {
                 try {
                     httpClient.close();
                 } catch (IOException e) {
+                    System.out.println("IOException thrown in position 2 in LoadBalancer#startupBackend");
                     e.printStackTrace();
                 }
             }

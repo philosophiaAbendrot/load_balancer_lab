@@ -47,6 +47,7 @@ public class BackEnd implements Runnable {
                     Thread.sleep(300);
                     clearOutTelemetry();
                 } catch (InterruptedException e) {
+                    System.out.println("within Backend:TelemetryCurator#run");
                     e.printStackTrace();
                 }
             }
@@ -125,8 +126,9 @@ public class BackEnd implements Runnable {
             long startTime = System.currentTimeMillis();
             Logger.log("BackEnd | received request from load balancer", "requestPassing");
             try {
-                TimeUnit.MILLISECONDS.sleep(200);
+                Thread.sleep(200);
             } catch(InterruptedException e) {
+                System.out.println("within Backend::CustomHandler.handleResponse");
                 e.printStackTrace();
             }
 
@@ -219,6 +221,7 @@ public class BackEnd implements Runnable {
             try {
                 Thread.sleep(500);
             } catch (InterruptedException e) {
+                System.out.println("Within Backend#run");
                 e.printStackTrace();
                 Thread.currentThread().interrupt();
                 server.stop(2_000);

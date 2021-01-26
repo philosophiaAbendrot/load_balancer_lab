@@ -31,8 +31,7 @@ public class Client implements Runnable {
         try {
             start();
         } catch(IOException e) {
-            System.out.println("Client did not receive a response.");
-            System.out.println(e.getMessage());
+            System.out.println("IOException thrown in Client#run");
             e.printStackTrace();
         }
 
@@ -55,7 +54,7 @@ public class Client implements Runnable {
             try {
                 TimeUnit.MILLISECONDS.sleep(1500);
             } catch (InterruptedException e) {
-                System.out.println(e.getMessage());
+                System.out.println("InterruptedException thrown in Client#start");
                 e.printStackTrace();
                 Thread.currentThread().interrupt();
                 break;
