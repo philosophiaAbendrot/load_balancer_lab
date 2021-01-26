@@ -1,6 +1,5 @@
 import java.util.ArrayList;
 import java.util.List;
-import java.util.concurrent.TimeUnit;
 
 public class Run {
     final static int NUM_CLIENTS = 5;
@@ -8,7 +7,6 @@ public class Run {
     public static void main(String[] args) {
         Logger.configure(new String[] { "threadManagement" });
         Logger.log("Run | started Run thread", "threadManagement");
-//        Logger.configure(new String[] {"telemetryUpdate", "capacityModulation"});
         Thread loadBalancerThread = new Thread(new LoadBalancer(8080));
         Thread backendInitiatorThread = new Thread(new BackEndInitiator());
         List<Thread> clients = new ArrayList<>();
@@ -21,8 +19,34 @@ public class Run {
         loadBalancerThread.start();
         backendInitiatorThread.start();
 
+        for (Thread clientThread : clients)
+            clientThread.start();
+
         try {
-            TimeUnit.SECONDS.sleep(5);
+            Thread.sleep(10_000);
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
+
+        // shutdown client threads
+        for (Thread client: clients)
+            client.interrupt();
+
+        Logger.log("Run | shutdown stage 1: shutdown client threads", "threadManagement");
+
+        try {
+            Thread.sleep(5_000);
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
+
+        // shutdown load balancer
+        loadBalancerThread.interrupt();
+
+        Logger.log("Run | shutdown stage 2: Shutdown LoadBalancer thread", "threadManagement");
+
+        try {
+            Thread.sleep(5_000);
         } catch(InterruptedException e) {
             System.out.println(e.getMessage());
             e.printStackTrace();
@@ -30,30 +54,7 @@ public class Run {
 
         // shutdown backendInitiator
         backendInitiatorThread.interrupt();
-
-        for (Thread clientThread : clients) {
-            clientThread.start();
-        }
-
-        try {
-            Thread.sleep(10_000);
-        } catch (InterruptedException e) {
-            e.printStackTrace();
-        }
-
-        for (Thread client: clients) {
-            // shutdown client threads
-            client.interrupt();
-        }
-
-        try {
-            Thread.sleep(10_000);
-        } catch (InterruptedException e) {
-            e.printStackTrace();
-        }
-
-        // shutdown load balancer
-        loadBalancerThread.interrupt();
+        Logger.log("Run | shutdown stage 3: Shutdown BackendInitiator thread", "threadManagement");
 
         Logger.log("Run | terminated Run thread", "threadManagement");
     }

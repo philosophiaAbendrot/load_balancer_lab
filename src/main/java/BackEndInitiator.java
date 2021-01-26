@@ -22,6 +22,7 @@ public class BackEndInitiator implements Runnable {
     int port;
     List<HttpRequestInterceptor> requestInterceptors = new ArrayList<HttpRequestInterceptor>();
     List<HttpResponseInterceptor> responseInterceptors = new ArrayList<HttpResponseInterceptor>();
+    List<Thread> backendThreads = new ArrayList<>();
     HttpProcessor httpProcessor;
     int[] selectablePorts = new int[100];
 
@@ -79,11 +80,19 @@ public class BackEndInitiator implements Runnable {
         } catch(IOException e) {
             e.printStackTrace();
         } catch (InterruptedException e) {
+            // shutdown server
             server.shutdown(5, TimeUnit.SECONDS);
+            // shutdown all backend servers spawned by this server
+            for (Thread backendThread : this.backendThreads) {
+                int threadId = (int)backendThread.getId();
+                backendThread.interrupt();
+                Logger.log("BackEndInitiator | Terminating backend thread " + threadId, "threadManagement");
+            }
+
             e.printStackTrace();
             Thread.currentThread().interrupt();
         }
-        Logger.log("BackEnd | Terminated BackEndInitiator thread", "threadManagement");
+        Logger.log("BackEndInitiator | Terminated BackEndInitiator thread", "threadManagement");
     }
 
     private class InitiateRequestHandler implements HttpRequestHandler {
@@ -92,6 +101,7 @@ public class BackEndInitiator implements Runnable {
             Logger.log("BackendInitiator | received backend initiate request", "backendStartup");
             BackEnd backend = new BackEnd();
             Thread backendThread = new Thread(backend);
+            backendThreads.add(backendThread);
             Logger.log("BackendInitiator | started backend thread", "backendStartup");
             backendThread.start();
 
