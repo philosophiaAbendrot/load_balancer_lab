@@ -55,7 +55,6 @@ public class Run {
         // shutdown backendInitiator
         backendInitiatorThread.interrupt();
         Logger.log("Run | shutdown stage 3: Shutdown BackendInitiator thread", "threadManagement");
-
         Logger.log("Run | terminated Run thread", "threadManagement");
     }
 }

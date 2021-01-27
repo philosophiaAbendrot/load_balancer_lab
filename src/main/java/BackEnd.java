@@ -11,7 +11,6 @@ import java.net.InetSocketAddress;
 import java.util.*;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ThreadPoolExecutor;
-import java.util.concurrent.TimeUnit;
 
 public class BackEnd implements Runnable {
     static final int parametricStorageTime = 10_000; // 10 seconds of parametric storage time
@@ -224,11 +223,9 @@ public class BackEnd implements Runnable {
                 System.out.println("Within Backend#run");
                 e.printStackTrace();
                 Thread.currentThread().interrupt();
-                server.stop(2_000);
+                server.stop(3);
                 threadPoolExecutor.shutdown();
-                if (Thread.currentThread().isInterrupted()) {
-                    break;
-                }
+                break;
             }
         }
 

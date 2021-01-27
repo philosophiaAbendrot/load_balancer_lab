@@ -114,11 +114,9 @@ public class LoadBalancer implements Runnable {
                 } catch(InterruptedException e) {
                     System.out.println("InterruptedException thrown in LoadBalancer#run");
                     e.printStackTrace();
-
-                    if (Thread.currentThread().isInterrupted()) {
-                        Thread.currentThread().interrupt();
-                        break;
-                    }
+                    System.out.println("isInterrupted = " + Thread.currentThread().isInterrupted());
+                    Thread.currentThread().interrupt();
+                    break;
                 }
             }
 
