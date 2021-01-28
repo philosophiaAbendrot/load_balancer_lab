@@ -38,12 +38,14 @@ public class LoadBalancer implements Runnable {
     Thread capacityFactorMonitorThread = null;
     private static final int BACKEND_INITIATOR_PORT = 3000;
     private static final int STARTUP_BACKEND_DYNO_COUNT = 1;
+    private int startupServerCount;
     Random rand;
     long initiationTime;
 
-    public LoadBalancer(int port) {
+    public LoadBalancer(int port, int startupServerCount) {
         this.port = port;
         this.initiationTime = System.currentTimeMillis();
+        this.startupServerCount = startupServerCount;
         httpProcessor = new ImmutableHttpProcessor(requestInterceptors, responseInterceptors);
         rand = new Random();
         capacityFactors = new ConcurrentHashMap<>();
@@ -205,10 +207,10 @@ public class LoadBalancer implements Runnable {
 
     // BACKEND INITIALIZATION CODE
     private void startupBackendCluster() {
-        int step = HASH_RING_DENOMINATIONS / STARTUP_BACKEND_DYNO_COUNT;
+        int step = HASH_RING_DENOMINATIONS / this.startupServerCount;
         int hashRingIndex = 0;
 
-        for (int i = 0; i < STARTUP_BACKEND_DYNO_COUNT; i++) {
+        for (int i = 0; i < this.startupServerCount; i++) {
             int portInt = startupBackend();
             backendPortIndex.put(hashRingIndex, portInt);
             hashRingIndex += step;
@@ -320,9 +322,5 @@ public class LoadBalancer implements Runnable {
 
             return selectedPort;
         }
-    }
-
-    public static void main(String[] args) {
-        new LoadBalancer(8080).run();
     }
 }

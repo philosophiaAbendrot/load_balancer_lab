@@ -4,15 +4,17 @@ import java.util.List;
 public class Run {
     final static int NUM_CLIENTS = 5;
     long maxDemandTime;
+    final static int CLIENT_REQUEST_SEND_TIME = 40_000;
+    final static int STARTUP_SERVER_COUNT = 1;
 
     public Run() {
         maxDemandTime = System.currentTimeMillis() + 20_000;
     }
 
     public void start() {
-        Logger.configure(new String[] { "threadManagement" });
+        Logger.configure(new String[] { "threadManagement", "loadModulation" });
         Logger.log("Run | started Run thread", "threadManagement");
-        Thread loadBalancerThread = new Thread(new LoadBalancer(8080));
+        Thread loadBalancerThread = new Thread(new LoadBalancer(8080, STARTUP_SERVER_COUNT));
         Thread backendInitiatorThread = new Thread(new BackEndInitiator());
         List<Thread> clients = new ArrayList<>();
 
@@ -27,8 +29,9 @@ public class Run {
         for (Thread clientThread : clients)
             clientThread.start();
 
+        // send requests from clients
         try {
-            Thread.sleep(10_000);
+            Thread.sleep(CLIENT_REQUEST_SEND_TIME);
         } catch (InterruptedException e) {
             e.printStackTrace();
         }

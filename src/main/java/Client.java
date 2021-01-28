@@ -53,13 +53,31 @@ public class Client implements Runnable {
             httpClient.close();
 
             try {
-                TimeUnit.MILLISECONDS.sleep(1500);
+                int freq = requestFrequency();
+                Logger.log("Client | frequency = " + freq, "loadModulation");
+                TimeUnit.MILLISECONDS.sleep(freq);
             } catch (InterruptedException e) {
                 System.out.println("InterruptedException thrown in Client#start");
                 e.printStackTrace();
                 Thread.currentThread().interrupt();
                 break;
             }
+        }
+    }
+
+    private int requestFrequency() {
+        long x = System.currentTimeMillis();
+
+        // demand function
+        // -0.05(x - 20)^2 + 20
+
+        if (Math.abs(x - maxDemandTime) >= 19500) {
+            return Integer.MAX_VALUE;
+        } else {
+            double delta = (x - maxDemandTime) / 1000.0;
+            double demand = -0.05 * Math.pow(delta, 2) + 20;
+            int waitTime = (int)Math.round(1000 / demand);
+            return waitTime;
         }
     }
 
