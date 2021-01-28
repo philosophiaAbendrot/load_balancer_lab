@@ -3,8 +3,13 @@ import java.util.List;
 
 public class Run {
     final static int NUM_CLIENTS = 5;
+    long maxDemandTime;
 
-    public static void main(String[] args) {
+    public Run() {
+        maxDemandTime = System.currentTimeMillis() + 20_000;
+    }
+
+    public void start() {
         Logger.configure(new String[] { "threadManagement" });
         Logger.log("Run | started Run thread", "threadManagement");
         Thread loadBalancerThread = new Thread(new LoadBalancer(8080));
@@ -12,7 +17,7 @@ public class Run {
         List<Thread> clients = new ArrayList<>();
 
         for (int i = 0; i < NUM_CLIENTS; i++) {
-            Thread clientThread = new Thread(new Client(Integer.toString(i)));
+            Thread clientThread = new Thread(new Client(Integer.toString(i), this.maxDemandTime));
             clients.add(clientThread);
         }
 
@@ -56,5 +61,9 @@ public class Run {
         backendInitiatorThread.interrupt();
         Logger.log("Run | shutdown stage 3: Shutdown BackendInitiator thread", "threadManagement");
         Logger.log("Run | terminated Run thread", "threadManagement");
+    }
+
+    public static void main(String[] args) {
+        new Run().start();
     }
 }

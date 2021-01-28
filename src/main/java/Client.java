@@ -12,15 +12,16 @@ import java.util.concurrent.TimeUnit;
 
 public class Client implements Runnable {
     CloseableHttpClient httpClient;
+    long maxDemandTime;
     private static final int LOAD_BALANCER_PORT = 8080;
     private static final int NUM_REQUESTS = 3;
     int resourceId;
     String name;
 
-    public Client(String _name) {
-//        httpClient = HttpClients.createDefault();
+    public Client(String _name, long maxDemandTime) {
         name = _name;
         Random random = new Random();
+        this.maxDemandTime = maxDemandTime;
         resourceId = random.nextInt(3000);
     }
 
