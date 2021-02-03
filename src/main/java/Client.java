@@ -7,7 +7,7 @@ import org.apache.http.impl.client.HttpClients;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
-import java.util.Random;
+import java.util.*;
 import java.util.concurrent.TimeUnit;
 
 public class Client implements Runnable {
@@ -17,12 +17,14 @@ public class Client implements Runnable {
     private static final int NUM_REQUESTS = 3;
     int resourceId;
     String name;
+    List<Integer> requestTimestamps;
 
     public Client(String _name, long maxDemandTime) {
-        name = _name;
+        this.name = _name;
         Random random = new Random();
         this.maxDemandTime = maxDemandTime;
-        resourceId = random.nextInt(3000);
+        this.resourceId = random.nextInt(3000);
+        this.requestTimestamps = Collections.synchronizedList(new ArrayList<>());
     }
 
     @Override
@@ -46,8 +48,10 @@ public class Client implements Runnable {
             path = "/api/" + resourceId;
             HttpGet httpget = new HttpGet("http://127.0.0.1:" + LOAD_BALANCER_PORT + path);
             Logger.log(String.format("Client %s | path: %s", name, path), "clientStartup");
+            long timestamp = System.currentTimeMillis();
             CloseableHttpResponse response = sendRequest(httpget);
-
+            // record timestamp at which request was fired off to the load balancer
+            this.requestTimestamps.add((int)(timestamp / 1000));
             printResponse(response);
             response.close();
             httpClient.close();
@@ -65,6 +69,22 @@ public class Client implements Runnable {
         }
     }
 
+    // return a hash table mapping seconds since 1970 to number of requests sent
+    public Map<Integer, Integer> deliverData() {
+        Map<Integer, Integer> requestsBySecond = new HashMap<>();
+
+        for (Integer timestamp : this.requestTimestamps) {
+            if (requestsBySecond.containsKey(timestamp)) {
+                int prev = requestsBySecond.get(timestamp);
+                requestsBySecond.put(timestamp, prev + 1);
+            } else {
+                requestsBySecond.put(timestamp, 1);
+            }
+        }
+
+        return requestsBySecond;
+    }
+
     private int requestFrequency() {
         long x = System.currentTimeMillis();
 
@@ -80,6 +100,8 @@ public class Client implements Runnable {
             return waitTime;
         }
     }
+
+
 
     private CloseableHttpResponse sendRequest(HttpGet httpget) throws IOException {
         return httpClient.execute(httpget);
