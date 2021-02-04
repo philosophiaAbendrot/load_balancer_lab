@@ -61,7 +61,7 @@ public class Client implements Runnable {
                 Logger.log("Client | frequency = " + freq, "loadModulation");
                 TimeUnit.MILLISECONDS.sleep(freq);
             } catch (InterruptedException e) {
-                System.out.println("InterruptedException thrown in Client#start");
+                Logger.log("Client | Terminated Client Thread", "threadManagement");
                 e.printStackTrace();
                 Thread.currentThread().interrupt();
                 break;
@@ -70,8 +70,8 @@ public class Client implements Runnable {
     }
 
     // return a hash table mapping seconds since 1970 to number of requests sent
-    public Map<Integer, Integer> deliverData() {
-        Map<Integer, Integer> requestsBySecond = new HashMap<>();
+    public SortedMap<Integer, Integer> deliverData() {
+        SortedMap<Integer, Integer> requestsBySecond = new TreeMap<>();
 
         for (Integer timestamp : this.requestTimestamps) {
             if (requestsBySecond.containsKey(timestamp)) {

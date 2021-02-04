@@ -14,8 +14,7 @@ import java.io.InputStream;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
 import java.nio.charset.StandardCharsets;
-import java.util.ArrayList;
-import java.util.List;
+import java.util.*;
 import java.util.concurrent.TimeUnit;
 
 public class BackEndInitiator implements Runnable {
@@ -44,10 +43,45 @@ public class BackEndInitiator implements Runnable {
         httpProcessor = new ImmutableHttpProcessor(requestInterceptors, responseInterceptors);
     }
 
+    class ServerMonitor implements Runnable {
+        SortedMap<Integer, Integer> serverCount;
+
+        public ServerMonitor() {
+            this.serverCount = new TreeMap<>();
+        }
+
+        @Override
+        public void run() {
+            Logger.log("BackendInitiator | Starting ServerMonitor", "threadManagement");
+
+            while (true) {
+                try {
+                    Thread.sleep(100);
+                    int currentSecond = (int)(System.currentTimeMillis() / 1000);
+
+                    if (!serverCount.containsKey(currentSecond))
+                        serverCount.put(currentSecond, backendThreads.size());
+                } catch (InterruptedException e) {
+                    Logger.log("BackEndInitiator | Shutting down ServerMonitor", "threadManagement");
+                    Thread.currentThread().interrupt();
+                    break;
+                }
+            }
+        }
+
+        public SortedMap<Integer, Integer> deliverData() {
+            return this.serverCount;
+        }
+    }
+
     @Override
     public void run() {
         Logger.log("BackEndInitiator | Started BackendInitiator thread", "threadManagement");
         InetAddress hostAddress = null;
+
+        ServerMonitor serverMonitor = new ServerMonitor();
+        Thread serverMonitorThread = new Thread(serverMonitor);
+        serverMonitorThread.start();
 
         try {
             hostAddress = InetAddress.getByName("127.0.0.1");
@@ -90,6 +124,15 @@ public class BackEndInitiator implements Runnable {
                 backendThread.interrupt();
                 Logger.log("BackEndInitiator | Terminating backend thread " + threadId, "threadManagement");
             }
+
+            // shutdown server monitor thread
+            SortedMap<Integer, Integer> serverCountData = serverMonitor.deliverData();
+
+            for (Map.Entry<Integer, Integer> entry : serverCountData.entrySet())
+                System.out.println(entry.getKey() + " | " + entry.getValue());
+
+            serverMonitorThread.interrupt();
+            Logger.log("BackEndInitiator | Terminated server monitor thread", "threadManagement");
 
             System.out.println("InterruptedException Within BackEndInitiator#run");
             e.printStackTrace();
