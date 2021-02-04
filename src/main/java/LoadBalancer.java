@@ -41,9 +41,11 @@ public class LoadBalancer implements Runnable {
     private int startupServerCount;
     Random rand;
     long initiationTime;
+    List<Integer> incomingRequestTimestamps;
 
     public LoadBalancer(int port, int startupServerCount) {
         this.port = port;
+        this.incomingRequestTimestamps = new LinkedList<>();
         this.initiationTime = System.currentTimeMillis();
         this.startupServerCount = startupServerCount;
         httpProcessor = new ImmutableHttpProcessor(requestInterceptors, responseInterceptors);
@@ -133,7 +135,7 @@ public class LoadBalancer implements Runnable {
 
         try {
             hostAddress = InetAddress.getByName("127.0.0.1");
-        } catch(UnknownHostException e) {
+        } catch (UnknownHostException e) {
             System.out.println("UnknownHostException Within LoadBalancer#run");
             e.printStackTrace();
         }
@@ -163,10 +165,10 @@ public class LoadBalancer implements Runnable {
                     server.shutdown(5, TimeUnit.SECONDS);
                 }
             });
-        } catch(IOException e) {
+        } catch (IOException e) {
             System.out.println("IOException within LoadBalancer#run");
             e.printStackTrace();
-        } catch(InterruptedException e) {
+        } catch (InterruptedException e) {
             server.shutdown(5, TimeUnit.SECONDS);
             System.out.println("InterruptedException within LoadBalancer#run");
             e.printStackTrace();
@@ -176,6 +178,21 @@ public class LoadBalancer implements Runnable {
         }
 
         Logger.log("LoadBalancer | LoadBalancer thread terminated", "threadManagement");
+    }
+
+    public SortedMap<Integer, Integer> deliverData() {
+        SortedMap<Integer, Integer> output = new TreeMap<>();
+
+        for (Integer timestamp : this.incomingRequestTimestamps) {
+            if (output.containsKey(timestamp)) {
+                int current = output.get(timestamp);
+                output.put(timestamp, current + 1);
+            } else {
+                output.put(timestamp, 1);
+            }
+        }
+
+        return output;
     }
 
     // REQUEST HANDLERS
@@ -191,6 +208,9 @@ public class LoadBalancer implements Runnable {
 
             Logger.log(String.format("LoadBalancer | resourceId = %d", resourceId), "requestPassing");
             Logger.log(String.format("LoadBalancer | relaying message to backend server at port %d", backendPort), "requestPassing");
+
+            // record request incoming timestamp
+            incomingRequestTimestamps.add((int)(System.currentTimeMillis() / 1000));
 
             HttpGet httpget = new HttpGet("http://127.0.0.1:" + backendPort);
 
