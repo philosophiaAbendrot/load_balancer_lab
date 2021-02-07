@@ -14,8 +14,10 @@ public class Run {
     public void start() {
         Logger.configure(new String[] { "threadManagement", "loadModulation", "recordingData" });
         Logger.log("Run | started Run thread", "threadManagement");
-        Thread loadBalancerThread = new Thread(new LoadBalancer(8080, STARTUP_SERVER_COUNT));
-        Thread backendInitiatorThread = new Thread(new BackEndInitiator());
+        LoadBalancer loadBalancer = new LoadBalancer(8080, STARTUP_SERVER_COUNT);
+        Thread loadBalancerThread = new Thread(loadBalancer);
+        BackEndInitiator backendInitiator = new BackEndInitiator();
+        Thread backendInitiatorThread = new Thread(backendInitiator);
         List<Thread> clientThreads = new ArrayList<>();
         List<Client> clients = new ArrayList<>();
 
@@ -64,6 +66,7 @@ public class Run {
 
         Logger.log("Run | SynthesizedClientRequestLog:", "recordingData");
 
+        // printout synthesized client server request data
         for (Map.Entry<Integer, Integer> entry : synthesizedClientRequestLog.entrySet())
             Logger.log(String.format("%d | %d", entry.getKey(), entry.getValue()), "recordingData");
 
@@ -74,6 +77,16 @@ public class Run {
         } catch (InterruptedException e) {
             e.printStackTrace();
         }
+
+        // collect data from load balancer
+        Logger.log("collecting request log data from load balancer", "recording data");
+        SortedMap<Integer, Integer> loadBalancerRequestLog = loadBalancer.deliverData();
+
+        // printout load balancer request data
+        Logger.log("Run | loadBalancerRequestLog:", "recordingData");
+
+        for (Map.Entry<Integer, Integer> entry : loadBalancerRequestLog.entrySet())
+            Logger.log(String.format("%d | %d", entry.getKey(), entry.getValue()), "recordingData");
 
         // shutdown load balancer
         loadBalancerThread.interrupt();

@@ -182,7 +182,6 @@ public class LoadBalancer implements Runnable {
 
     public SortedMap<Integer, Integer> deliverData() {
         SortedMap<Integer, Integer> output = new TreeMap<>();
-
         for (Integer timestamp : this.incomingRequestTimestamps) {
             if (output.containsKey(timestamp)) {
                 int current = output.get(timestamp);
