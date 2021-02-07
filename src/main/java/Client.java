@@ -61,9 +61,9 @@ public class Client implements Runnable {
                 Logger.log("Client | frequency = " + freq, "loadModulation");
                 TimeUnit.MILLISECONDS.sleep(freq);
             } catch (InterruptedException e) {
-                Logger.log("Client | Terminated Client Thread", "threadManagement");
-                e.printStackTrace();
+                Logger.log("Client | Client thread interrupted", "threadManagement");
                 Thread.currentThread().interrupt();
+                Logger.log("Client | Terminated Client Thread", "threadManagement");
                 break;
             }
         }

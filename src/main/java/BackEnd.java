@@ -220,8 +220,7 @@ public class BackEnd implements Runnable {
             try {
                 Thread.sleep(500);
             } catch (InterruptedException e) {
-                System.out.println("Within Backend#run");
-                e.printStackTrace();
+                Logger.log("BackEnd | BackEnd thread interrupted", "threadManagement");
                 Thread.currentThread().interrupt();
                 server.stop(3);
                 threadPoolExecutor.shutdown();

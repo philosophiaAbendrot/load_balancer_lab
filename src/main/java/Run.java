@@ -100,7 +100,15 @@ public class Run {
             e.printStackTrace();
         }
 
-        // shutdown backendInitiator
+        // collect data from BackEndInitiator instance
+        SortedMap<Integer, Integer> serverCountLog = backendInitiator.deliverData();
+
+        // printout backend server data
+        for (Map.Entry<Integer, Integer> entry : serverCountLog.entrySet()) {
+            Logger.log(String.format("%d | %d", entry.getKey(), entry.getValue()), "recordingData");
+        }
+
+        // shutdown BackEndInitiator instance
         backendInitiatorThread.interrupt();
         Logger.log("Run | shutdown stage 3: Shutdown BackendInitiator thread", "threadManagement");
         Logger.log("Run | terminated Run thread", "threadManagement");

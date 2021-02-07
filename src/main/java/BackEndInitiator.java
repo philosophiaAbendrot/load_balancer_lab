@@ -24,6 +24,7 @@ public class BackEndInitiator implements Runnable {
     List<Thread> backendThreads = new ArrayList<>();
     HttpProcessor httpProcessor;
     int[] selectablePorts = new int[100];
+    ServerMonitor serverMonitor;
 
     public BackEndInitiator() {
         port = 3000;
@@ -41,10 +42,11 @@ public class BackEndInitiator implements Runnable {
         }
 
         httpProcessor = new ImmutableHttpProcessor(requestInterceptors, responseInterceptors);
+        this.serverMonitor = new ServerMonitor();
     }
 
     class ServerMonitor implements Runnable {
-        SortedMap<Integer, Integer> serverCount;
+        public SortedMap<Integer, Integer> serverCount;
 
         public ServerMonitor() {
             this.serverCount = new TreeMap<>();
@@ -67,10 +69,6 @@ public class BackEndInitiator implements Runnable {
                     break;
                 }
             }
-        }
-
-        public SortedMap<Integer, Integer> deliverData() {
-            return this.serverCount;
         }
     }
 
@@ -116,6 +114,7 @@ public class BackEndInitiator implements Runnable {
             System.out.println("IOException Within BackEndInitiator#run");
             e.printStackTrace();
         } catch (InterruptedException e) {
+            Logger.log("BackEndInitiator | BackEndInitiator thread interrupted", "threadManagement");
             // shutdown server
             server.shutdown(5, TimeUnit.SECONDS);
             // shutdown all backend servers spawned by this server
@@ -125,20 +124,16 @@ public class BackEndInitiator implements Runnable {
                 Logger.log("BackEndInitiator | Terminating backend thread " + threadId, "threadManagement");
             }
 
-            // shutdown server monitor thread
-            SortedMap<Integer, Integer> serverCountData = serverMonitor.deliverData();
-
-            for (Map.Entry<Integer, Integer> entry : serverCountData.entrySet())
-                System.out.println(entry.getKey() + " | " + entry.getValue());
-
+            // terminate server monitor thread
             serverMonitorThread.interrupt();
             Logger.log("BackEndInitiator | Terminated server monitor thread", "threadManagement");
-
-            System.out.println("InterruptedException Within BackEndInitiator#run");
-            e.printStackTrace();
             Thread.currentThread().interrupt();
         }
         Logger.log("BackEndInitiator | Terminated BackEndInitiator thread", "threadManagement");
+    }
+
+    public SortedMap<Integer, Integer> deliverData() {
+        return this.serverMonitor.serverCount;
     }
 
     private class InitiateRequestHandler implements HttpRequestHandler {

@@ -42,12 +42,14 @@ public class LoadBalancer implements Runnable {
     Random rand;
     long initiationTime;
     List<Integer> incomingRequestTimestamps;
+    ClientRequestHandler clientRequestHandler;
 
     public LoadBalancer(int port, int startupServerCount) {
         this.port = port;
-        this.incomingRequestTimestamps = new LinkedList<>();
+        this.incomingRequestTimestamps = Collections.synchronizedList(new LinkedList<>());
         this.initiationTime = System.currentTimeMillis();
         this.startupServerCount = startupServerCount;
+        this.clientRequestHandler = new ClientRequestHandler();
         httpProcessor = new ImmutableHttpProcessor(requestInterceptors, responseInterceptors);
         rand = new Random();
         capacityFactors = new ConcurrentHashMap<>();
@@ -57,7 +59,6 @@ public class LoadBalancer implements Runnable {
         @Override
         public void run() {
             Logger.log("LoadBalancer | Started CapacityFactorMonitor thread", "threadManagement");
-            long startTime = System.currentTimeMillis();
             while(true) {
                 try {
                     // update capacity factors every 0.5s by pinging each backend
@@ -150,7 +151,7 @@ public class LoadBalancer implements Runnable {
                 .setListenerPort(port)
                 .setHttpProcessor(httpProcessor)
                 .setSocketConfig(config)
-                .registerHandler("/api/*", new ClientRequestHandler())
+                .registerHandler("/api/*", this.clientRequestHandler)
                 .create();
 
         try {
@@ -170,8 +171,7 @@ public class LoadBalancer implements Runnable {
             e.printStackTrace();
         } catch (InterruptedException e) {
             server.shutdown(5, TimeUnit.SECONDS);
-            System.out.println("InterruptedException within LoadBalancer#run");
-            e.printStackTrace();
+            Logger.log("LoadBalancer | LoadBalancer thread interrupted", "threadManagement");
             // shut down capacity factor monitor thread
             capacityFactorMonitorThread.interrupt();
             Thread.currentThread().interrupt();
@@ -209,7 +209,7 @@ public class LoadBalancer implements Runnable {
             Logger.log(String.format("LoadBalancer | relaying message to backend server at port %d", backendPort), "requestPassing");
 
             // record request incoming timestamp
-            incomingRequestTimestamps.add((int)(System.currentTimeMillis() / 1000));
+            LoadBalancer.this.incomingRequestTimestamps.add((int)(System.currentTimeMillis() / 1000));
 
             HttpGet httpget = new HttpGet("http://127.0.0.1:" + backendPort);
 
@@ -217,10 +217,6 @@ public class LoadBalancer implements Runnable {
 
             HttpEntity responseBody = response.getEntity();
             httpResponse.setEntity(responseBody);
-
-            //            closing these cause a sun.net.SocketException for some reason
-//            response.close();
-//            httpClient.close();
         }
     }
 
