@@ -2,6 +2,11 @@ import java.util.HashSet;
 import java.util.Set;
 
 public class Logger {
+    // list of log types (not exhaustive)
+    // threadManagment = starting and shutting down threads
+    // loadModulation = recording load on each server and adjusting server capacity
+    // recordingData = recording simulation data and synthesizing it
+
     private static Set<String> displayedLogTypes = new HashSet<>();
 
     public static void configure(String[] types) {

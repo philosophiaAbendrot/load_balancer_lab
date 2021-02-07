@@ -1,32 +1,35 @@
-import java.util.ArrayList;
-import java.util.List;
+import java.util.*;
 
 public class Run {
-    final static int NUM_CLIENTS = 1;
+    final static int NUM_CLIENTS = 3;
     long maxDemandTime;
     final static int CLIENT_REQUEST_SEND_TIME = 40_000;
-    final static int STARTUP_SERVER_COUNT = 1;
+    final static int STARTUP_SERVER_COUNT = 3;
 
     public Run() {
         maxDemandTime = System.currentTimeMillis() + 20_000;
     }
 
+    // start simulation
     public void start() {
-        Logger.configure(new String[] { "threadManagement", "loadModulation" });
+        Logger.configure(new String[] { "threadManagement", "loadModulation", "recordingData" });
         Logger.log("Run | started Run thread", "threadManagement");
         Thread loadBalancerThread = new Thread(new LoadBalancer(8080, STARTUP_SERVER_COUNT));
         Thread backendInitiatorThread = new Thread(new BackEndInitiator());
-        List<Thread> clients = new ArrayList<>();
+        List<Thread> clientThreads = new ArrayList<>();
+        List<Client> clients = new ArrayList<>();
 
         for (int i = 0; i < NUM_CLIENTS; i++) {
-            Thread clientThread = new Thread(new Client(Integer.toString(i), this.maxDemandTime));
-            clients.add(clientThread);
+            Client client = new Client(Integer.toString(i), this.maxDemandTime);
+            Thread clientThread = new Thread(client);
+            clients.add(client);
+            clientThreads.add(clientThread);
         }
 
         loadBalancerThread.start();
         backendInitiatorThread.start();
 
-        for (Thread clientThread : clients)
+        for (Thread clientThread : clientThreads)
             clientThread.start();
 
         // send requests from clients
@@ -36,9 +39,33 @@ public class Run {
             e.printStackTrace();
         }
 
-        // shutdown client threads
-        for (Thread client: clients)
-            client.interrupt();
+        SortedMap<Integer, Integer> synthesizedClientRequestLog = new TreeMap<>();
+
+        // shutdown client threads and synthesize data from the client servers
+        for (int i = 0; i < clientThreads.size(); i++) {
+            Thread clientThread = clientThreads.get(i);
+            Client client = clients.get(i);
+            SortedMap<Integer, Integer> clientRequestLog = client.deliverData();
+
+            for (Map.Entry<Integer, Integer> entry : clientRequestLog.entrySet()) {
+                if (synthesizedClientRequestLog.containsKey(entry.getKey())) {
+                    // if entry exists, increment
+                    Integer prev = synthesizedClientRequestLog.get(entry.getKey());
+                    synthesizedClientRequestLog.put(entry.getKey(), prev + 1);
+                } else {
+                    // otherwise, create new entry
+                    synthesizedClientRequestLog.put(entry.getKey(), entry.getValue());
+                }
+            }
+
+            // initiate client server shutdown
+            clientThread.interrupt();
+        }
+
+        Logger.log("Run | SynthesizedClientRequestLog:", "recordingData");
+
+        for (Map.Entry<Integer, Integer> entry : synthesizedClientRequestLog.entrySet())
+            Logger.log(String.format("%d | %d", entry.getKey(), entry.getValue()), "recordingData");
 
         Logger.log("Run | shutdown stage 1: shutdown client threads", "threadManagement");
 
