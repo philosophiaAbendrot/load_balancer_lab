@@ -118,19 +118,47 @@ public class Run {
 
         // Graph collected metrics
         List<Double> synthesizedClientRequestLogOutput = new ArrayList<>();
+        List<Double> loadBalancerRequestLogOutput = new ArrayList<>();
+        List<Double> serverCountLogOutput = new ArrayList<>();
 
-        for (Integer value : synthesizedClientRequestLog.values()) {
+        for (Integer value : synthesizedClientRequestLog.values())
             synthesizedClientRequestLogOutput.add((double)value);
-        }
 
+        for (Integer value : loadBalancerRequestLog.values())
+            loadBalancerRequestLogOutput.add((double)value);
+
+        for (Integer value : serverCountLog.values())
+            serverCountLogOutput.add((double) value);
+
+        // graph client request requests sent vs time
         GraphPanel mainPanel = new GraphPanel(synthesizedClientRequestLogOutput);
         mainPanel.setPreferredSize(new Dimension(800, 600));
-        JFrame frame = new JFrame("DrawGraph");
+        JFrame frame = new JFrame("Client request output");
         frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         frame.getContentPane().add(mainPanel);
         frame.pack();
         frame.setLocationRelativeTo(null);
         frame.setVisible(true);
+
+        // graph load balancer requests received vs time
+        GraphPanel secondPanel = new GraphPanel(loadBalancerRequestLogOutput);
+        secondPanel.setPreferredSize(new Dimension(800, 600));
+        JFrame secondFrame = new JFrame("Load Balancer requests received");
+        secondFrame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+        secondFrame.getContentPane().add(secondPanel);
+        secondFrame.pack();
+        secondFrame.setLocationRelativeTo(null);
+        secondFrame.setVisible(true);
+
+        // graph backend initiator backend server count vs time
+        GraphPanel thirdPanel = new GraphPanel(serverCountLogOutput);
+        thirdPanel.setPreferredSize((new Dimension(800, 600)));
+        JFrame thirdFrame = new JFrame("Backend servers active vs time");
+        thirdFrame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+        thirdFrame.getContentPane().add(thirdPanel);
+        thirdFrame.pack();
+        thirdFrame.setLocationRelativeTo(null);
+        thirdFrame.setVisible(true);
     }
 
     public static void main(String[] args) {
