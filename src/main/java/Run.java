@@ -1,4 +1,7 @@
+import javax.swing.*;
+import java.awt.*;
 import java.util.*;
+import java.util.List;
 
 public class Run {
     final static int NUM_CLIENTS = 3;
@@ -112,6 +115,22 @@ public class Run {
         backendInitiatorThread.interrupt();
         Logger.log("Run | shutdown stage 3: Shutdown BackendInitiator thread", "threadManagement");
         Logger.log("Run | terminated Run thread", "threadManagement");
+
+        // Graph collected metrics
+        List<Double> synthesizedClientRequestLogOutput = new ArrayList<>();
+
+        for (Integer value : synthesizedClientRequestLog.values()) {
+            synthesizedClientRequestLogOutput.add((double)value);
+        }
+
+        GraphPanel mainPanel = new GraphPanel(synthesizedClientRequestLogOutput);
+        mainPanel.setPreferredSize(new Dimension(800, 600));
+        JFrame frame = new JFrame("DrawGraph");
+        frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+        frame.getContentPane().add(mainPanel);
+        frame.pack();
+        frame.setLocationRelativeTo(null);
+        frame.setVisible(true);
     }
 
     public static void main(String[] args) {
