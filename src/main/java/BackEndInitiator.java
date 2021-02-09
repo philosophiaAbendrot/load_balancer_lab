@@ -23,8 +23,8 @@ public class BackEndInitiator implements Runnable {
     List<HttpResponseInterceptor> responseInterceptors = new ArrayList<HttpResponseInterceptor>();
     List<Thread> backendThreads = new ArrayList<>();
     HttpProcessor httpProcessor;
+    SortedMap<Integer, Integer> serverCount;
     int[] selectablePorts = new int[100];
-    ServerMonitor serverMonitor;
 
     public BackEndInitiator() {
         port = 3000;
@@ -42,7 +42,7 @@ public class BackEndInitiator implements Runnable {
         }
 
         httpProcessor = new ImmutableHttpProcessor(requestInterceptors, responseInterceptors);
-        this.serverMonitor = new ServerMonitor();
+        this.serverCount = new TreeMap<>();
     }
 
     class ServerMonitor implements Runnable {
@@ -61,8 +61,10 @@ public class BackEndInitiator implements Runnable {
                     Thread.sleep(100);
                     int currentSecond = (int)(System.currentTimeMillis() / 1000);
 
-                    if (!serverCount.containsKey(currentSecond))
-                        serverCount.put(currentSecond, backendThreads.size());
+                    if (!serverCount.containsKey(currentSecond)) {
+                        BackEndInitiator.this.serverCount.put(currentSecond, backendThreads.size());
+                        Logger.log("BackEndInitiator | backendThread.size = " + backendThreads.size(), "recordingData");
+                    }
                 } catch (InterruptedException e) {
                     Logger.log("BackEndInitiator | Shutting down ServerMonitor", "threadManagement");
                     Thread.currentThread().interrupt();
@@ -133,12 +135,13 @@ public class BackEndInitiator implements Runnable {
     }
 
     public SortedMap<Integer, Integer> deliverData() {
-        return this.serverMonitor.serverCount;
+        SortedMap<Integer, Integer> serverCount = this.serverCount;
+        return this.serverCount;
     }
 
     private class InitiateRequestHandler implements HttpRequestHandler {
         @Override
-        public void handle(HttpRequest httpRequest, HttpResponse httpResponse, HttpContext httpContext) throws HttpException, IOException {
+        public void handle(HttpRequest httpRequest, HttpResponse httpResponse, HttpContext httpContext) throws IOException {
             Logger.log("BackendInitiator | received backend initiate request", "backendStartup");
             BackEnd backend = new BackEnd();
             Thread backendThread = new Thread(backend);
@@ -153,10 +156,8 @@ public class BackEndInitiator implements Runnable {
                 try {
                     Thread.sleep(20);
                 } catch(InterruptedException e) {
-                    System.out.println("InterruptedException within BackendInitiator::InitiateRequestHandler#run");
-                    e.printStackTrace();
+                    Logger.log("BackEndInitiator | initiateRequestHandler thread interrupted", "threadManagement");
                 }
-                Logger.log("BackEndInitiator | backendPort = " + backend.port + " tryNumber = " + tryNumber++, "backendStartup");
             }
 
             Logger.log("chosen backend port = " + backend.port, "backendStartup");
