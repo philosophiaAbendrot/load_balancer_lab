@@ -23,7 +23,7 @@ import javax.swing.SwingUtilities;
  *
  * GitHub user @maritaria has made some performance improvements which can be found in the comment section of this Gist.
  */
-public class GraphPanel extends JPanel {
+public class Graph extends JPanel {
     private int width = 800;
     private int height = 400;
     private int padding = 25;
@@ -36,7 +36,7 @@ public class GraphPanel extends JPanel {
     private int numberYDivisions = 10;
     private List<Double> scores;
 
-    public GraphPanel(List<Double> scores) {
+    public Graph(List<Double> scores) {
         this.scores = scores;
     }
 
@@ -165,7 +165,7 @@ public class GraphPanel extends JPanel {
             scores.add((double) random.nextDouble() * maxScore);
 //            scores.add((double) i);
         }
-        GraphPanel mainPanel = new GraphPanel(scores);
+        Graph mainPanel = new Graph(scores);
         mainPanel.setPreferredSize(new Dimension(800, 600));
         JFrame frame = new JFrame("DrawGraph");
         frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
