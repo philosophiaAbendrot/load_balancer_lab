@@ -56,7 +56,7 @@ public class Run {
                 if (synthesizedClientRequestLog.containsKey(entry.getKey())) {
                     // if entry exists, increment
                     Integer prev = synthesizedClientRequestLog.get(entry.getKey());
-                    synthesizedClientRequestLog.put(entry.getKey(), prev + 1);
+                    synthesizedClientRequestLog.put(entry.getKey(), prev + entry.getValue());
                 } else {
                     // otherwise, create new entry
                     synthesizedClientRequestLog.put(entry.getKey(), entry.getValue());
