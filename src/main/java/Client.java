@@ -14,7 +14,6 @@ public class Client implements Runnable {
     CloseableHttpClient httpClient;
     long maxDemandTime;
     private static final int LOAD_BALANCER_PORT = 8080;
-    private static final int NUM_REQUESTS = 3;
     int resourceId;
     String name;
     List<Integer> requestTimestamps;
@@ -84,13 +83,13 @@ public class Client implements Runnable {
             return Integer.MAX_VALUE;
         } else {
             double delta = (x - maxDemandTime) / 1000.0;
-            double demand = -0.05 * Math.pow(delta, 2) + 20;
+            double demand = Math.max(-0.0005 * Math.pow(delta, 2) + 0.5, 0.07);
+            Logger.log("Client | demand = " + demand, "recordingData");
             int waitTime = (int)Math.round(1000 / demand);
+            Logger.log("Client | waitTime = " + waitTime, "recordingData");
             return waitTime;
         }
     }
-
-
 
     private CloseableHttpResponse sendRequest(HttpGet httpget) throws IOException {
         return httpClient.execute(httpget);
