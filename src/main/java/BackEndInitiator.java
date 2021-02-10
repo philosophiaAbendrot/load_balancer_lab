@@ -63,7 +63,6 @@ public class BackEndInitiator implements Runnable {
 
                     if (!serverCount.containsKey(currentSecond)) {
                         BackEndInitiator.this.serverCount.put(currentSecond, backendThreads.size());
-                        Logger.log("BackEndInitiator | backendThread.size = " + backendThreads.size(), "recordingData");
                     }
                 } catch (InterruptedException e) {
                     Logger.log("BackEndInitiator | Shutting down ServerMonitor", "threadManagement");

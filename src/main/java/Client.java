@@ -70,19 +70,8 @@ public class Client implements Runnable {
     }
 
     // return a hash table mapping seconds since 1970 to number of requests sent
-    public SortedMap<Integer, Integer> deliverData() {
-        SortedMap<Integer, Integer> requestsBySecond = new TreeMap<>();
-
-        for (Integer timestamp : this.requestTimestamps) {
-            if (requestsBySecond.containsKey(timestamp)) {
-                int prev = requestsBySecond.get(timestamp);
-                requestsBySecond.put(timestamp, prev + 1);
-            } else {
-                requestsBySecond.put(timestamp, 1);
-            }
-        }
-
-        return requestsBySecond;
+    public List<Integer> deliverData() {
+        return this.requestTimestamps;
     }
 
     private int requestFrequency() {

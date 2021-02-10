@@ -44,34 +44,28 @@ public class Run {
             e.printStackTrace();
         }
 
-        SortedMap<Integer, Integer> synthesizedClientRequestLog = new TreeMap<>();
-
         // shutdown client threads and synthesize data from the client servers
-        for (int i = 0; i < clientThreads.size(); i++) {
-            Thread clientThread = clientThreads.get(i);
-            Client client = clients.get(i);
-            SortedMap<Integer, Integer> clientRequestLog = client.deliverData();
+        SortedMap<Integer, Integer> synthesizedClientRequestLog = new TreeMap<>();
+        List<Integer> synthesizedRequestList = new ArrayList<>();
 
-            for (Map.Entry<Integer, Integer> entry : clientRequestLog.entrySet()) {
-                if (synthesizedClientRequestLog.containsKey(entry.getKey())) {
-                    // if entry exists, increment
-                    Integer prev = synthesizedClientRequestLog.get(entry.getKey());
-                    synthesizedClientRequestLog.put(entry.getKey(), prev + entry.getValue());
-                } else {
-                    // otherwise, create new entry
-                    synthesizedClientRequestLog.put(entry.getKey(), entry.getValue());
-                }
-            }
+        // collate timestamp lists from all the clients into one list
+        for (Client client : clients)
+            synthesizedRequestList.addAll(client.deliverData());
 
-            // initiate client server shutdown
+        // interrupt client threads to initiate their shutdown
+        for (Thread clientThread : clientThreads)
             clientThread.interrupt();
+
+        // convert the synthesized list into a sorted map mapping timestamps to the number of requests sent in the duration
+        // of that timestamp
+        for (Integer timestamp : synthesizedRequestList) {
+            if (synthesizedClientRequestLog.containsKey(timestamp)) {
+                Integer prev = synthesizedClientRequestLog.get(timestamp);
+                synthesizedClientRequestLog.put(timestamp, prev + 1);
+            } else {
+                synthesizedClientRequestLog.put(timestamp, 1);
+            }
         }
-
-        Logger.log("Run | SynthesizedClientRequestLog:", "recordingData");
-
-        // printout synthesized client server request data
-        for (Map.Entry<Integer, Integer> entry : synthesizedClientRequestLog.entrySet())
-            Logger.log(String.format("%d | %d", entry.getKey(), entry.getValue()), "recordingData");
 
         Logger.log("Run | shutdown stage 1: shutdown client threads", "threadManagement");
 
@@ -82,14 +76,8 @@ public class Run {
         }
 
         // collect data from load balancer
-        Logger.log("collecting request log data from load balancer", "recording data");
+        Logger.log("collecting request log data from load balancer", "recordingData");
         SortedMap<Integer, Integer> loadBalancerRequestLog = loadBalancer.deliverData();
-
-        // printout load balancer request data
-        Logger.log("Run | loadBalancerRequestLog:", "recordingData");
-
-        for (Map.Entry<Integer, Integer> entry : loadBalancerRequestLog.entrySet())
-            Logger.log(String.format("%d | %d", entry.getKey(), entry.getValue()), "recordingData");
 
         // shutdown load balancer
         loadBalancerThread.interrupt();
@@ -105,11 +93,6 @@ public class Run {
 
         // collect data from BackEndInitiator instance
         SortedMap<Integer, Integer> serverCountLog = backendInitiator.deliverData();
-
-        // printout backend server data
-        for (Map.Entry<Integer, Integer> entry : serverCountLog.entrySet()) {
-            Logger.log(String.format("%d | %d", entry.getKey(), entry.getValue()), "recordingData");
-        }
 
         // shutdown BackEndInitiator instance
         backendInitiatorThread.interrupt();
