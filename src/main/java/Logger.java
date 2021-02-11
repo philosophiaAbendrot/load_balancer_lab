@@ -14,7 +14,7 @@ public class Logger {
             displayedLogTypes.add(types[i]);
     }
     public static void log(String msg, String type) {
-        if (displayedLogTypes.contains(type))
+        if (displayedLogTypes.contains(type) || type == "alwaysPrint")
             System.out.printf("%s | %s\n", msg, java.time.ZonedDateTime.now());
     }
 }

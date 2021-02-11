@@ -44,9 +44,14 @@ public class Client implements Runnable {
     }
 
     void start() throws IOException {
+        int count = 0;
         while (true) {
-            if (System.currentTimeMillis() < this.requestStartTime)
+            if (System.currentTimeMillis() < this.requestStartTime) {
+                // dummy printout used to force thread scheduling and thus even out client request load at beginning
+                Logger.log("", "alwaysPrint");
+                count++;
                 continue;
+            }
 
             httpClient = HttpClients.createDefault();
             String path;
@@ -81,17 +86,22 @@ public class Client implements Runnable {
 
     private int requestFrequency() {
         long x = System.currentTimeMillis();
+        double variabilityRange = 0.6;
 
         // demand function
-        // -0.05(x - 20)^2 + 20
+        // -0.0005(x - 20)^2 + 0.5
 
         if (Math.abs(x - maxDemandTime) >= 19500) {
             return Integer.MAX_VALUE;
         } else {
+            // demand curve is a downward facing parabola
             double delta = (x - maxDemandTime) / 1000.0;
             double demand = Math.max(-0.0005 * Math.pow(delta, 2) + 0.5, 0.07);
+            // introduce variability
+            Random rand = new Random();
+            double variabilityFactor = 0.7 +  0.6 * rand.nextDouble();
             Logger.log("Client | demand = " + demand, "recordingData");
-            int waitTime = (int)Math.round(1000 / demand);
+            int waitTime = (int)Math.round(1000 / demand * variabilityFactor);
             Logger.log("Client | waitTime = " + waitTime, "recordingData");
             return waitTime;
         }
