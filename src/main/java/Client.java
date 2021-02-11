@@ -17,6 +17,7 @@ public class Client implements Runnable {
     int resourceId;
     String name;
     List<Integer> requestTimestamps;
+    long requestStartTime;
 
     public Client(String _name, long maxDemandTime) {
         this.name = _name;
@@ -24,6 +25,8 @@ public class Client implements Runnable {
         this.maxDemandTime = maxDemandTime;
         this.resourceId = random.nextInt(3000);
         this.requestTimestamps = Collections.synchronizedList(new ArrayList<>());
+        // first request is sent up to 15 seconds after initialization to stagger the incoming requests
+        this.requestStartTime = System.currentTimeMillis() + (long)((new Random()).nextInt(15000));
     }
 
     @Override
@@ -42,6 +45,9 @@ public class Client implements Runnable {
 
     void start() throws IOException {
         while (true) {
+            if (System.currentTimeMillis() < this.requestStartTime)
+                continue;
+
             httpClient = HttpClients.createDefault();
             String path;
             path = "/api/" + resourceId;
