@@ -4,7 +4,7 @@ import java.util.*;
 import java.util.List;
 
 public class Run {
-    final static int NUM_CLIENTS = 200;
+    final static int NUM_CLIENTS = 15;
     long maxDemandTime;
     final static int CLIENT_REQUEST_SEND_TIME = 40_000;
     final static int STARTUP_SERVER_COUNT = 39;

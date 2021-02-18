@@ -33,6 +33,7 @@ public class LoadBalancer implements Runnable {
     List<HttpResponseInterceptor> responseInterceptors = new ArrayList<>();
     Map<Integer, Long> reinforcedTimes = new HashMap<>(); // holds a map of when each backend port was last reinforced
     HttpProcessor httpProcessor;
+    // maps hash ring locations to backend server ports
     Map<Integer, Integer> backendPortIndex = new HashMap<>();
     ConcurrentMap<Integer, Double> capacityFactors;
     Thread capacityFactorMonitorThread = null;
@@ -288,6 +289,7 @@ public class LoadBalancer implements Runnable {
         int hashRingPointer = resourceId % HASH_RING_DENOMINATIONS;
 
         while (true) {
+            // rotate clockwise on the hash ring until a backend port is found
             if (backendPortIndex.containsKey(hashRingPointer))
                 break;
 
@@ -305,37 +307,38 @@ public class LoadBalancer implements Runnable {
         Integer currLoc = null, prevLoc = null;
 
         List<Integer> locations = new ArrayList<>(backendPortIndex.keySet());
-        List<Integer> ports = new ArrayList<>(backendPortIndex.values());
-        Logger.log(String.format("LoadBalancer | locations = %s", locations), "capacityModulation");
-        Logger.log(String.format("LoadBalancer | ports = %s", ports), "capacityModulation");
+        Collections.sort(locations);
+        int selectedLocation;
 
-        if (ports.size() < 2) {
-            int selectedPort = HASH_RING_DENOMINATIONS / 2;
-            Logger.log(String.format("LoadBalancer | selectedPort = %d", selectedPort), "capacityModulation");
-            return selectedPort;
+        if (locations.size() == 0) {
+            selectedLocation = 0;
+        } else if (locations.size() == 1) {
+            selectedLocation = HASH_RING_DENOMINATIONS / 2;
         } else {
-            if (ports.get(0) == backendPort) {
-                // if backend is in the first pair in backendPortIndex
+            int firstLocation = locations.get(0);
+            if (backendPortIndex.get(firstLocation) == backendPort) {
+                // if backend is in the first position in hash ring
                 currLoc = locations.get(0);
+                // then the previous server is the server in the last position
                 prevLoc = locations.get(locations.size() - 1);
+                selectedLocation = (currLoc + prevLoc) / 2;
             } else {
                 // otherwise
-                for (int i = 0; i < ports.size(); i++) {
-                    if (ports.get(i) == backendPort) {
+                // the previous server is the server in the next position proceeding counterclockwise from the server
+
+                for (int i = 0; i < locations.size(); i++) {
+                    if (backendPortIndex.get(locations.get(i)) == backendPort) {
                         prevLoc = currLoc;
                         currLoc = locations.get(i);
-                        break;
                     } else {
                         currLoc = locations.get(i);
                     }
                 }
+
+                selectedLocation = (currLoc + prevLoc) / 2;
             }
-
-            Logger.log(String.format("LoadBalancer | currLoc = %d, prevLoc = %d", currLoc, prevLoc), "capacityModulation");
-            int selectedPort = (currLoc + prevLoc) / 2;
-            Logger.log(String.format("LoadBalancer | backendPort = %d, prevLoc = %d, currLoc = %d, selectedPort = %d", backendPort, prevLoc, currLoc, selectedPort), "capacityModulation");
-
-            return selectedPort;
         }
+
+        return selectedLocation;
     }
 }
