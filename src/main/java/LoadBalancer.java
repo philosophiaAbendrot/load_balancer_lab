@@ -24,9 +24,11 @@ import java.util.concurrent.TimeUnit;
 
 public class LoadBalancer implements Runnable {
     private final int HASH_RING_DENOMINATIONS = 60;
-    private final double CAPACITY_FACTOR_MAX = 0.3;
+    private final double CAPACITY_FACTOR_MAX = 0.75;
+    private final double CAPACITY_FACTOR_MIN = 0.25;
     private final int REST_INTERVAL = 5_000;
     private final int REINFORCEMENT_INTERVAL = 5_000;
+    private final int MIN_TIME_TO_LIVE = 5_000;
 
     int port;
     List<HttpRequestInterceptor> requestInterceptors = new ArrayList<>();
@@ -35,6 +37,9 @@ public class LoadBalancer implements Runnable {
     HttpProcessor httpProcessor;
     // maps hash ring locations to backend server ports
     Map<Integer, Integer> backendPortIndex = new HashMap<>();
+    // maps port index to time at which the server was initiated
+    Map<Integer, Long> backendStartTimes = new HashMap<>();
+
     ConcurrentMap<Integer, Double> capacityFactors;
     Thread capacityFactorMonitorThread = null;
     private static final int BACKEND_INITIATOR_PORT = 3000;
@@ -84,33 +89,32 @@ public class LoadBalancer implements Runnable {
                             responseStream.close();
                             httpClient.close();
 
-                            if (System.currentTimeMillis() > initiationTime + REST_INTERVAL && capacityFactor > CAPACITY_FACTOR_MAX) {
-                                if (reinforcedTimes.containsKey(backendPort)) {
-                                    // if a server has been started up to reinforce backendPort recently
-                                    long lastReinforced = reinforcedTimes.get(backendPort);
-                                    Logger.log(String.format("Load Balancer | last reinforced = %d", lastReinforced), "capacityModulation");
+                            if (System.currentTimeMillis() > initiationTime + REST_INTERVAL) {
+                                if (capacityFactor > CAPACITY_FACTOR_MAX) {
+                                    if (reinforcedTimes.containsKey(backendPort)) {
+                                        // if a server has been started up to reinforce this server recently
+                                        long lastReinforced = reinforcedTimes.get(backendPort);
+                                        Logger.log(String.format("Load Balancer | last reinforced = %d", lastReinforced), "capacityModulation");
 
-                                    if (System.currentTimeMillis() > lastReinforced + REINFORCEMENT_INTERVAL) {
-                                        // if the backend port was reinforced a while ago, clear it out from the record
-                                        Logger.log(String.format("Load Balancer | clearing backendPort %d from reinforcedTimes", backendPort), "capacityModulation");
-                                        reinforcedTimes.remove(backendPort);
+                                        if (System.currentTimeMillis() > lastReinforced + REINFORCEMENT_INTERVAL) {
+                                            // if the server was reinforced a while ago, clear it out from the list of recently reinforced servers
+                                            Logger.log(String.format("Load Balancer | clearing backendPort %d from reinforcedTimes", backendPort), "capacityModulation");
+                                            reinforcedTimes.remove(backendPort);
+                                            // startup a new dyno
+                                            reinforceServer(backendPort, capacityFactor);
+                                        } else {
+                                            // if the server was reinforced recently, do not reinforce it again
+                                            Logger.log(String.format("Load Balancer | skipping reinforcement of port %d", backendPort), "capacityModulation");
+                                        }
                                     } else {
-                                        // if the backend port was reinforced recently, do not reinforce it again
-                                        Logger.log(String.format("Load Balancer | skipping reinforcement of port %d", backendPort), "capacityModulation");
-                                        continue;
+                                        // if the server has not been reinforced recently
+                                        reinforceServer(backendPort, capacityFactor);
                                     }
+                                } else if (capacityFactor < CAPACITY_FACTOR_MIN && System.currentTimeMillis() > backendStartTimes.get(backendPort) + MIN_TIME_TO_LIVE) {
+                                    // if the server is underutilized and it has been running for at least MIN_TIME_TO_LIVE
+                                    // shutdown server
+                                    shutdownServer(backendPort, capacityFactor);
                                 }
-
-                                // startup a new dyno
-                                Logger.log(String.format("Load Balancer | backendPort %d is overloaded with cf = %f", backendPort, capacityFactor), "capacityModulation");
-                                int newServerHashRingLocation = selectHashRingLocation(backendPort);
-                                Logger.log(String.format("Load Balancer | selected location %d for new server", newServerHashRingLocation), "capacityModulation");
-                                // start a new server at the new hash ring location
-                                int newServerPort = startupBackend();
-                                // record location of new dyno along with port
-                                backendPortIndex.put(newServerHashRingLocation, newServerPort);
-                                // record that backendPort was reinforced
-                                reinforcedTimes.put(backendPort, System.currentTimeMillis());
                             }
                         } catch(IOException e) {
                             System.out.println("IOException thrown in LoadBalancer::CapacityFactorMonitor#run");
@@ -127,6 +131,28 @@ public class LoadBalancer implements Runnable {
             }
 
             Logger.log("LoadBalancer | Terminated CapacityFactorMonitor thread", "threadManagement");
+        }
+
+        // takes the port of the server being reinforced and starts up a new backend server to reinforce it
+        private void reinforceServer(int backendPort, double capacityFactor) {
+            // startup a new dyno
+            Logger.log(String.format("Load Balancer | backendPort %d is overloaded with cf = %f", backendPort, capacityFactor), "capacityModulation");
+            int newServerHashRingLocation = selectHashRingLocation(backendPort);
+            Logger.log(String.format("Load Balancer | selected location %d for new server", newServerHashRingLocation), "capacityModulation");
+            // start a new server at the new hash ring location
+            int newServerPort = LoadBalancer.this.startupBackend();
+            // record location of new dyno along with port
+            backendPortIndex.put(newServerHashRingLocation, newServerPort);
+            // record initiation of backend server
+            backendStartTimes.put(backendPort, System.currentTimeMillis());
+            // record that backendPort was reinforced
+            reinforcedTimes.put(backendPort, System.currentTimeMillis());
+        }
+
+        // takes the port of a server that is being shut down and shuts it down
+        private void shutdownServer(int backendPort, double capacityFactor) {
+            Logger.log(String.format("Load Balancer | backendPort %d is underutilized with cf = %f", backendPort, capacityFactor), "capacityModulation");
+            LoadBalancer.this.shutdownBackend(backendPort);
         }
     }
 
@@ -229,6 +255,7 @@ public class LoadBalancer implements Runnable {
         for (int i = 0; i < this.startupServerCount; i++) {
             int portInt = startupBackend();
             backendPortIndex.put(hashRingIndex, portInt);
+            backendStartTimes.put(portInt, System.currentTimeMillis());
             hashRingIndex += step;
         }
     }
@@ -282,6 +309,10 @@ public class LoadBalancer implements Runnable {
         }
 
         return portInt;
+    }
+
+    private void shutdownBackend(int backendPort) {
+
     }
 
     // PRIVATE HELPER METHODS
