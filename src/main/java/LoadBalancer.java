@@ -3,6 +3,7 @@ import org.apache.commons.text.StringEscapeUtils;
 import org.apache.http.*;
 import org.apache.http.client.ClientProtocolException;
 import org.apache.http.client.methods.CloseableHttpResponse;
+import org.apache.http.client.methods.HttpDelete;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.methods.HttpPost;
 import org.apache.http.config.SocketConfig;
@@ -270,10 +271,10 @@ public class LoadBalancer implements Runnable {
         while(true) {
             try {
                 Thread.sleep(100);
-                Logger.log("LoadBalancer | sent request to startup a backend", "loadBalancerStartup");
+                Logger.log("LoadBalancer | sent request to startup a backend", "capacityModulation");
                 CloseableHttpResponse response = httpClient.execute(httpPost);
 
-                Logger.log("Load Balancer | received response", "loadBalancerStartup");
+                Logger.log("Load Balancer | received response", "capacityModulation");
                 HttpEntity responseBody = response.getEntity();
                 InputStream responseStream = responseBody.getContent();
 
@@ -294,7 +295,6 @@ public class LoadBalancer implements Runnable {
                 e.printStackTrace();
             } catch (InterruptedException e) {
                 System.out.println("InterruptedException thrown in LoadBalancer#startupBackend");
-                e.printStackTrace();
             } catch (IOException e) {
                 System.out.println("IOException thrown in position 1 in LoadBalancer#startupBackend");
                 e.printStackTrace();
@@ -303,7 +303,6 @@ public class LoadBalancer implements Runnable {
                     httpClient.close();
                 } catch (IOException e) {
                     System.out.println("IOException thrown in position 2 in LoadBalancer#startupBackend");
-                    e.printStackTrace();
                 }
             }
         }
@@ -312,7 +311,27 @@ public class LoadBalancer implements Runnable {
     }
 
     private void shutdownBackend(int backendPort) {
+        CloseableHttpClient httpClient = HttpClients.createDefault();
 
+        HttpDelete httpDelete = new HttpDelete("http://127.0.0.1" + BACKEND_INITIATOR_PORT + "/backend");
+
+        while(true) {
+            try {
+                Thread.sleep(100);
+                Logger.log("LoadBalancer | sent request to shutdown backend running on port " + backendPort, "capacityModulation");
+                CloseableHttpResponse response = httpClient.execute(httpDelete);
+            } catch (InterruptedException e) {
+                System.out.println("InterruptedException thrown in LoadBalancer#shutdownBackend");
+            } catch (IOException e) {
+                System.out.println("IOException thrown in position 1 LoadBalancer#shutdownBackend");
+            } finally {
+                try {
+                    httpClient.close();
+                } catch (IOException e) {
+                    System.out.println("IOException thrown in position 2 in LoadBalancer#shutdownBackend");
+                }
+            }
+        }
     }
 
     // PRIVATE HELPER METHODS
