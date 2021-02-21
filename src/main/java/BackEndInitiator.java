@@ -99,8 +99,10 @@ public class BackEndInitiator implements Runnable {
                 .setListenerPort(port)
                 .setHttpProcessor(httpProcessor)
                 .setSocketConfig(config)
-                .registerHandler("/backend/start", new InitiateRequestHandler())
+                .registerHandler("/backends", new ServerStartHandler())
+                .registerHandler("/backend/", new ServerUpdateHandler())
                 .create();
+
 
         try {
             server.start();
@@ -138,14 +140,14 @@ public class BackEndInitiator implements Runnable {
         return this.serverCount;
     }
 
-    private class InitiateRequestHandler implements HttpRequestHandler {
+    private class ServerStartHandler implements HttpRequestHandler {
         @Override
         public void handle(HttpRequest httpRequest, HttpResponse httpResponse, HttpContext httpContext) throws IOException {
-            Logger.log("BackendInitiator | received backend initiate request", "backendStartup");
+            Logger.log("BackendInitiator | received backend initiate request", "capacityModulation");
             BackEnd backend = new BackEnd();
             Thread backendThread = new Thread(backend);
             backendThreads.add(backendThread);
-            Logger.log("BackendInitiator | started backend thread", "backendStartup");
+            Logger.log("BackendInitiator | started backend thread", "capacityModulation");
             backendThread.start();
 
             // wait for backend port to be selected by backend
@@ -159,12 +161,30 @@ public class BackEndInitiator implements Runnable {
                 }
             }
 
-            Logger.log("chosen backend port = " + backend.port, "backendStartup");
+            Logger.log("chosen backend port = " + backend.port, "capacityModulation");
             BasicHttpEntity responseEntity = new BasicHttpEntity();
             InputStream responseStream = IOUtils.toInputStream(String.valueOf(backend.port), StandardCharsets.UTF_8.name());
             responseEntity.setContent(responseStream);
             responseStream.close();
             httpResponse.setEntity(responseEntity);
+        }
+    }
+
+    private class ServerUpdateHandler implements HttpRequestHandler {
+        @Override
+        public void handle(HttpRequest httpRequest, HttpResponse httpResponse, HttpContext httpContext) throws HttpException, IOException {
+            Logger.log("BackEndInitiator | received backend update request", "capacityModulation");
+            String method = httpRequest.getRequestLine().getMethod();
+
+            if (method.equals("DELETE")) {
+                shutdownServer(httpRequest);
+            }
+        }
+
+        private void shutdownServer(HttpRequest httpRequest) {
+            Logger.log("BackEndInitiator | shutdown server called", "capacityModulation");
+            String uri = httpRequest.getRequestLine().getUri();
+            Logger.log("received uri = " + uri, "capacityModulation");
         }
     }
 }

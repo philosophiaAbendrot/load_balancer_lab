@@ -264,7 +264,7 @@ public class LoadBalancer implements Runnable {
     private int startupBackend() {
         CloseableHttpClient httpClient = HttpClients.createDefault();
 
-        HttpPost httpPost = new HttpPost("http://127.0.0.1:" + BACKEND_INITIATOR_PORT + "/backend/start");
+        HttpPost httpPost = new HttpPost("http://127.0.0.1:" + BACKEND_INITIATOR_PORT + "/backends");
 
         int portInt = -1;
 
@@ -313,7 +313,7 @@ public class LoadBalancer implements Runnable {
     private void shutdownBackend(int backendPort) {
         CloseableHttpClient httpClient = HttpClients.createDefault();
 
-        HttpDelete httpDelete = new HttpDelete("http://127.0.0.1" + BACKEND_INITIATOR_PORT + "/backend");
+        HttpDelete httpDelete = new HttpDelete("http://127.0.0.1:" + BACKEND_INITIATOR_PORT + "/backend");
 
         while(true) {
             try {
