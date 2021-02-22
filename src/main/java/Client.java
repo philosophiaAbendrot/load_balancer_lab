@@ -48,7 +48,7 @@ public class Client implements Runnable {
         while (true) {
             if (System.currentTimeMillis() < this.requestStartTime) {
                 // dummy printout used to force thread scheduling and thus even out client request load at beginning
-                Logger.log("", "alwaysPrint");
+//                Logger.log("", "alwaysPrint");
                 count++;
                 continue;
             }

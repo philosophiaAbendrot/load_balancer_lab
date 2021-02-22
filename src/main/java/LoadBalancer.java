@@ -70,6 +70,7 @@ public class LoadBalancer implements Runnable {
                 try {
                     // update capacity factors every 0.5s by pinging each backend
                     Thread.sleep(500);
+                    Logger.log("LoadBalancer | CFMonitor loop running", "capacityModulation");
 
                     for (Map.Entry<Integer, Double> entry : capacityFactors.entrySet()) {
                         int backendPort = entry.getKey();
@@ -89,6 +90,8 @@ public class LoadBalancer implements Runnable {
 
                             responseStream.close();
                             httpClient.close();
+
+                            Logger.log("LoadBalancer | cf = " + capacityFactor, "capacityModulation");
 
                             if (System.currentTimeMillis() > initiationTime + REST_INTERVAL) {
                                 if (capacityFactor > CAPACITY_FACTOR_MAX) {
@@ -145,7 +148,7 @@ public class LoadBalancer implements Runnable {
             // record location of new dyno along with port
             backendPortIndex.put(newServerHashRingLocation, newServerPort);
             // record initiation of backend server
-            backendStartTimes.put(backendPort, System.currentTimeMillis());
+            backendStartTimes.put(newServerPort, System.currentTimeMillis());
             // record that backendPort was reinforced
             reinforcedTimes.put(backendPort, System.currentTimeMillis());
         }
@@ -289,7 +292,6 @@ public class LoadBalancer implements Runnable {
                 for (Map.Entry<Integer, Integer> entry : backendPortIndex.entrySet())
                     Logger.log(String.format("LoadBalancer | Index: %s | Port: %s", entry.getKey(), entry.getValue()), "loadBalancerStartup");
 
-                break;
             } catch (UnsupportedEncodingException | UnsupportedOperationException | ClientProtocolException e) {
                 System.out.println(e.toString() + " thrown in LoadBalancer#startupBackend");
                 e.printStackTrace();
@@ -304,6 +306,7 @@ public class LoadBalancer implements Runnable {
                 } catch (IOException e) {
                     System.out.println("IOException thrown in position 2 in LoadBalancer#startupBackend");
                 }
+                break;
             }
         }
 
@@ -330,6 +333,7 @@ public class LoadBalancer implements Runnable {
                 } catch (IOException e) {
                     System.out.println("IOException thrown in position 2 in LoadBalancer#shutdownBackend");
                 }
+                break;
             }
         }
     }

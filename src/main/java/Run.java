@@ -15,7 +15,8 @@ public class Run {
 
     // start simulation
     public void start() {
-        Logger.configure(new String[] { "threadManagement", "loadModulation", "recordingData" });
+//        Logger.configure(new String[] { "threadManagement", "loadModulation", "recordingData", "capacityModulation" });
+        Logger.configure(new String[] { "capacityModulation" });
         Logger.log("Run | started Run thread", "threadManagement");
         LoadBalancer loadBalancer = new LoadBalancer(8080, STARTUP_SERVER_COUNT);
         Thread loadBalancerThread = new Thread(loadBalancer);
