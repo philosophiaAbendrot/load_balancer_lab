@@ -4,10 +4,10 @@ import java.util.*;
 import java.util.List;
 
 public class Run {
-    final static int NUM_CLIENTS = 15;
+    final static int NUM_CLIENTS = 50;
     long maxDemandTime;
     final static int CLIENT_REQUEST_SEND_TIME = 40_000;
-    final static int STARTUP_SERVER_COUNT = 39;
+    final static int STARTUP_SERVER_COUNT = 10;
 
     public Run() {
         maxDemandTime = System.currentTimeMillis() + 20_000;

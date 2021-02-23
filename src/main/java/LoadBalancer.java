@@ -63,6 +63,8 @@ public class LoadBalancer implements Runnable {
     }
 
     class CapacityFactorMonitor implements Runnable {
+        private boolean restUntilNext;
+
         @Override
         public void run() {
             Logger.log("LoadBalancer | Started CapacityFactorMonitor thread", "threadManagement");
@@ -71,6 +73,7 @@ public class LoadBalancer implements Runnable {
                     // update capacity factors every 0.5s by pinging each backend
                     Thread.sleep(500);
                     Logger.log("LoadBalancer | CFMonitor loop running", "capacityModulation");
+                    this.restUntilNext = false;
 
                     for (Map.Entry<Integer, Double> entry : capacityFactors.entrySet()) {
                         int backendPort = entry.getKey();
@@ -123,7 +126,11 @@ public class LoadBalancer implements Runnable {
                         } catch(IOException e) {
                             System.out.println("IOException thrown in LoadBalancer::CapacityFactorMonitor#run");
                             e.printStackTrace();
+                            this.restUntilNext = true;
                         }
+
+                        if (this.restUntilNext)
+                            break;
                     }
                 } catch(InterruptedException e) {
                     System.out.println("InterruptedException thrown in LoadBalancer#run");
@@ -203,8 +210,10 @@ public class LoadBalancer implements Runnable {
         } catch (InterruptedException e) {
             server.shutdown(5, TimeUnit.SECONDS);
             Logger.log("LoadBalancer | LoadBalancer thread interrupted", "threadManagement");
+        } finally {
             // shut down capacity factor monitor thread
             capacityFactorMonitorThread.interrupt();
+            // shut down this thread
             Thread.currentThread().interrupt();
         }
 
@@ -284,7 +293,7 @@ public class LoadBalancer implements Runnable {
                 String responseString = IOUtils.toString(responseStream, StandardCharsets.UTF_8.name());
                 response.close();
                 responseStream.close();
-                Logger.log("LoadBalancer | new backend port = " + responseString, "loadBalancerStartup");
+                Logger.log("LoadBalancer | new backend port = " + responseString, "capacityModulation");
                 portInt = Integer.valueOf(responseString);
                 capacityFactors.put(portInt, -1.0);
                 Logger.log("LoadBalancer | backend ports:", "loadBalancerStartup");
@@ -388,6 +397,16 @@ public class LoadBalancer implements Runnable {
                         currLoc = locations.get(i);
                     }
                 }
+
+                Logger.log("LoadBalancer | backendPort = " + backendPort, "capacityModulation");
+                Logger.log("LoadBalancer | backendPortIndex:", "capacityModulation");
+
+                for (Map.Entry<Integer, Integer> entry : backendPortIndex.entrySet()) {
+                    Logger.log("entry: " + entry.getKey() + " | " + entry.getValue(), "capacityModulation");
+                }
+
+                Logger.log("LoadBalancer | selectHashRingLocation | currLoc = " + currLoc, "capacityModulation");
+                Logger.log("LoadBalancer | selectHashRingLocation | prevLoc = " + prevLoc, "capacityModulation");
 
                 selectedLocation = (currLoc + prevLoc) / 2;
             }

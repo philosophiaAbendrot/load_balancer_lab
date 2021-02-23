@@ -164,7 +164,8 @@ public class BackEnd implements Runnable {
         }
     }
 
-    public int port;
+//    public int port;
+    public volatile int port;
     int[] selectablePorts = new int[100];
 
     public BackEnd() {
