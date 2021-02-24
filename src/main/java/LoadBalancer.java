@@ -24,7 +24,7 @@ import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.TimeUnit;
 
 public class LoadBalancer implements Runnable {
-    private final int HASH_RING_DENOMINATIONS = 60;
+    private final int HASH_RING_DENOMINATIONS = 6_000;
     private final double CAPACITY_FACTOR_MAX = 0.75;
     private final double CAPACITY_FACTOR_MIN = 0.25;
     private final int REST_INTERVAL = 5_000;
@@ -149,6 +149,11 @@ public class LoadBalancer implements Runnable {
             // startup a new dyno
             Logger.log(String.format("Load Balancer | backendPort %d is overloaded with cf = %f", backendPort, capacityFactor), "capacityModulation");
             int newServerHashRingLocation = selectHashRingLocation(backendPort);
+
+            if (newServerHashRingLocation == -1) {
+                return;
+            }
+
             Logger.log(String.format("Load Balancer | selected location %d for new server", newServerHashRingLocation), "capacityModulation");
             // start a new server at the new hash ring location
             int newServerPort = LoadBalancer.this.startupBackend();
@@ -158,6 +163,7 @@ public class LoadBalancer implements Runnable {
             backendStartTimes.put(newServerPort, System.currentTimeMillis());
             // record that backendPort was reinforced
             reinforcedTimes.put(backendPort, System.currentTimeMillis());
+
         }
 
         // takes the port of a server that is being shut down and shuts it down
@@ -366,6 +372,7 @@ public class LoadBalancer implements Runnable {
     }
 
     // takes location of overloaded server as input and returns the location where a new server should be placed
+    // returns -1 if there's no place to put the server on the hash ring
     private int selectHashRingLocation(int backendPort) {
         Integer currLoc = null, prevLoc = null;
 
@@ -388,11 +395,11 @@ public class LoadBalancer implements Runnable {
             } else {
                 // otherwise
                 // the previous server is the server in the next position proceeding counterclockwise from the server
-
                 for (int i = 0; i < locations.size(); i++) {
                     if (backendPortIndex.get(locations.get(i)) == backendPort) {
                         prevLoc = currLoc;
                         currLoc = locations.get(i);
+                        break;
                     } else {
                         currLoc = locations.get(i);
                     }
@@ -412,6 +419,10 @@ public class LoadBalancer implements Runnable {
             }
         }
 
-        return selectedLocation;
+        if (backendPortIndex.containsKey(selectedLocation)) {
+            return -1;
+        } else {
+            return selectedLocation;
+        }
     }
 }
