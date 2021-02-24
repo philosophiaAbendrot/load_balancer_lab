@@ -34,12 +34,12 @@ public class LoadBalancer implements Runnable {
     int port;
     List<HttpRequestInterceptor> requestInterceptors = new ArrayList<>();
     List<HttpResponseInterceptor> responseInterceptors = new ArrayList<>();
-    Map<Integer, Long> reinforcedTimes = new HashMap<>(); // holds a map of when each backend port was last reinforced
+    Map<Integer, Long> reinforcedTimes = new ConcurrentHashMap<>(); // holds a map of when each backend port was last reinforced
     HttpProcessor httpProcessor;
     // maps hash ring locations to backend server ports
-    Map<Integer, Integer> backendPortIndex = new HashMap<>();
+    Map<Integer, Integer> backendPortIndex = new ConcurrentHashMap<>();
     // maps port index to time at which the server was initiated
-    Map<Integer, Long> backendStartTimes = new HashMap<>();
+    Map<Integer, Long> backendStartTimes = new ConcurrentHashMap<>();
 
     ConcurrentMap<Integer, Double> capacityFactors;
     Thread capacityFactorMonitorThread = null;
