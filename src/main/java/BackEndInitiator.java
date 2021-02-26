@@ -100,7 +100,7 @@ public class BackEndInitiator implements Runnable {
                 .setHttpProcessor(httpProcessor)
                 .setSocketConfig(config)
                 .registerHandler("/backends", new ServerStartHandler())
-                .registerHandler("/backend/", new ServerUpdateHandler())
+                .registerHandler("/backend", new ServerUpdateHandler())
                 .create();
 
 
@@ -172,7 +172,7 @@ public class BackEndInitiator implements Runnable {
 
     private class ServerUpdateHandler implements HttpRequestHandler {
         @Override
-        public void handle(HttpRequest httpRequest, HttpResponse httpResponse, HttpContext httpContext) throws HttpException, IOException {
+        public void handle(HttpRequest httpRequest, HttpResponse httpResponse, HttpContext httpContext) {
             Logger.log("BackEndInitiator | received backend update request", "capacityModulation");
             String method = httpRequest.getRequestLine().getMethod();
 
