@@ -176,23 +176,17 @@ public class BackEndInitiator implements Runnable {
     private class ServerUpdateHandler implements HttpRequestHandler {
         @Override
         public void handle(HttpRequest httpRequest, HttpResponse httpResponse, HttpContext httpContext) {
-            Logger.log("BackEndInitiator | received backend update request", "capacityModulation");
             String method = httpRequest.getRequestLine().getMethod();
             String uri = httpRequest.getRequestLine().getUri();
             String[] parsedUri = uri.split("/");
             int port = Integer.valueOf(parsedUri[parsedUri.length - 1]);
+            Logger.log("BackEndInitiator | received request to shutdown backend on port " + port, "capacityModulation");
 
-            Logger.log("uri = " + uri, "capacityModulation");
-            Logger.log("port = " + port, "capacityModulation");
-
-            if (method.equals("DELETE"))
-                shutdownServer(httpRequest);
-        }
-
-        private void shutdownServer(HttpRequest httpRequest) {
-            Logger.log("BackEndInitiator | shutdown server called", "capacityModulation");
-            String uri = httpRequest.getRequestLine().getUri();
-            Logger.log("received uri = " + uri, "capacityModulation");
+            if (method.equals("DELETE")) {
+                BackEndInitiator.this.portsToBackendThreads.get(port).interrupt();
+                BackEndInitiator.this.portsToBackendThreads.remove(port);
+                Logger.log("BackEndInitiator | Shut down backend server running on port " + port, "capacityModulation");
+            }
         }
     }
 }
