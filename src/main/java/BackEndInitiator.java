@@ -15,13 +15,14 @@ import java.net.InetAddress;
 import java.net.UnknownHostException;
 import java.nio.charset.StandardCharsets;
 import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.TimeUnit;
 
 public class BackEndInitiator implements Runnable {
     int port;
     List<HttpRequestInterceptor> requestInterceptors = new ArrayList<HttpRequestInterceptor>();
     List<HttpResponseInterceptor> responseInterceptors = new ArrayList<HttpResponseInterceptor>();
-    List<Thread> backendThreads = new ArrayList<>();
+    Map<Integer, Thread> portsToBackendThreads = new ConcurrentHashMap<>();
     HttpProcessor httpProcessor;
     SortedMap<Integer, Integer> serverCount;
     int[] selectablePorts = new int[100];
@@ -62,7 +63,7 @@ public class BackEndInitiator implements Runnable {
                     int currentSecond = (int)(System.currentTimeMillis() / 1000);
 
                     if (!serverCount.containsKey(currentSecond)) {
-                        BackEndInitiator.this.serverCount.put(currentSecond, backendThreads.size());
+                        BackEndInitiator.this.serverCount.put(currentSecond, portsToBackendThreads.size());
                     }
                 } catch (InterruptedException e) {
                     Logger.log("BackEndInitiator | Shutting down ServerMonitor", "threadManagement");
@@ -121,7 +122,9 @@ public class BackEndInitiator implements Runnable {
             // shutdown server
             server.shutdown(5, TimeUnit.SECONDS);
             // shutdown all backend servers spawned by this server
-            for (Thread backendThread : this.backendThreads) {
+
+            for (Map.Entry<Integer, Thread> entry : this.portsToBackendThreads.entrySet()) {
+                Thread backendThread = entry.getValue();
                 int threadId = (int)backendThread.getId();
                 backendThread.interrupt();
                 Logger.log("BackEndInitiator | Terminating backend thread " + threadId, "threadManagement");
@@ -146,7 +149,6 @@ public class BackEndInitiator implements Runnable {
             Logger.log("BackendInitiator | received backend initiate request", "capacityModulation");
             BackEnd backend = new BackEnd();
             Thread backendThread = new Thread(backend);
-            backendThreads.add(backendThread);
             Logger.log("BackendInitiator | started backend thread", "capacityModulation");
             backendThread.start();
 
@@ -161,6 +163,7 @@ public class BackEndInitiator implements Runnable {
                 }
             }
 
+            BackEndInitiator.this.portsToBackendThreads.put(backend.port, backendThread);
             Logger.log("chosen backend port = " + backend.port, "capacityModulation");
             BasicHttpEntity responseEntity = new BasicHttpEntity();
             InputStream responseStream = IOUtils.toInputStream(String.valueOf(backend.port), StandardCharsets.UTF_8.name());
@@ -182,9 +185,8 @@ public class BackEndInitiator implements Runnable {
             Logger.log("uri = " + uri, "capacityModulation");
             Logger.log("port = " + port, "capacityModulation");
 
-            if (method.equals("DELETE")) {
+            if (method.equals("DELETE"))
                 shutdownServer(httpRequest);
-            }
         }
 
         private void shutdownServer(HttpRequest httpRequest) {
