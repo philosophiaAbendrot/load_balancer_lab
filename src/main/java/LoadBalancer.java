@@ -40,7 +40,7 @@ public class LoadBalancer implements Runnable {
     Map<Integer, Integer> backendPortIndex = new ConcurrentHashMap<>();
     // maps port index to time at which the server was initiated
     Map<Integer, Long> backendStartTimes = new ConcurrentHashMap<>();
-
+    // maps the port that backend server is operating on to its capacity factor
     ConcurrentMap<Integer, Double> capacityFactors;
     Thread capacityFactorMonitorThread = null;
     private static final int BACKEND_INITIATOR_PORT = 3000;
@@ -338,6 +338,7 @@ public class LoadBalancer implements Runnable {
                 Thread.sleep(100);
                 Logger.log("LoadBalancer | sent request to shutdown backend running on port " + backendPort, "capacityModulation");
                 CloseableHttpResponse response = httpClient.execute(httpDelete);
+                capacityFactors.remove(backendPort);
             } catch (InterruptedException e) {
                 System.out.println("InterruptedException thrown in LoadBalancer#shutdownBackend");
             } catch (IOException e) {
