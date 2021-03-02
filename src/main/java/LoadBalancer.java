@@ -190,41 +190,53 @@ public class LoadBalancer implements Runnable {
                 .setTcpNoDelay(true)
                 .build();
 
-        final HttpServer server = ServerBootstrap.bootstrap()
-                .setLocalAddress(hostAddress)
-                .setListenerPort(port)
-                .setHttpProcessor(httpProcessor)
-                .setSocketConfig(config)
-                .registerHandler("/api/*", this.clientRequestHandler)
-                .create();
+        HttpServer server;
+
+        while (true) {
+            server = ServerBootstrap.bootstrap()
+                    .setLocalAddress(hostAddress)
+                    .setListenerPort(port)
+                    .setHttpProcessor(httpProcessor)
+                    .setSocketConfig(config)
+                    .registerHandler("/api/*", this.clientRequestHandler)
+                    .create();
+
+            try {
+                server.start();
+            } catch (IOException e) {
+                System.out.println("LoadBalancer | Failed to start server on port " + this.port);
+                this.port++;
+                continue;
+            }
+
+            // if server successfully started, exit the loop
+            break;
+        }
+
+        startupBackendCluster();
+        capacityFactorMonitorThread = new Thread(new CapacityFactorMonitor());
+        capacityFactorMonitorThread.start();
+
+        HttpServer finalServer = server;
+        Runtime.getRuntime().addShutdownHook(new Thread() {
+            @Override
+            public void run() {
+                finalServer.shutdown(5, TimeUnit.SECONDS);
+            }
+        });
 
         try {
-            server.start();
-            startupBackendCluster();
-            capacityFactorMonitorThread = new Thread(new CapacityFactorMonitor());
-            capacityFactorMonitorThread.start();
             server.awaitTermination(Long.MAX_VALUE, TimeUnit.SECONDS);
-            Runtime.getRuntime().addShutdownHook(new Thread() {
-                @Override
-                public void run() {
-                    server.shutdown(5, TimeUnit.SECONDS);
-                }
-            });
-        } catch (IOException e) {
-            System.out.println("IOException within LoadBalancer#run");
-            e.printStackTrace();
         } catch (InterruptedException e) {
             Logger.log("LoadBalancer | LoadBalancer thread interrupted", "threadManagement");
         } finally {
             server.shutdown(5, TimeUnit.SECONDS);
-
             // shut down capacity factor monitor thread
             capacityFactorMonitorThread.interrupt();
             // shut down this thread
             Thread.currentThread().interrupt();
+            Logger.log("LoadBalancer | LoadBalancer thread terminated", "threadManagement");
         }
-
-        Logger.log("LoadBalancer | LoadBalancer thread terminated", "threadManagement");
     }
 
     public SortedMap<Integer, Integer> deliverData() {
