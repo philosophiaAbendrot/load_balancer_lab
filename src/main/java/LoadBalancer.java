@@ -214,9 +214,10 @@ public class LoadBalancer implements Runnable {
             System.out.println("IOException within LoadBalancer#run");
             e.printStackTrace();
         } catch (InterruptedException e) {
-            server.shutdown(5, TimeUnit.SECONDS);
             Logger.log("LoadBalancer | LoadBalancer thread interrupted", "threadManagement");
         } finally {
+            server.shutdown(5, TimeUnit.SECONDS);
+
             // shut down capacity factor monitor thread
             capacityFactorMonitorThread.interrupt();
             // shut down this thread

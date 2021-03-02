@@ -95,34 +95,49 @@ public class BackEndInitiator implements Runnable {
                 .setTcpNoDelay(true)
                 .build();
 
-        final HttpServer server = ServerBootstrap.bootstrap()
-                .setLocalAddress(hostAddress)
-                .setListenerPort(port)
-                .setHttpProcessor(httpProcessor)
-                .setSocketConfig(config)
-                .registerHandler("/backends", new ServerStartHandler())
-                .registerHandler("/backend/*", new ServerUpdateHandler())
-                .create();
+        HttpServer server;
 
+        while (true) {
+            try {
+                server = ServerBootstrap.bootstrap()
+                        .setLocalAddress(hostAddress)
+                        .setListenerPort(port)
+                        .setHttpProcessor(httpProcessor)
+                        .setSocketConfig(config)
+                        .registerHandler("/backends", new ServerStartHandler())
+                        .registerHandler("/backend/*", new ServerUpdateHandler())
+                        .create();
+
+                server.start();
+            } catch(IOException e) {
+                System.out.println("IOException within BackEndInitiator#run");
+                System.out.println("Probably failed to start server on selected port. Trying another port");
+                e.printStackTrace();
+                this.port++;
+                continue;
+            }
+
+            // break out of loop if server successfully started
+            System.out.println("BackEndInitiator | Server successfully started on port " + this.port);
+            break;
+        }
 
         try {
-            server.start();
+            HttpServer finalServer = server;
             Runtime.getRuntime().addShutdownHook(new Thread() {
                 @Override
                 public void run() {
-                    server.shutdown(5, TimeUnit.SECONDS);
+                    finalServer.shutdown(5, TimeUnit.SECONDS);
                 }
             });
+
             server.awaitTermination(Long.MAX_VALUE, TimeUnit.SECONDS);
-        } catch(IOException e) {
-            System.out.println("IOException Within BackEndInitiator#run");
-            e.printStackTrace();
         } catch (InterruptedException e) {
             Logger.log("BackEndInitiator | BackEndInitiator thread interrupted", "threadManagement");
+        } finally {
             // shutdown server
             server.shutdown(5, TimeUnit.SECONDS);
             // shutdown all backend servers spawned by this server
-
             for (Map.Entry<Integer, Thread> entry : this.portsToBackendThreads.entrySet()) {
                 Thread backendThread = entry.getValue();
                 int threadId = (int)backendThread.getId();
@@ -134,8 +149,8 @@ public class BackEndInitiator implements Runnable {
             serverMonitorThread.interrupt();
             Logger.log("BackEndInitiator | Terminated server monitor thread", "threadManagement");
             Thread.currentThread().interrupt();
+            Logger.log("BackEndInitiator | Terminated BackEndInitiator thread", "threadManagement");
         }
-        Logger.log("BackEndInitiator | Terminated BackEndInitiator thread", "threadManagement");
     }
 
     public SortedMap<Integer, Integer> deliverData() {
