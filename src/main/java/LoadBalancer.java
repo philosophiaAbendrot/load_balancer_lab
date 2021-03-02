@@ -30,29 +30,31 @@ public class LoadBalancer implements Runnable {
     private final int REST_INTERVAL = 5_000;
     private final int REINFORCEMENT_INTERVAL = 5_000;
     private final int MIN_TIME_TO_LIVE = 5_000;
+    private final int DEFAULT_PORT = 3_000;
 
-    int port;
-    List<HttpRequestInterceptor> requestInterceptors = new ArrayList<>();
-    List<HttpResponseInterceptor> responseInterceptors = new ArrayList<>();
-    Map<Integer, Long> reinforcedTimes = new ConcurrentHashMap<>(); // holds a map of when each backend port was last reinforced
-    HttpProcessor httpProcessor;
+    private int port;
+    private List<HttpRequestInterceptor> requestInterceptors = new ArrayList<>();
+    private List<HttpResponseInterceptor> responseInterceptors = new ArrayList<>();
+    private Map<Integer, Long> reinforcedTimes = new ConcurrentHashMap<>(); // holds a map of when each backend port was last reinforced
+    private HttpProcessor httpProcessor;
     // maps hash ring locations to backend server ports
-    Map<Integer, Integer> backendPortIndex = new ConcurrentHashMap<>();
+    private Map<Integer, Integer> backendPortIndex = new ConcurrentHashMap<>();
     // maps port index to time at which the server was initiated
-    Map<Integer, Long> backendStartTimes = new ConcurrentHashMap<>();
+    private Map<Integer, Long> backendStartTimes = new ConcurrentHashMap<>();
     // maps the port that backend server is operating on to its capacity factor
-    ConcurrentMap<Integer, Double> capacityFactors;
-    Thread capacityFactorMonitorThread = null;
-    private static final int BACKEND_INITIATOR_PORT = 3000;
+    private ConcurrentMap<Integer, Double> capacityFactors;
+    private Thread capacityFactorMonitorThread = null;
+    private static final int BACKEND_INITIATOR_PORT = 8080;
     private static final int STARTUP_BACKEND_DYNO_COUNT = 1;
     private int startupServerCount;
-    Random rand;
+    private Random rand;
     long initiationTime;
-    List<Integer> incomingRequestTimestamps;
-    ClientRequestHandler clientRequestHandler;
+    private List<Integer> incomingRequestTimestamps;
+    private ClientRequestHandler clientRequestHandler;
 
-    public LoadBalancer(int port, int startupServerCount) {
-        this.port = port;
+    public LoadBalancer(int startupServerCount) {
+        // dummy port to indicate that the port has not been set
+        this.port = -1;
         this.incomingRequestTimestamps = Collections.synchronizedList(new LinkedList<>());
         this.initiationTime = System.currentTimeMillis();
         this.startupServerCount = startupServerCount;
@@ -191,11 +193,12 @@ public class LoadBalancer implements Runnable {
                 .build();
 
         HttpServer server;
+        int temporaryPort = DEFAULT_PORT;
 
         while (true) {
             server = ServerBootstrap.bootstrap()
                     .setLocalAddress(hostAddress)
-                    .setListenerPort(port)
+                    .setListenerPort(temporaryPort)
                     .setHttpProcessor(httpProcessor)
                     .setSocketConfig(config)
                     .registerHandler("/api/*", this.clientRequestHandler)
@@ -204,12 +207,13 @@ public class LoadBalancer implements Runnable {
             try {
                 server.start();
             } catch (IOException e) {
-                System.out.println("LoadBalancer | Failed to start server on port " + this.port);
-                this.port++;
+                System.out.println("LoadBalancer | Failed to start server on port " + temporaryPort);
+                temporaryPort++;
                 continue;
             }
 
             // if server successfully started, exit the loop
+            this.port = temporaryPort;
             break;
         }
 
@@ -237,6 +241,10 @@ public class LoadBalancer implements Runnable {
             Thread.currentThread().interrupt();
             Logger.log("LoadBalancer | LoadBalancer thread terminated", "threadManagement");
         }
+    }
+
+    public int getPort() {
+        return this.port;
     }
 
     public SortedMap<Integer, Integer> deliverData() {

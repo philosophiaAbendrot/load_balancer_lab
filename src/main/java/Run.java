@@ -18,10 +18,29 @@ public class Run {
 //        Logger.configure(new String[] { "threadManagement", "loadModulation", "recordingData", "capacityModulation" });
         Logger.configure(new String[] { "capacityModulation" });
         Logger.log("Run | started Run thread", "threadManagement");
-        LoadBalancer loadBalancer = new LoadBalancer(8080, STARTUP_SERVER_COUNT);
+
+        LoadBalancer loadBalancer = new LoadBalancer(STARTUP_SERVER_COUNT);
         Thread loadBalancerThread = new Thread(loadBalancer);
+        loadBalancerThread.start();
+        int loadBalancerPort;
+
+        // wait for load balancer to start and port to be set
+        while ((loadBalancerPort = loadBalancer.getPort()) != -1) {
+            try {
+                Thread.sleep(10);
+            } catch (InterruptedException e) {
+                System.out.println("Run | LoadBalancer waiting loop interrupted");
+            }
+        }
+
+        // start backend initiator thread
         BackEndInitiator backendInitiator = new BackEndInitiator();
         Thread backendInitiatorThread = new Thread(backendInitiator);
+        backendInitiatorThread.start();
+
+        // set load balancer port on Client class
+        Client.setLoadBalancerPort(loadBalancerPort);
+
         List<Thread> clientThreads = new ArrayList<>();
         List<Client> clients = new ArrayList<>();
 
@@ -31,9 +50,6 @@ public class Run {
             clients.add(client);
             clientThreads.add(clientThread);
         }
-
-        loadBalancerThread.start();
-        backendInitiatorThread.start();
 
         for (Thread clientThread : clientThreads)
             clientThread.start();

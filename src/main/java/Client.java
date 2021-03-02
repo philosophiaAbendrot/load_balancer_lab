@@ -13,7 +13,7 @@ import java.util.concurrent.TimeUnit;
 public class Client implements Runnable {
     CloseableHttpClient httpClient;
     long maxDemandTime;
-    private static final int LOAD_BALANCER_PORT = 8080;
+    private static int loadBalancerPort;
     int resourceId;
     String name;
     List<Integer> requestTimestamps;
@@ -27,6 +27,10 @@ public class Client implements Runnable {
         this.requestTimestamps = Collections.synchronizedList(new ArrayList<>());
         // first request is sent up to 15 seconds after initialization to stagger the incoming requests
         this.requestStartTime = System.currentTimeMillis() + (long)((new Random()).nextInt(15000));
+    }
+
+    public static void setLoadBalancerPort(int port) {
+        Client.loadBalancerPort = port;
     }
 
     @Override
@@ -56,7 +60,7 @@ public class Client implements Runnable {
             httpClient = HttpClients.createDefault();
             String path;
             path = "/api/" + resourceId;
-            HttpGet httpget = new HttpGet("http://127.0.0.1:" + LOAD_BALANCER_PORT + path);
+            HttpGet httpget = new HttpGet("http://127.0.0.1:" + Client.loadBalancerPort + path);
             Logger.log(String.format("Client %s | path: %s", name, path), "clientStartup");
             long timestamp = System.currentTimeMillis();
             CloseableHttpResponse response = sendRequest(httpget);
