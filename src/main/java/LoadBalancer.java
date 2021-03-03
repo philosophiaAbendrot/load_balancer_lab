@@ -352,27 +352,23 @@ public class LoadBalancer implements Runnable {
 
     private void shutdownBackend(int backendPort) {
         CloseableHttpClient httpClient = HttpClients.createDefault();
-
         HttpDelete httpDelete = new HttpDelete("http://127.0.0.1:" + this.backendInitiatorPort + "/backend/" + backendPort);
 
-        while(true) {
+        try {
+            Thread.sleep(100);
+            Logger.log("LoadBalancer | sent request to shutdown backend running on port " + backendPort, "capacityModulation");
+            CloseableHttpResponse response = httpClient.execute(httpDelete);
+        } catch (InterruptedException e) {
+            System.out.println("InterruptedException thrown in LoadBalancer#shutdownBackend");
+        } catch (IOException e) {
+            System.out.println("IOException thrown in position 1 LoadBalancer#shutdownBackend");
+        } finally {
             try {
-                Thread.sleep(100);
-                Logger.log("LoadBalancer | sent request to shutdown backend running on port " + backendPort, "capacityModulation");
-                CloseableHttpResponse response = httpClient.execute(httpDelete);
-                capacityFactors.remove(backendPort);
-            } catch (InterruptedException e) {
-                System.out.println("InterruptedException thrown in LoadBalancer#shutdownBackend");
+                httpClient.close();
             } catch (IOException e) {
-                System.out.println("IOException thrown in position 1 LoadBalancer#shutdownBackend");
-            } finally {
-                try {
-                    httpClient.close();
-                } catch (IOException e) {
-                    System.out.println("IOException thrown in position 2 in LoadBalancer#shutdownBackend");
-                }
-                break;
+                System.out.println("IOException thrown in position 2 in LoadBalancer#shutdownBackend");
             }
+            capacityFactors.remove(backendPort);
         }
     }
 
