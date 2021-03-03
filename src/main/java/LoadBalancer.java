@@ -33,6 +33,7 @@ public class LoadBalancer implements Runnable {
     private final int DEFAULT_PORT = 3_000;
 
     private int port;
+    private int backendInitiatorPort;
     private List<HttpRequestInterceptor> requestInterceptors = new ArrayList<>();
     private List<HttpResponseInterceptor> responseInterceptors = new ArrayList<>();
     private Map<Integer, Long> reinforcedTimes = new ConcurrentHashMap<>(); // holds a map of when each backend port was last reinforced
@@ -44,7 +45,6 @@ public class LoadBalancer implements Runnable {
     // maps the port that backend server is operating on to its capacity factor
     private ConcurrentMap<Integer, Double> capacityFactors;
     private Thread capacityFactorMonitorThread = null;
-    private static final int BACKEND_INITIATOR_PORT = 8080;
     private static final int STARTUP_BACKEND_DYNO_COUNT = 1;
     private int startupServerCount;
     private Random rand;
@@ -52,8 +52,9 @@ public class LoadBalancer implements Runnable {
     private List<Integer> incomingRequestTimestamps;
     private ClientRequestHandler clientRequestHandler;
 
-    public LoadBalancer(int startupServerCount) {
+    public LoadBalancer(int startupServerCount, int backendInitiatorPort) {
         // dummy port to indicate that the port has not been set
+        this.backendInitiatorPort = backendInitiatorPort;
         this.port = -1;
         this.incomingRequestTimestamps = Collections.synchronizedList(new LinkedList<>());
         this.initiationTime = System.currentTimeMillis();
@@ -303,7 +304,7 @@ public class LoadBalancer implements Runnable {
     private int startupBackend() {
         CloseableHttpClient httpClient = HttpClients.createDefault();
 
-        HttpPost httpPost = new HttpPost("http://127.0.0.1:" + BACKEND_INITIATOR_PORT + "/backends");
+        HttpPost httpPost = new HttpPost("http://127.0.0.1:" + this.backendInitiatorPort + "/backends");
 
         int portInt = -1;
 
@@ -352,7 +353,7 @@ public class LoadBalancer implements Runnable {
     private void shutdownBackend(int backendPort) {
         CloseableHttpClient httpClient = HttpClients.createDefault();
 
-        HttpDelete httpDelete = new HttpDelete("http://127.0.0.1:" + BACKEND_INITIATOR_PORT + "/backend/" + backendPort);
+        HttpDelete httpDelete = new HttpDelete("http://127.0.0.1:" + this.backendInitiatorPort + "/backend/" + backendPort);
 
         while(true) {
             try {

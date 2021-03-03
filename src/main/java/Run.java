@@ -19,24 +19,40 @@ public class Run {
         Logger.configure(new String[] { "capacityModulation" });
         Logger.log("Run | started Run thread", "threadManagement");
 
-        LoadBalancer loadBalancer = new LoadBalancer(STARTUP_SERVER_COUNT);
+        // start backend initiator thread
+        // start backend initiator thread
+        BackEndInitiator backendInitiator = new BackEndInitiator();
+        Thread backendInitiatorThread = new Thread(backendInitiator);
+        backendInitiatorThread.start();
+
+        int backendInitiatorPort;
+
+        while ((backendInitiatorPort = backendInitiator.getPort()) == -1) {
+            try {
+                Thread.sleep(10);
+            } catch (InterruptedException e) {
+                System.out.println("Run | BackEndInitiator startup waiting loop interrupted");
+            }
+        }
+
+        System.out.println("BackendInitiator running on port " + backendInitiatorPort);
+
+        // start load balancer thread
+        LoadBalancer loadBalancer = new LoadBalancer(STARTUP_SERVER_COUNT, backendInitiatorPort);
         Thread loadBalancerThread = new Thread(loadBalancer);
         loadBalancerThread.start();
         int loadBalancerPort;
 
         // wait for load balancer to start and port to be set
-        while ((loadBalancerPort = loadBalancer.getPort()) != -1) {
+        while ((loadBalancerPort = loadBalancer.getPort()) == -1) {
             try {
                 Thread.sleep(10);
             } catch (InterruptedException e) {
-                System.out.println("Run | LoadBalancer waiting loop interrupted");
+                System.out.println("Run | LoadBalancer startup waiting loop interrupted");
             }
         }
 
-        // start backend initiator thread
-        BackEndInitiator backendInitiator = new BackEndInitiator();
-        Thread backendInitiatorThread = new Thread(backendInitiator);
-        backendInitiatorThread.start();
+        System.out.println("LoadBalancer running on port " + loadBalancerPort);
 
         // set load balancer port on Client class
         Client.setLoadBalancerPort(loadBalancerPort);

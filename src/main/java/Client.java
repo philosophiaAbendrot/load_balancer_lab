@@ -36,18 +36,11 @@ public class Client implements Runnable {
     @Override
     public void run() {
         Logger.log("Client | Started Client thread", "threadManagement");
-
-        try {
-            start();
-        } catch(IOException e) {
-            System.out.println("IOException thrown in Client#run");
-            e.printStackTrace();
-        }
-
+        start();
         Logger.log("Client | Terminated Client thread", "threadManagement");
     }
 
-    void start() throws IOException {
+    void start() {
         int count = 0;
         while (true) {
             if (System.currentTimeMillis() < this.requestStartTime) {
@@ -57,23 +50,27 @@ public class Client implements Runnable {
                 continue;
             }
 
-            httpClient = HttpClients.createDefault();
-            String path;
-            path = "/api/" + resourceId;
-            HttpGet httpget = new HttpGet("http://127.0.0.1:" + Client.loadBalancerPort + path);
-            Logger.log(String.format("Client %s | path: %s", name, path), "clientStartup");
-            long timestamp = System.currentTimeMillis();
-            CloseableHttpResponse response = sendRequest(httpget);
-            // record timestamp at which request was fired off to the load balancer
-            this.requestTimestamps.add((int)(timestamp / 1000));
-            printResponse(response);
-            response.close();
-            httpClient.close();
+            try {
+                httpClient = HttpClients.createDefault();
+                String path;
+                path = "/api/" + resourceId;
+                HttpGet httpget = new HttpGet("http://127.0.0.1:" + Client.loadBalancerPort + path);
+                Logger.log(String.format("Client %s | path: %s", name, path), "clientStartup");
+                long timestamp = System.currentTimeMillis();
+                CloseableHttpResponse response = sendRequest(httpget);
+                // record timestamp at which request was fired off to the load balancer
+                this.requestTimestamps.add((int)(timestamp / 1000));
+                printResponse(response);
+                response.close();
+                httpClient.close();
+            } catch (IOException e) {
+                System.out.println("Client | No response to request sent to load balancer by client server " + this.name);
+            }
 
             try {
                 int freq = requestFrequency();
                 Logger.log("Client | frequency = " + freq, "loadModulation");
-                TimeUnit.MILLISECONDS.sleep(freq);
+                Thread.sleep(freq);
             } catch (InterruptedException e) {
                 Logger.log("Client | Client thread interrupted", "threadManagement");
                 Thread.currentThread().interrupt();

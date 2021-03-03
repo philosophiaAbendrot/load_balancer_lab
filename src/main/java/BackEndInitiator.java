@@ -19,25 +19,23 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.TimeUnit;
 
 public class BackEndInitiator implements Runnable {
-    int port;
-    List<HttpRequestInterceptor> requestInterceptors = new ArrayList<HttpRequestInterceptor>();
-    List<HttpResponseInterceptor> responseInterceptors = new ArrayList<HttpResponseInterceptor>();
-    Map<Integer, Thread> portsToBackendThreads = new ConcurrentHashMap<>();
-    HttpProcessor httpProcessor;
-    SortedMap<Integer, Integer> serverCount;
-    int[] selectablePorts = new int[100];
+    public static final int DEFAULT_PORT = 8000;
+    private int port;
+    private List<HttpRequestInterceptor> requestInterceptors = new ArrayList<HttpRequestInterceptor>();
+    private List<HttpResponseInterceptor> responseInterceptors = new ArrayList<HttpResponseInterceptor>();
+    private Map<Integer, Thread> portsToBackendThreads = new ConcurrentHashMap<>();
+    private HttpProcessor httpProcessor;
+    private SortedMap<Integer, Integer> serverCount;
+    private int[] selectablePorts = new int[100];
 
     public BackEndInitiator() {
-        port = 3000;
-        abstractConstructor();
-    }
-
-    public BackEndInitiator(int port) {
-        port = 2250;
         abstractConstructor();
     }
 
     private void abstractConstructor() {
+        this.port = -1;
+
+        // reserve ports 37000 through 37099 as usable ports
         for (int i = 0; i < selectablePorts.length; i++) {
             selectablePorts[i] = 37100 + i;
         }
@@ -97,11 +95,14 @@ public class BackEndInitiator implements Runnable {
 
         HttpServer server;
 
+        int chosenPort = DEFAULT_PORT;
+
         while (true) {
+            System.out.println("Attempting to start server on port " + chosenPort);
             try {
                 server = ServerBootstrap.bootstrap()
                         .setLocalAddress(hostAddress)
-                        .setListenerPort(port)
+                        .setListenerPort(chosenPort)
                         .setHttpProcessor(httpProcessor)
                         .setSocketConfig(config)
                         .registerHandler("/backends", new ServerStartHandler())
@@ -113,14 +114,16 @@ public class BackEndInitiator implements Runnable {
                 System.out.println("IOException within BackEndInitiator#run");
                 System.out.println("Probably failed to start server on selected port. Trying another port");
                 e.printStackTrace();
-                this.port++;
+                chosenPort++;
                 continue;
             }
 
             // break out of loop if server successfully started
-            System.out.println("BackEndInitiator | Server successfully started on port " + this.port);
+            System.out.println("BackEndInitiator | Server successfully started on port " + chosenPort);
             break;
         }
+
+        this.port = chosenPort;
 
         try {
             HttpServer finalServer = server;
@@ -151,6 +154,10 @@ public class BackEndInitiator implements Runnable {
             Thread.currentThread().interrupt();
             Logger.log("BackEndInitiator | Terminated BackEndInitiator thread", "threadManagement");
         }
+    }
+
+    public int getPort() {
+        return this.port;
     }
 
     public SortedMap<Integer, Integer> deliverData() {
