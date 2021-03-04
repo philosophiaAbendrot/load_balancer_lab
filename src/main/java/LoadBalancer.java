@@ -7,6 +7,7 @@ import org.apache.http.client.methods.HttpDelete;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.methods.HttpPost;
 import org.apache.http.config.SocketConfig;
+import org.apache.http.entity.BasicHttpEntity;
 import org.apache.http.impl.bootstrap.HttpServer;
 import org.apache.http.impl.bootstrap.ServerBootstrap;
 import org.apache.http.impl.client.CloseableHttpClient;
@@ -265,7 +266,7 @@ public class LoadBalancer implements Runnable {
     // REQUEST HANDLERS
     private class ClientRequestHandler implements HttpRequestHandler {
         @Override
-        public void handle(HttpRequest httpRequest, HttpResponse httpResponse, HttpContext httpContext) throws IOException {
+        public void handle(HttpRequest httpRequest, HttpResponse httpResponse, HttpContext httpContext) {
             CloseableHttpClient httpClient = HttpClients.createDefault();
 
             String uri = httpRequest.getRequestLine().getUri();
@@ -278,13 +279,24 @@ public class LoadBalancer implements Runnable {
 
             // record request incoming timestamp
             LoadBalancer.this.incomingRequestTimestamps.add((int)(System.currentTimeMillis() / 1000));
-
             HttpGet httpget = new HttpGet("http://127.0.0.1:" + backendPort);
 
-            CloseableHttpResponse response = httpClient.execute(httpget);
-
-            HttpEntity responseBody = response.getEntity();
-            httpResponse.setEntity(responseBody);
+            try {
+                CloseableHttpResponse response = httpClient.execute(httpget);
+                HttpEntity responseBody = response.getEntity();
+                httpResponse.setEntity(responseBody);
+            } catch (IOException e) {
+                // if request to Backend failed
+                JSONObject outputJsonObj = new JSONObject();
+                outputJsonObj.put("error_message", "Backend failed to respond");
+                String htmlResponse = StringEscapeUtils.escapeJson(outputJsonObj.toString());
+                InputStream stream = new ByteArrayInputStream(htmlResponse.getBytes());
+                BasicHttpEntity responseBody = new BasicHttpEntity();
+                responseBody.setContent(stream);
+                httpResponse.setStatusCode(500);
+                httpResponse.setEntity((HttpEntity)responseBody);
+                System.out.println("LoadBalancer | IOException : Backend failed to respond.");
+            }
         }
     }
 
