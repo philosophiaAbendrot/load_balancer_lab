@@ -1,3 +1,4 @@
+import loadbalancer.monitor.RequestMonitor;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClients;
@@ -16,7 +17,7 @@ public class BackEndTest {
     @Test
     @DisplayName("Test that backend server is running and accepting requests")
     public void checkBackendServerRunning() {
-        backend = new BackEnd();
+        backend = new BackEnd(new RequestMonitor("BackEnd"));
         backendThread = new Thread(backend);
         int status = -1;
 

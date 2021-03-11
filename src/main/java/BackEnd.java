@@ -1,6 +1,7 @@
 import com.sun.net.httpserver.HttpExchange;
 import com.sun.net.httpserver.HttpHandler;
 import com.sun.net.httpserver.HttpServer;
+import loadbalancer.monitor.RequestMonitor;
 import org.apache.commons.text.StringEscapeUtils;
 import org.json.JSONObject;
 
@@ -13,9 +14,9 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.ThreadPoolExecutor;
 
 public class BackEnd implements Runnable {
-    static final int parametricStorageTime = 10_000; // 10 seconds of parametric storage time
     final int TELEMETRY_CURATOR_RUNNING_TIME = 10_000;
     final int BACKEND_RUNNING_TIME = 15_000;
+    RequestMonitor reqMonitor;
 
     // class for storing information on requests
     private class RequestTelemetry {
@@ -44,7 +45,7 @@ public class BackEnd implements Runnable {
             while (System.currentTimeMillis() < startTime + TELEMETRY_CURATOR_RUNNING_TIME) {
                 try {
                     Thread.sleep(300);
-                    clearOutTelemetry();
+                    BackEnd.this.reqMonitor.clearOutData();
                 } catch (InterruptedException e) {
                     System.out.println("within Backend:TelemetryCurator#run");
                     e.printStackTrace();
@@ -52,28 +53,7 @@ public class BackEnd implements Runnable {
             }
             Logger.log("BackEnd | Terminated TelemetryCurator thread", "threadManagement");
         }
-
-        private void clearOutTelemetry() {
-            Logger.log("Backend | clearOutTelemetry running", "telemetryUpdate");
-            // delete request telemetry which are out of date
-            Iterator<RequestTelemetry> iterator = requestTelemetrics.iterator();
-            long currentTime = System.currentTimeMillis();
-            int deleteCount = 0;
-
-            while (iterator.hasNext()) {
-                RequestTelemetry parametric = iterator.next();
-                if (parametric.startTime + parametricStorageTime < currentTime) {
-                    iterator.remove();
-                    deleteCount++;
-                } else
-                    break;
-            }
-
-            Logger.log("Backend | " + deleteCount + " telemetrics deleted.", "telemetryUpdate");
-        }
     }
-
-    List<RequestTelemetry> requestTelemetrics = Collections.synchronizedList(new ArrayList<>());
 
     // http handler that is fed into HttpServer upon initialization
     // serves direct requests from load balancer for updates on capacity factor
@@ -82,19 +62,7 @@ public class BackEnd implements Runnable {
         public void handle(HttpExchange httpExchange) throws IOException {
             OutputStream outputStream = httpExchange.getResponseBody();
 
-            double capacityFactor = 0;
-
-            // calculate capacity factor
-            if (!requestTelemetrics.isEmpty()) {
-                long startTime = requestTelemetrics.get(0).startTime;
-                long endTime = System.currentTimeMillis();
-                long runningTime = 0;
-
-                for (RequestTelemetry telemetry : requestTelemetrics)
-                    runningTime += telemetry.processingTime;
-
-                capacityFactor = runningTime / (double)(endTime - startTime);
-            }
+            double capacityFactor = BackEnd.this.reqMonitor.getCapacityFactor();
 
             Logger.log(String.format("Backend | capacityFactor = %f", capacityFactor), "requestPassing");
 
@@ -151,7 +119,7 @@ public class BackEnd implements Runnable {
             outputStream.flush();
             outputStream.close();
             long endTime = System.currentTimeMillis();
-            recordRequestTelemetry(startTime, endTime);
+            BackEnd.this.reqMonitor.add(startTime, endTime);
         }
 
         private String extractParams(HttpExchange httpExchange) {
@@ -168,15 +136,11 @@ public class BackEnd implements Runnable {
     public volatile int port;
     int[] selectablePorts = new int[100];
 
-    public BackEnd() {
+    public BackEnd(RequestMonitor reqMonitor) {
+        this.reqMonitor = reqMonitor;
         Random rand = new Random();
         // initialize list of ports 37000 - 37099 as selectable ports for backend server to run on
         initializeSelectablePorts();
-    }
-
-    private void recordRequestTelemetry(long startTime, long endTime) {
-        // add request telemetry
-        requestTelemetrics.add(new RequestTelemetry(startTime, endTime));
     }
 
     private void initializeSelectablePorts() {

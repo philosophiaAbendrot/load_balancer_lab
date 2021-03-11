@@ -1,3 +1,4 @@
+import loadbalancer.monitor.RequestMonitor;
 import org.apache.commons.io.IOUtils;
 import org.apache.http.*;
 import org.apache.http.config.SocketConfig;
@@ -169,7 +170,7 @@ public class BackEndInitiator implements Runnable {
         @Override
         public void handle(HttpRequest httpRequest, HttpResponse httpResponse, HttpContext httpContext) throws IOException {
             Logger.log("BackendInitiator | received backend initiate request", "capacityModulation");
-            BackEnd backend = new BackEnd();
+            BackEnd backend = new BackEnd(new RequestMonitor("BackEnd"));
             Thread backendThread = new Thread(backend);
             Logger.log("BackendInitiator | started backend thread", "capacityModulation");
             backendThread.start();
