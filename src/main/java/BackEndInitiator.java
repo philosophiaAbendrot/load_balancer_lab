@@ -113,8 +113,7 @@ public class BackEndInitiator implements Runnable {
                 server.start();
             } catch(IOException e) {
                 System.out.println("IOException within BackEndInitiator#run");
-                System.out.println("Probably failed to start server on selected port. Trying another port");
-                e.printStackTrace();
+                System.out.println("Failed to start server on selected port. Trying another port");
                 chosenPort++;
                 continue;
             }

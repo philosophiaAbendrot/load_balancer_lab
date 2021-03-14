@@ -18,24 +18,7 @@ public class BackEnd implements Runnable {
     final int BACKEND_RUNNING_TIME = 15_000;
     RequestMonitor reqMonitor;
 
-    // class for storing information on requests
-    private class RequestTelemetry {
-        long startTime;
-        long endTime;
-        long processingTime;
-
-        public RequestTelemetry(long startTime, long endTime) {
-            this.startTime = startTime;
-            this.endTime = endTime;
-            this.processingTime = endTime - startTime;
-        }
-
-        public String toString() {
-            return String.format("startTime = %d | endTime = %d | processingTime = %d", startTime, endTime, processingTime);
-        }
-    }
-
-    // class for periodically clearing out oudated telemetry
+    // class for periodically clearing out outdated telemetry
     private class TelemetryCurator implements Runnable {
         @Override
         public void run() {
@@ -47,8 +30,7 @@ public class BackEnd implements Runnable {
                     Thread.sleep(300);
                     BackEnd.this.reqMonitor.clearOutData();
                 } catch (InterruptedException e) {
-                    System.out.println("within Backend:TelemetryCurator#run");
-                    e.printStackTrace();
+                    System.out.println("Backend Telemetry curator thread interrupted");
                 }
             }
             Logger.log("BackEnd | Terminated TelemetryCurator thread", "threadManagement");
@@ -132,7 +114,6 @@ public class BackEnd implements Runnable {
         }
     }
 
-//    public int port;
     public volatile int port;
     int[] selectablePorts = new int[100];
 
@@ -178,8 +159,10 @@ public class BackEnd implements Runnable {
         // start request telemetry curator
         Thread telemetryCuratorThread = new Thread(new TelemetryCurator());
         telemetryCuratorThread.start();
+
+        // start server
         server.start();
-        Logger.log("Server started on port " + port, "backendStartup");
+        Logger.log("Server started on port " + this.port, "backendStartup");
 
         while(true) {
             try {

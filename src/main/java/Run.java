@@ -20,7 +20,6 @@ public class Run {
         Logger.log("Run | started Run thread", "threadManagement");
 
         // start backend initiator thread
-        // start backend initiator thread
         BackEndInitiator backendInitiator = new BackEndInitiator();
         Thread backendInitiatorThread = new Thread(backendInitiator);
         backendInitiatorThread.start();

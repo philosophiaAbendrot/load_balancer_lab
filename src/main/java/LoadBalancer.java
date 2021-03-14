@@ -105,17 +105,17 @@ public class LoadBalancer implements Runnable {
                                     if (reinforcedTimes.containsKey(backendPort)) {
                                         // if a server has been started up to reinforce this server recently
                                         long lastReinforced = reinforcedTimes.get(backendPort);
-                                        Logger.log(String.format("Load Balancer | last reinforced = %d", lastReinforced), "capacityModulation");
+                                        Logger.log(String.format("LoadBalancer | last reinforced = %d", lastReinforced), "capacityModulation");
 
                                         if (System.currentTimeMillis() > lastReinforced + REINFORCEMENT_INTERVAL) {
                                             // if the server was reinforced a while ago, clear it out from the list of recently reinforced servers
-                                            Logger.log(String.format("Load Balancer | clearing backendPort %d from reinforcedTimes", backendPort), "capacityModulation");
+                                            Logger.log(String.format("LoadBalancer | clearing backendPort %d from reinforcedTimes", backendPort), "capacityModulation");
                                             reinforcedTimes.remove(backendPort);
                                             // startup a new dyno
                                             reinforceServer(backendPort, capacityFactor);
                                         } else {
                                             // if the server was reinforced recently, do not reinforce it again
-                                            Logger.log(String.format("Load Balancer | skipping reinforcement of port %d", backendPort), "capacityModulation");
+                                            Logger.log(String.format("LoadBalancer | skipping reinforcement of port %d", backendPort), "capacityModulation");
                                         }
                                     } else {
                                         // if the server has not been reinforced recently
@@ -137,9 +137,7 @@ public class LoadBalancer implements Runnable {
                             break;
                     }
                 } catch(InterruptedException e) {
-                    System.out.println("InterruptedException thrown in LoadBalancer#run");
-                    e.printStackTrace();
-                    System.out.println("isInterrupted = " + Thread.currentThread().isInterrupted());
+                    System.out.println("LoadBalancer thread interrupted");
                     Thread.currentThread().interrupt();
                     break;
                 }
@@ -151,14 +149,14 @@ public class LoadBalancer implements Runnable {
         // takes the port of the server being reinforced and starts up a new backend server to reinforce it
         private void reinforceServer(int backendPort, double capacityFactor) {
             // startup a new dyno
-            Logger.log(String.format("Load Balancer | backendPort %d is overloaded with cf = %f", backendPort, capacityFactor), "capacityModulation");
+            Logger.log(String.format("LoadBalancer | backendPort %d is overloaded with cf = %f", backendPort, capacityFactor), "capacityModulation");
             int newServerHashRingLocation = selectHashRingLocation(backendPort);
 
             if (newServerHashRingLocation == -1) {
                 return;
             }
 
-            Logger.log(String.format("Load Balancer | selected location %d for new server", newServerHashRingLocation), "capacityModulation");
+            Logger.log(String.format("LoadBalancer | selected location %d for new server", newServerHashRingLocation), "capacityModulation");
             // start a new server at the new hash ring location
             int newServerPort = LoadBalancer.this.startupBackend();
             // record location of new dyno along with port
@@ -172,7 +170,7 @@ public class LoadBalancer implements Runnable {
 
         // takes the port of a server that is being shut down and shuts it down
         private void shutdownServer(int backendPort, double capacityFactor) {
-            Logger.log(String.format("Load Balancer | backendPort %d is underutilized with cf = %f", backendPort, capacityFactor), "capacityModulation");
+            Logger.log(String.format("LoadBalancer | backendPort %d is underutilized with cf = %f", backendPort, capacityFactor), "capacityModulation");
             LoadBalancer.this.shutdownBackend(backendPort);
         }
     }
@@ -326,7 +324,7 @@ public class LoadBalancer implements Runnable {
                 Logger.log("LoadBalancer | sent request to startup a backend", "capacityModulation");
                 CloseableHttpResponse response = httpClient.execute(httpPost);
 
-                Logger.log("Load Balancer | received response", "capacityModulation");
+                Logger.log("LoadBalancer | received response", "capacityModulation");
                 HttpEntity responseBody = response.getEntity();
                 InputStream responseStream = responseBody.getContent();
 
