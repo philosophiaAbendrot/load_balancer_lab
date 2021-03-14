@@ -19,6 +19,8 @@ import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.TimeUnit;
 
+import loadbalancer.monitor.ServerMonitor;
+
 public class BackEndInitiator implements Runnable {
     public static final int DEFAULT_PORT = 8000;
     private int port;
@@ -26,7 +28,7 @@ public class BackEndInitiator implements Runnable {
     private List<HttpResponseInterceptor> responseInterceptors = new ArrayList<HttpResponseInterceptor>();
     private Map<Integer, Thread> portsToBackendThreads = new ConcurrentHashMap<>();
     private HttpProcessor httpProcessor;
-    private SortedMap<Integer, Integer> serverCount;
+    private ServerMonitor serverMonitor;
     private int[] selectablePorts = new int[100];
 
     public BackEndInitiator() {
@@ -42,35 +44,6 @@ public class BackEndInitiator implements Runnable {
         }
 
         httpProcessor = new ImmutableHttpProcessor(requestInterceptors, responseInterceptors);
-        this.serverCount = new TreeMap<>();
-    }
-
-    class ServerMonitor implements Runnable {
-        public SortedMap<Integer, Integer> serverCount;
-
-        public ServerMonitor() {
-            this.serverCount = new TreeMap<>();
-        }
-
-        @Override
-        public void run() {
-            Logger.log("BackendInitiator | Starting ServerMonitor", "threadManagement");
-
-            while (true) {
-                try {
-                    Thread.sleep(100);
-                    int currentSecond = (int)(System.currentTimeMillis() / 1000);
-
-                    if (!serverCount.containsKey(currentSecond)) {
-                        BackEndInitiator.this.serverCount.put(currentSecond, portsToBackendThreads.size());
-                    }
-                } catch (InterruptedException e) {
-                    Logger.log("BackEndInitiator | Shutting down ServerMonitor", "threadManagement");
-                    Thread.currentThread().interrupt();
-                    break;
-                }
-            }
-        }
     }
 
     @Override
@@ -78,7 +51,7 @@ public class BackEndInitiator implements Runnable {
         Logger.log("BackEndInitiator | Started BackendInitiator thread", "threadManagement");
         InetAddress hostAddress = null;
 
-        ServerMonitor serverMonitor = new ServerMonitor();
+        serverMonitor = new ServerMonitor(this.portsToBackendThreads);
         Thread serverMonitorThread = new Thread(serverMonitor);
         serverMonitorThread.start();
 
@@ -160,9 +133,8 @@ public class BackEndInitiator implements Runnable {
         return this.port;
     }
 
-    public SortedMap<Integer, Integer> deliverData() {
-        SortedMap<Integer, Integer> serverCount = this.serverCount;
-        return this.serverCount;
+    public Set<Map.Entry<Integer, Integer>> deliverData() {
+        return this.serverMonitor.getServerCount();
     }
 
     private class ServerStartHandler implements HttpRequestHandler {
