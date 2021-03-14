@@ -42,7 +42,7 @@ public class RequestMonitor {
         this.requestData = Collections.synchronizedList(new ArrayList<>());
     }
 
-    public void add(long startTime, long endTime) {
+    public void addRecord(long startTime, long endTime) {
         this.requestData.add(new RequestDatum(startTime, endTime));
     }
 

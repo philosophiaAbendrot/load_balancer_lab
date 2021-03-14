@@ -101,7 +101,7 @@ public class BackEnd implements Runnable {
             outputStream.flush();
             outputStream.close();
             long endTime = System.currentTimeMillis();
-            BackEnd.this.reqMonitor.add(startTime, endTime);
+            BackEnd.this.reqMonitor.addRecord(startTime, endTime);
         }
 
         private String extractParams(HttpExchange httpExchange) {
