@@ -1,4 +1,5 @@
 import loadbalancer.monitor.RequestMonitor;
+import loadbalancer.util.Logger;
 import org.apache.commons.io.IOUtils;
 import org.apache.http.*;
 import org.apache.http.config.SocketConfig;
@@ -28,8 +29,8 @@ public class BackEndInitiator implements Runnable {
     private List<HttpResponseInterceptor> responseInterceptors = new ArrayList<HttpResponseInterceptor>();
     private Map<Integer, Thread> portsToBackendThreads = new ConcurrentHashMap<>();
     private HttpProcessor httpProcessor;
-    private ServerMonitor serverMonitor;
     private int[] selectablePorts = new int[100];
+    private ServerMonitorRunnable serverMonitorRunnable;
 
     public BackEndInitiator() {
         abstractConstructor();
@@ -50,9 +51,8 @@ public class BackEndInitiator implements Runnable {
     public void run() {
         Logger.log("BackEndInitiator | Started BackendInitiator thread", "threadManagement");
         InetAddress hostAddress = null;
-
-        serverMonitor = new ServerMonitor(this.portsToBackendThreads);
-        Thread serverMonitorThread = new Thread(serverMonitor);
+        this.serverMonitorRunnable = new ServerMonitorRunnable(new ServerMonitor());
+        Thread serverMonitorThread = new Thread(serverMonitorRunnable);
         serverMonitorThread.start();
 
         try {
@@ -134,7 +134,36 @@ public class BackEndInitiator implements Runnable {
     }
 
     public Set<Map.Entry<Integer, Integer>> deliverData() {
-        return this.serverMonitor.getServerCount();
+        return this.serverMonitorRunnable.deliverData();
+    }
+
+    private class ServerMonitorRunnable implements Runnable {
+        ServerMonitor serverMonitor;
+
+        public ServerMonitorRunnable(ServerMonitor serverMonitor) {
+            this.serverMonitor = serverMonitor;
+        }
+
+        @Override
+        public void run() {
+            Logger.log("BackendInitiator | Starting ServerMonitor", "threadManagement");
+
+            while (true) {
+                try {
+                    Thread.sleep(100);
+                    int currentSecond = (int)(System.currentTimeMillis() / 1000);
+                    this.serverMonitor.addRecord(currentSecond, BackEndInitiator.this.portsToBackendThreads.size());
+                } catch (InterruptedException e) {
+                    Logger.log("BackEndInitiator | Shutting down ServerMonitor", "threadManagement");
+                    Thread.currentThread().interrupt();
+                    break;
+                }
+            }
+        }
+
+        public Set<Map.Entry<Integer, Integer>> deliverData() {
+            return serverMonitor.deliverData();
+        }
     }
 
     private class ServerStartHandler implements HttpRequestHandler {

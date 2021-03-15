@@ -32,6 +32,6 @@ public class ServerMonitorTest {
     public void testActiveServerCount() {
         Map<Integer, Thread> portsToBackendThreads = new HashMap<>();
         SortedMap<Integer, Integer> serverCount = new TreeMap<>();
-        this.serverMonitor = new ServerMonitor(portsToBackendThreads);
+        this.serverMonitor = new ServerMonitor();
     }
 }
