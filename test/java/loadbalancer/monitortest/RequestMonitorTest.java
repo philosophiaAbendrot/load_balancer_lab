@@ -39,7 +39,7 @@ public class RequestMonitorTest {
             activeTime += (datum.get(1) - datum.get(0));
 
         double expectedCapacityFactor = activeTime / totalTime;
-        double actualCapacityFactor = this.reqMonitor.getCapacityFactor();
+        double actualCapacityFactor = this.reqMonitor.getCapacityFactor(System.currentTimeMillis());
         assertTrue(percentageDifference(actualCapacityFactor, expectedCapacityFactor) < 10, "Expected and actual capacity factor is different");
     }
 
@@ -49,19 +49,15 @@ public class RequestMonitorTest {
     public void checkNumRequests() {
         setupDefaultTestCase();
 
-        // wait for older request data to clear out
-        try {
-            Thread.sleep(11_000);
-        } catch (InterruptedException e) { }
-
-        long newIndexTime = System.currentTimeMillis();
+        long newIndexTime = System.currentTimeMillis() + 11_000;
+        long endTime = System.currentTimeMillis() + 12_000;
 
         this.reqData.add(new ArrayList<>(Arrays.asList(newIndexTime + 300L, newIndexTime + 400L)));
         this.reqData.add(new ArrayList<>(Arrays.asList(newIndexTime + 500L, newIndexTime + 600L)));
         this.reqData.add(new ArrayList<>(Arrays.asList(newIndexTime + 650L, newIndexTime + 690L)));
         this.reqData.add(new ArrayList<>(Arrays.asList(newIndexTime + 780L, newIndexTime + 840L)));
 
-        double totalTime = (double)(System.currentTimeMillis() - (newIndexTime + 300L));
+        double totalTime = (double)(endTime - (newIndexTime + 300L));
         double activeTime = 0;
 
         for (int i = 4; i < 8; i++) {
@@ -70,7 +66,9 @@ public class RequestMonitorTest {
         }
 
         double expectedCapacityFactor = activeTime / totalTime;
-        double actualCapacityFactor = this.reqMonitor.getCapacityFactor();
+        double actualCapacityFactor = this.reqMonitor.getCapacityFactor(endTime);
+        System.out.println("expected CF = " + expectedCapacityFactor);
+        System.out.println("actual CF = " + actualCapacityFactor);
 
         assertTrue(percentageDifference(expectedCapacityFactor, actualCapacityFactor) < 10, "Expected and actual capacity factor is different");
     }

@@ -46,11 +46,10 @@ public class RequestMonitor {
         this.requestData.add(new RequestDatum(startTime, endTime));
     }
 
-    public void clearOutData() {
+    public void clearOutData(long currentTime) {
         Logger.log("RequestMonitor - " + this.parentClass + " | clearOutTelemetry running", "telemetryUpdate");
         // delete request data which are out of date
         Iterator<RequestDatum> iterator = this.requestData.iterator();
-        long currentTime = System.currentTimeMillis();
         int deleteCount = 0;
 
         while (iterator.hasNext()) {
@@ -66,10 +65,9 @@ public class RequestMonitor {
         Logger.log("RequestMonitor - " + this.parentClass + " | " + deleteCount + " data deleted.", "telemetryUpdate");
     }
 
-    public double getCapacityFactor() {
+    public double getCapacityFactor(long endTime) {
         if (!this.requestData.isEmpty()) {
             long startTime = this.requestData.get(0).startTime;
-            long endTime = System.currentTimeMillis();
             long runningTime = 0;
 
             for (RequestDatum datum : this.requestData)

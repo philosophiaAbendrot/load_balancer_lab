@@ -176,7 +176,6 @@ public class BackEndInitiator implements Runnable {
             backendThread.start();
 
             // wait for backend port to be selected by backend
-            int tryNumber = 1;
             while (backend.port == 0) {
                 // check periodically for the backend port
                 try {

@@ -28,7 +28,7 @@ public class BackEnd implements Runnable {
             while (System.currentTimeMillis() < startTime + TELEMETRY_CURATOR_RUNNING_TIME) {
                 try {
                     Thread.sleep(300);
-                    BackEnd.this.reqMonitor.clearOutData();
+                    BackEnd.this.reqMonitor.clearOutData(System.currentTimeMillis());
                 } catch (InterruptedException e) {
                     System.out.println("Backend Telemetry curator thread interrupted");
                 }
@@ -44,7 +44,7 @@ public class BackEnd implements Runnable {
         public void handle(HttpExchange httpExchange) throws IOException {
             OutputStream outputStream = httpExchange.getResponseBody();
 
-            double capacityFactor = BackEnd.this.reqMonitor.getCapacityFactor();
+            double capacityFactor = BackEnd.this.reqMonitor.getCapacityFactor(System.currentTimeMillis());
 
             Logger.log(String.format("Backend | capacityFactor = %f", capacityFactor), "requestPassing");
 
