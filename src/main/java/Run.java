@@ -124,7 +124,7 @@ public class Run {
         }
 
         // collect data from BackEndInitiator instance
-        Set<Map.Entry<Integer, Integer>> serverCountLog = backendInitiator.deliverData();
+        SortedMap<Integer, Integer> serverCountLog = backendInitiator.deliverData();
 
         // shutdown BackEndInitiator instance
         backendInitiatorThread.interrupt();
@@ -142,9 +142,9 @@ public class Run {
         for (Integer value : loadBalancerRequestLog.values())
             loadBalancerRequestLogOutput.add((double)value);
 
-        for (Map.Entry<Integer, Integer> entry : serverCountLog) {
+        for (Map.Entry<Integer, Integer> entry : serverCountLog.entrySet())
             serverCountLogOutput.add((double) entry.getValue());
-        }
+
 
         // graph client request requests sent vs time
         Graph mainPanel = new Graph(synthesizedClientRequestLogOutput);

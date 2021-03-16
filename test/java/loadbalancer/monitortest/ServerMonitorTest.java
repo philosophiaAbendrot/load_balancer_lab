@@ -1,37 +1,47 @@
 package loadbalancer.monitortest;
 
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
-import java.util.HashMap;
-import java.util.Map;
-import java.util.SortedMap;
-import java.util.TreeMap;
+import java.util.*;
 
 import loadbalancer.monitor.ServerMonitor;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
+
 public class ServerMonitorTest {
     private ServerMonitor serverMonitor;
+    int referenceTime;
 
-    private class DummyThread implements Runnable {
-        @Override
-        public void run() {
-            while(true) {
-                try {
-                    Thread.sleep(100);
-                } catch (InterruptedException e) {
-                    Thread.currentThread().interrupt();
-                    break;
-                }
-            }
-        }
+    @BeforeEach
+    public void setupTests() {
+        this.serverMonitor = new ServerMonitor();
+        this.referenceTime = (int)(System.currentTimeMillis() / 1_000);
     }
 
     @Test
     @DisplayName("Should return the correct number of active servers by second")
     public void testActiveServerCount() {
-        Map<Integer, Thread> portsToBackendThreads = new HashMap<>();
-        SortedMap<Integer, Integer> serverCount = new TreeMap<>();
-        this.serverMonitor = new ServerMonitor();
+        this.serverMonitor.addRecord(referenceTime + 5, 14);
+        this.serverMonitor.addRecord(referenceTime + 6, 15);
+        this.serverMonitor.addRecord(referenceTime + 7, 13);
+
+        SortedMap<Integer, Integer> outputData = this.serverMonitor.deliverData();
+
+        assertEquals(3, outputData.size());
+        assertEquals(14, outputData.get(referenceTime + 5));
+        assertEquals(15, outputData.get(referenceTime + 6));
+        assertEquals(13, outputData.get(referenceTime + 7));
+    }
+
+    @Test
+    @DisplayName("If there are duplicate entries for a given second, the first one should be recorded")
+    public void testDuplicateEntries() {
+        this.serverMonitor.addRecord(referenceTime + 5, 10);
+        this.serverMonitor.addRecord(referenceTime + 5, 12);
+
+        SortedMap<Integer, Integer> outputData = this.serverMonitor.deliverData();
+        assertEquals(10, outputData.get(referenceTime + 5));
     }
 }

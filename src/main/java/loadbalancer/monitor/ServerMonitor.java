@@ -1,9 +1,7 @@
 package loadbalancer.monitor;
 
-import java.util.Set;
 import java.util.SortedMap;
 import java.util.TreeMap;
-import java.util.Map;
 
 public class ServerMonitor {
     public SortedMap<Integer, Integer> serverCount;
@@ -17,7 +15,9 @@ public class ServerMonitor {
             this.serverCount.put(currentSecond, numServers);
     }
 
-    public Set<Map.Entry<Integer, Integer>> deliverData() {
-        return this.serverCount.entrySet();
+    public SortedMap<Integer, Integer> deliverData() {
+        SortedMap<Integer, Integer> copyMap = new TreeMap<>();
+        copyMap.putAll(this.serverCount);
+        return copyMap;
     }
 }

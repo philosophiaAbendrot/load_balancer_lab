@@ -133,7 +133,7 @@ public class BackEndInitiator implements Runnable {
         return this.port;
     }
 
-    public Set<Map.Entry<Integer, Integer>> deliverData() {
+    public SortedMap<Integer, Integer> deliverData() {
         return this.serverMonitorRunnable.deliverData();
     }
 
@@ -161,7 +161,7 @@ public class BackEndInitiator implements Runnable {
             }
         }
 
-        public Set<Map.Entry<Integer, Integer>> deliverData() {
+        public SortedMap<Integer, Integer> deliverData() {
             return serverMonitor.deliverData();
         }
     }
