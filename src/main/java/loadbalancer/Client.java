@@ -1,3 +1,5 @@
+package loadbalancer;
+
 import org.apache.commons.io.IOUtils;
 import org.apache.http.*;
 import org.apache.http.client.methods.CloseableHttpResponse;
@@ -8,7 +10,8 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
 import java.util.*;
-import java.util.concurrent.TimeUnit;
+
+import loadbalancer.util.Logger;
 
 public class Client implements Runnable {
     CloseableHttpClient httpClient;

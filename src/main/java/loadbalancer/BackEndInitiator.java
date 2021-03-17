@@ -1,5 +1,5 @@
-import loadbalancer.monitor.RequestMonitor;
-import loadbalancer.util.Logger;
+package loadbalancer;
+
 import org.apache.commons.io.IOUtils;
 import org.apache.http.*;
 import org.apache.http.config.SocketConfig;
@@ -10,7 +10,6 @@ import org.apache.http.protocol.HttpContext;
 import org.apache.http.protocol.HttpProcessor;
 import org.apache.http.protocol.HttpRequestHandler;
 import org.apache.http.protocol.ImmutableHttpProcessor;
-
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.InetAddress;
@@ -21,6 +20,8 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.TimeUnit;
 
 import loadbalancer.monitor.ServerMonitor;
+import loadbalancer.util.Logger;
+import loadbalancer.monitor.RequestMonitor;
 
 public class BackEndInitiator implements Runnable {
     public static final int DEFAULT_PORT = 8000;

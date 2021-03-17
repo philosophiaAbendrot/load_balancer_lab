@@ -1,3 +1,5 @@
+package loadbalancer;
+
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.text.StringEscapeUtils;
 import org.apache.http.*;
@@ -14,7 +16,6 @@ import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClients;
 import org.apache.http.protocol.*;
 import org.json.JSONObject;
-
 import java.io.*;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
@@ -23,6 +24,8 @@ import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.TimeUnit;
+
+import loadbalancer.util.Logger;
 
 public class LoadBalancer implements Runnable {
     private final int HASH_RING_DENOMINATIONS = 6_000;
