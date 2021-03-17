@@ -10,6 +10,7 @@ import java.util.List;
 
 import loadbalancer.monitor.RequestMonitor;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 public class RequestMonitorTest {
@@ -57,6 +58,12 @@ public class RequestMonitorTest {
         this.reqData.add(new ArrayList<>(Arrays.asList(newIndexTime + 650L, newIndexTime + 690L)));
         this.reqData.add(new ArrayList<>(Arrays.asList(newIndexTime + 780L, newIndexTime + 840L)));
 
+        for (int i = 4; i < 8; i++)
+            this.reqMonitor.addRecord(this.reqData.get(i).get(0), this.reqData.get(i).get(1));
+
+        // clear out old data
+        this.reqMonitor.clearOutData(newIndexTime);
+
         double totalTime = (double)(endTime - (newIndexTime + 300L));
         double activeTime = 0;
 
@@ -67,10 +74,7 @@ public class RequestMonitorTest {
 
         double expectedCapacityFactor = activeTime / totalTime;
         double actualCapacityFactor = this.reqMonitor.getCapacityFactor(endTime);
-        System.out.println("expected CF = " + expectedCapacityFactor);
-        System.out.println("actual CF = " + actualCapacityFactor);
-
-        assertTrue(percentageDifference(expectedCapacityFactor, actualCapacityFactor) < 10, "Expected and actual capacity factor is different");
+        assertEquals(expectedCapacityFactor, actualCapacityFactor, "Expected and actual capacity factor is different");
     }
 
     private void setupDefaultTestCase() {
