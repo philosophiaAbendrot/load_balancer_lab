@@ -7,7 +7,7 @@ import java.util.List;
 
 import loadbalancer.vendor.Graph;
 import loadbalancer.util.Logger;
-
+import loadbalancer.factory.BackEndFactoryImpl;
 
 public class Run {
     final static int NUM_CLIENTS = 50;
@@ -26,7 +26,7 @@ public class Run {
         Logger.log("Run | started Run thread", "threadManagement");
 
         // start backend initiator thread
-        BackEndInitiator backendInitiator = new BackEndInitiator();
+        BackEndInitiator backendInitiator = new BackEndInitiator(new BackEndFactoryImpl());
         Thread backendInitiatorThread = new Thread(backendInitiator);
         backendInitiatorThread.start();
 

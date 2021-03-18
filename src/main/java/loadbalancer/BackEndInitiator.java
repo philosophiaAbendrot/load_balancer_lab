@@ -1,5 +1,6 @@
 package loadbalancer;
 
+import loadbalancer.factory.BackEndFactory;
 import org.apache.commons.io.IOUtils;
 import org.apache.http.*;
 import org.apache.http.config.SocketConfig;
@@ -32,20 +33,18 @@ public class BackEndInitiator implements Runnable {
     private HttpProcessor httpProcessor;
     private int[] selectablePorts = new int[100];
     private ServerMonitorRunnable serverMonitorRunnable;
+    private BackEndFactory backEndFactory;
 
-    public BackEndInitiator() {
-        abstractConstructor();
-    }
-
-    private void abstractConstructor() {
+    public BackEndInitiator(BackEndFactory backEndFactory) {
         this.port = -1;
+        this.backEndFactory = backEndFactory;
 
         // reserve ports 37000 through 37099 as usable ports
         for (int i = 0; i < selectablePorts.length; i++) {
-            selectablePorts[i] = 37100 + i;
+            this.selectablePorts[i] = 37100 + i;
         }
 
-        httpProcessor = new ImmutableHttpProcessor(requestInterceptors, responseInterceptors);
+        this.httpProcessor = new ImmutableHttpProcessor(this.requestInterceptors, this.responseInterceptors);
     }
 
     @Override
@@ -171,13 +170,13 @@ public class BackEndInitiator implements Runnable {
         @Override
         public void handle(HttpRequest httpRequest, HttpResponse httpResponse, HttpContext httpContext) throws IOException {
             Logger.log("BackendInitiator | received backend initiate request", "capacityModulation");
-            BackEnd backend = new BackEnd(new RequestMonitor("BackEnd"));
-            Thread backendThread = new Thread(backend);
+            BackEnd backEnd = BackEndInitiator.this.backEndFactory.produceBackEnd(new RequestMonitor("BackEnd"));
+            Thread backEndThread = BackEndInitiator.this.backEndFactory.produceBackEndThread(backEnd);
             Logger.log("BackendInitiator | started backend thread", "capacityModulation");
-            backendThread.start();
+            backEndThread.start();
 
             // wait for backend port to be selected by backend
-            while (backend.port == 0) {
+            while (backEnd.port == 0) {
                 // check periodically for the backend port
                 try {
                     Thread.sleep(20);
@@ -186,10 +185,10 @@ public class BackEndInitiator implements Runnable {
                 }
             }
 
-            BackEndInitiator.this.portsToBackendThreads.put(backend.port, backendThread);
-            Logger.log("chosen backend port = " + backend.port, "capacityModulation");
+            BackEndInitiator.this.portsToBackendThreads.put(backEnd.port, backEndThread);
+            Logger.log("chosen backend port = " + backEnd.port, "capacityModulation");
             BasicHttpEntity responseEntity = new BasicHttpEntity();
-            InputStream responseStream = IOUtils.toInputStream(String.valueOf(backend.port), StandardCharsets.UTF_8.name());
+            InputStream responseStream = IOUtils.toInputStream(String.valueOf(backEnd.port), StandardCharsets.UTF_8.name());
             responseEntity.setContent(responseStream);
             responseStream.close();
             httpResponse.setEntity(responseEntity);
