@@ -23,25 +23,19 @@ public class BackEndInitiatorTest {
     @Test
     @DisplayName("BackEndInitiator should start up a BackEnd instance when sent a request telling it to do so")
     public void BackEndInitiatorShouldStartBackEndInstance() {
-        Logger.configure(new String[]{"capacityModulation"});
         BackEndFactory mockFactory = Mockito.mock(BackEndFactoryImpl.class);
-        BackEnd backEnd = new BackEnd(new RequestMonitor("BackEndInitiatorTest"));
+        BackEnd mockBackEnd = Mockito.mock(BackEnd.class);
+        mockBackEnd.port = 37100;
+        Thread mockBackEndThread = Mockito.mock(Thread.class);
 
-        when(mockFactory.produceBackEnd(any(RequestMonitor.class))).thenReturn(backEnd);
-        when(mockFactory.produceBackEndThread(any(BackEnd.class))).thenReturn(new Thread(backEnd));
+        when(mockFactory.produceBackEnd(any(RequestMonitor.class))).thenReturn(mockBackEnd);
+        when(mockFactory.produceBackEndThread(any(BackEnd.class))).thenReturn(new Thread(mockBackEndThread));
 
         BackEndInitiator initiator = new BackEndInitiator(mockFactory);
         Thread initiatorThread = new Thread(initiator);
         initiatorThread.start();
 
-        int backEndInitiatorPort = initiator.getPort();
-
-        while (backEndInitiatorPort == -1) {
-            try {
-                backEndInitiatorPort = initiator.getPort();
-                Thread.sleep(20);
-            } catch (InterruptedException e) { }
-        }
+        int backEndInitiatorPort = waitUntilServerReady(initiator);
 
         CloseableHttpClient client = HttpClients.createDefault();
         HttpPost req = new HttpPost("http://127.0.0.1:" + backEndInitiatorPort + "/backends");
@@ -57,5 +51,62 @@ public class BackEndInitiatorTest {
         verify(mockFactory, times(1)).produceBackEndThread(any(BackEnd.class));
     }
 
-    // backend initiator should shutdown a backend server when sent a request telling it to do so
+    @Test
+    @DisplayName("When BackEndInitiator thread is interrupted, it interrupts all backend servers that it has spawned")
+    public void BackEndInitiatorThreadInterruptedInterruptsAllBackEndServers() {
+        BackEndFactory mockFactory = Mockito.mock(BackEndFactoryImpl.class);
+        BackEnd mockBackEnd = Mockito.mock(BackEnd.class);
+        mockBackEnd.port = 37100;
+        Thread mockThread = Mockito.mock(Thread.class);
+
+        when(mockFactory.produceBackEnd(any(RequestMonitor.class))).thenReturn(mockBackEnd);
+        when(mockFactory.produceBackEndThread(any(BackEnd.class))).thenReturn(mockThread);
+
+        BackEndInitiator initiator = new BackEndInitiator(mockFactory);
+        Thread initiatorThread = new Thread(initiator);
+        initiatorThread.start();
+
+        int backEndInitiatorPort = waitUntilServerReady(initiator);
+        CloseableHttpClient client = HttpClients.createDefault();
+        HttpPost req = new HttpPost("http://127.0.0.1:" + backEndInitiatorPort + "/backends");
+
+        // send request to server and wait for it to be received
+        try {
+            CloseableHttpResponse response = client.execute(req);
+            client.close();
+            Thread.sleep(100);
+        } catch (IOException e) {
+            e.printStackTrace();
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
+
+        // interrupt BackEndInitiator thread
+        initiatorThread.interrupt();
+
+        // wait for BackEndInitiator to run interruption callbacks
+        try {
+            Thread.sleep(100);
+        } catch(InterruptedException e) {
+            e.printStackTrace();
+        }
+
+        // verify that BackEndThread has been interrupted
+        verify(mockThread, times(1)).interrupt();
+    }
+
+    // waits until a server has started up
+    // returns port
+    private int waitUntilServerReady(BackEndInitiator initiator) {
+        int backEndInitiatorPort = initiator.getPort();
+
+        while (backEndInitiatorPort == -1) {
+            try {
+                Thread.sleep(20);
+                backEndInitiatorPort = initiator.getPort();
+            } catch (InterruptedException e) { }
+        }
+
+        return backEndInitiatorPort;
+    }
 }
