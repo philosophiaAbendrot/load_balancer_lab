@@ -2,6 +2,7 @@ import org.apache.http.client.HttpClient;
 import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.HttpPost;
 import org.apache.http.impl.client.CloseableHttpClient;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.apache.http.impl.client.HttpClients;
@@ -20,25 +21,34 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 
 public class BackEndInitiatorTest {
+    BackEndFactory mockFactory;
+    BackEnd mockBackEnd;
+    Thread mockBackEndThread;
+    BackEndInitiator initiator;
+    Thread initiatorThread;
+    int backEndInitiatorPort;
+
+    @BeforeEach
+    public void setup() {
+        this.mockFactory = Mockito.mock(BackEndFactoryImpl.class);
+        this.mockBackEnd = Mockito.mock(BackEnd.class);
+        this.mockBackEnd.port = 37_100;
+        this.mockBackEndThread = Mockito.mock(Thread.class);
+
+        when(this.mockFactory.produceBackEnd(any(RequestMonitor.class))).thenReturn(mockBackEnd);
+        when(this.mockFactory.produceBackEndThread(any(BackEnd.class))).thenReturn(this.mockBackEndThread);
+
+        this.initiator = new BackEndInitiator(this.mockFactory);
+        this.initiatorThread = new Thread(this.initiator);
+        this.initiatorThread.start();
+        this.backEndInitiatorPort = waitUntilServerReady(this.initiator);
+    }
+
     @Test
     @DisplayName("BackEndInitiator should start up a BackEnd instance when sent a request telling it to do so")
     public void BackEndInitiatorShouldStartBackEndInstance() {
-        BackEndFactory mockFactory = Mockito.mock(BackEndFactoryImpl.class);
-        BackEnd mockBackEnd = Mockito.mock(BackEnd.class);
-        mockBackEnd.port = 37100;
-        Thread mockBackEndThread = Mockito.mock(Thread.class);
-
-        when(mockFactory.produceBackEnd(any(RequestMonitor.class))).thenReturn(mockBackEnd);
-        when(mockFactory.produceBackEndThread(any(BackEnd.class))).thenReturn(new Thread(mockBackEndThread));
-
-        BackEndInitiator initiator = new BackEndInitiator(mockFactory);
-        Thread initiatorThread = new Thread(initiator);
-        initiatorThread.start();
-
-        int backEndInitiatorPort = waitUntilServerReady(initiator);
-
         CloseableHttpClient client = HttpClients.createDefault();
-        HttpPost req = new HttpPost("http://127.0.0.1:" + backEndInitiatorPort + "/backends");
+        HttpPost req = new HttpPost("http://127.0.0.1:" + this.backEndInitiatorPort + "/backends");
 
         try {
             CloseableHttpResponse response = client.execute(req);
@@ -47,28 +57,15 @@ public class BackEndInitiatorTest {
             e.printStackTrace();
         }
 
-        verify(mockFactory, times(1)).produceBackEnd(any(RequestMonitor.class));
-        verify(mockFactory, times(1)).produceBackEndThread(any(BackEnd.class));
+        verify(this.mockFactory, times(1)).produceBackEnd(any(RequestMonitor.class));
+        verify(this.mockFactory, times(1)).produceBackEndThread(any(BackEnd.class));
     }
 
     @Test
     @DisplayName("When BackEndInitiator thread is interrupted, it interrupts all backend servers that it has spawned")
     public void BackEndInitiatorThreadInterruptedInterruptsAllBackEndServers() {
-        BackEndFactory mockFactory = Mockito.mock(BackEndFactoryImpl.class);
-        BackEnd mockBackEnd = Mockito.mock(BackEnd.class);
-        mockBackEnd.port = 37100;
-        Thread mockThread = Mockito.mock(Thread.class);
-
-        when(mockFactory.produceBackEnd(any(RequestMonitor.class))).thenReturn(mockBackEnd);
-        when(mockFactory.produceBackEndThread(any(BackEnd.class))).thenReturn(mockThread);
-
-        BackEndInitiator initiator = new BackEndInitiator(mockFactory);
-        Thread initiatorThread = new Thread(initiator);
-        initiatorThread.start();
-
-        int backEndInitiatorPort = waitUntilServerReady(initiator);
         CloseableHttpClient client = HttpClients.createDefault();
-        HttpPost req = new HttpPost("http://127.0.0.1:" + backEndInitiatorPort + "/backends");
+        HttpPost req = new HttpPost("http://127.0.0.1:" + this.backEndInitiatorPort + "/backends");
 
         // send request to server and wait for it to be received
         try {
@@ -82,7 +79,7 @@ public class BackEndInitiatorTest {
         }
 
         // interrupt BackEndInitiator thread
-        initiatorThread.interrupt();
+        this.initiatorThread.interrupt();
 
         // wait for BackEndInitiator to run interruption callbacks
         try {
@@ -92,7 +89,7 @@ public class BackEndInitiatorTest {
         }
 
         // verify that BackEndThread has been interrupted
-        verify(mockThread, times(1)).interrupt();
+        verify(this.mockBackEndThread, times(1)).interrupt();
     }
 
     // waits until a server has started up
