@@ -2,6 +2,7 @@ import org.apache.commons.io.IOUtils;
 import org.apache.http.HttpEntity;
 import org.apache.http.client.HttpClient;
 import org.apache.http.client.methods.CloseableHttpResponse;
+import org.apache.http.client.methods.HttpDelete;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.methods.HttpPost;
 import org.apache.http.impl.client.CloseableHttpClient;
@@ -23,6 +24,7 @@ import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 
@@ -109,6 +111,7 @@ public class BackEndInitiatorTest {
         BackEndInitiator initiator;
         Thread initiatorThread;
         int backEndInitiatorPort;
+        int backEndPort;
 
         @BeforeEach
         public void setup() {
@@ -117,14 +120,13 @@ public class BackEndInitiatorTest {
             this.initiatorThread = new Thread(this.initiator);
             this.initiatorThread.start();
             this.backEndInitiatorPort = BackEndInitiatorTest.waitUntilServerReady(this.initiator);
+            startServerAndGetPort();
         }
 
-        @Test
-        @DisplayName("When a new BackEnd server is started, it should return the port that the new backend server is running on")
-        public void BackEndServerStartedReturnPort() {
+        private void startServerAndGetPort() {
             CloseableHttpClient client = HttpClients.createDefault();
             HttpPost req = new HttpPost("http://127.0.0.1:" + this.backEndInitiatorPort + "/backends");
-            int portInt = -1;
+            this.backEndPort = -1;
 
             try {
                 CloseableHttpResponse response = client.execute(req);
@@ -133,19 +135,23 @@ public class BackEndInitiatorTest {
                 String responseString = IOUtils.toString(responseStream, StandardCharsets.UTF_8.name());
                 response.close();
                 responseStream.close();
-                portInt = Integer.valueOf(responseString);
+                this.backEndPort = Integer.valueOf(responseString);
                 client.close();
             } catch (IOException e) {
                 e.printStackTrace();
             }
+        }
 
+        @Test
+        @DisplayName("When a new BackEnd server is started, it should return the port that the new backend server is running on")
+        public void backEndServerStartedReturnPort() {
             // send request to port returned by the request to see if the server is active
-            client = HttpClients.createDefault();
+            CloseableHttpClient client = HttpClients.createDefault();
             int status = -1;
 
-            if (portInt != -1) {
+            if (this.backEndPort != -1) {
                 try {
-                    HttpGet getRequest = new HttpGet("http://127.0.0.1" + portInt);
+                    HttpGet getRequest = new HttpGet("http://127.0.0.1:" + this.backEndPort);
                     CloseableHttpResponse response = client.execute(getRequest);
                     status = response.getStatusLine().getStatusCode();
                 } catch (IOException e) { e.printStackTrace(); }
@@ -154,6 +160,27 @@ public class BackEndInitiatorTest {
             this.initiatorThread.interrupt();
 
             assertEquals(status, 200);
+        }
+
+        @Test
+        @DisplayName("When a request is sent to shut down a certain server, that server should be shut down")
+        public void shutDownSpecificServer() {
+            CloseableHttpClient client = HttpClients.createDefault();
+            HttpDelete req = new HttpDelete("http://127.0.0.1:" + this.backEndInitiatorPort + "/backend/" + this.backEndPort);
+
+            try {
+                CloseableHttpResponse response = client.execute(req);
+                client.close();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+
+            HttpGet getReq = new HttpGet("http://127.0.0.1:" + this.backEndPort);
+            final CloseableHttpClient client2 = HttpClients.createDefault();
+
+            Exception exception = assertThrows(IOException.class, () -> {
+               CloseableHttpResponse response = client2.execute(getReq);
+            });
         }
     }
 
