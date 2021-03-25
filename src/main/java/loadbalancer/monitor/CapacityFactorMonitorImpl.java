@@ -1,6 +1,5 @@
 package loadbalancer.monitor;
 
-import loadbalancer.LoadBalancer;
 import loadbalancer.factory.ClientFactory;
 import loadbalancer.util.Logger;
 import org.apache.commons.io.IOUtils;
@@ -12,7 +11,6 @@ import org.apache.http.client.methods.HttpDelete;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.methods.HttpPost;
 import org.apache.http.impl.client.CloseableHttpClient;
-import org.apache.http.impl.client.HttpClients;
 import org.json.JSONObject;
 
 import java.io.IOException;

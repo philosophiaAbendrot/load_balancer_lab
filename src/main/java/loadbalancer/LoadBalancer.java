@@ -59,7 +59,6 @@ public class LoadBalancer implements Runnable {
         this.startupServerCount = startupServerCount;
         this.clientRequestHandler = new ClientRequestHandler();
         httpProcessor = new ImmutableHttpProcessor(requestInterceptors, responseInterceptors);
-        rand = new Random();
         capacityFactors = new ConcurrentHashMap<>();
     }
 
