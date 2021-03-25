@@ -2,6 +2,8 @@ package loadbalancer.monitor;
 
 import org.apache.http.client.HttpClient;
 
+import java.io.IOException;
+
 public interface CapacityFactorMonitor {
-    void pingServers();
+    void pingServers() throws IOException;
 }
