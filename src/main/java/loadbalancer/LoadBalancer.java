@@ -44,6 +44,7 @@ public class LoadBalancer implements Runnable {
     private Map<Integer, Long> backendStartTimes = new ConcurrentHashMap<>();
     // maps the port that backend server is operating on to its capacity factor
     private ConcurrentMap<Integer, Double> capacityFactors;
+    private CapacityFactorMonitor capacityFactorMonitor;
     private Thread capacityFactorMonitorThread = null;
     private int startupServerCount;
     long initiationTime;
@@ -133,8 +134,8 @@ public class LoadBalancer implements Runnable {
         }
 
         startupBackendCluster();
-        CapacityFactorMonitor capacityFactorMonitor = new CapacityFactorMonitorImpl(new ClientFactoryImpl(), this.capacityFactors, System.currentTimeMillis(), this.backendInitiatorPort);
-        CapacityFactorMonitorRunnable capacityFactorMonitorRunnable = new CapacityFactorMonitorRunnable(capacityFactorMonitor);
+        this.capacityFactorMonitor = new CapacityFactorMonitorImpl(new ClientFactoryImpl(), this.capacityFactors, System.currentTimeMillis(), this.backendInitiatorPort);
+        CapacityFactorMonitorRunnable capacityFactorMonitorRunnable = new CapacityFactorMonitorRunnable(this.capacityFactorMonitor);
         capacityFactorMonitorThread = new Thread(capacityFactorMonitorRunnable);
         capacityFactorMonitorThread.start();
 
@@ -187,7 +188,7 @@ public class LoadBalancer implements Runnable {
             String uri = httpRequest.getRequestLine().getUri();
             String[] uriArr = uri.split("/", 0);
             int resourceId = Integer.parseInt(uriArr[uriArr.length - 1]);
-            int backendPort = selectPort(resourceId);
+            int backendPort = LoadBalancer.this.capacityFactorMonitor.selectPort(resourceId);
 
             Logger.log(String.format("LoadBalancer | resourceId = %d", resourceId), "requestPassing");
             Logger.log(String.format("LoadBalancer | relaying message to backend server at port %d", backendPort), "requestPassing");
@@ -275,23 +276,5 @@ public class LoadBalancer implements Runnable {
         }
 
         return portInt;
-    }
-
-    // PRIVATE HELPER METHODS
-    private int selectPort(int resourceId) {
-        int hashRingPointer = resourceId % HASH_RING_DENOMINATIONS;
-
-        while (true) {
-            // rotate clockwise on the hash ring until a backend port is found
-            if (backendPortIndex.containsKey(hashRingPointer))
-                break;
-
-            if (hashRingPointer == HASH_RING_DENOMINATIONS)
-                hashRingPointer = 0;
-            else
-                hashRingPointer++;
-        }
-
-        return backendPortIndex.get(hashRingPointer);
     }
 }

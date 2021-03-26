@@ -6,4 +6,6 @@ import java.io.IOException;
 
 public interface CapacityFactorMonitor {
     void pingServers() throws IOException;
+
+    int selectPort(int resourceId);
 }

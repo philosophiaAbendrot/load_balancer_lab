@@ -107,6 +107,23 @@ public class CapacityFactorMonitorImpl implements CapacityFactorMonitor {
         }
     }
 
+    public int selectPort(int resourceId) {
+        int hashRingPointer = resourceId % HASH_RING_DENOMINATIONS;
+
+        while (true) {
+            // rotate clockwise on the hash ring until a backend port is found
+            if (this.backEndPortIndex.containsKey(hashRingPointer))
+                break;
+
+            if (hashRingPointer == HASH_RING_DENOMINATIONS)
+                hashRingPointer = 0;
+            else
+                hashRingPointer++;
+        }
+
+        return this.backEndPortIndex.get(hashRingPointer);
+    }
+
     private int startUpBackEnd() {
         CloseableHttpClient httpClient = this.clientFactory.buildApacheClient();
 
