@@ -40,15 +40,14 @@ public class CapacityFactorMonitorImpl implements CapacityFactorMonitor {
     private Map<Integer, Long> backEndStartTimes;
     private Map<Integer, Integer> backEndPortIndex;
 
-    public CapacityFactorMonitorImpl(ClientFactory clientFactory, ConcurrentMap<Integer, Double> capacityFactors, long initiationTime,
-                                     int backEndInitiatorPort, Map<Integer, Integer> backEndPortIndex) {
+    public CapacityFactorMonitorImpl(ClientFactory clientFactory, long initiationTime, int backEndInitiatorPort) {
         this.clientFactory = clientFactory;
         this.reinforcedTimes = new ConcurrentHashMap<>();
         this.backEndStartTimes = new ConcurrentHashMap<>();
-        this.capacityFactors = capacityFactors;
+        this.capacityFactors = new ConcurrentHashMap<>();
         this.initiationTime = initiationTime;
         this.backEndInitiatorPort = backEndInitiatorPort;
-        this.backEndPortIndex = backEndPortIndex;
+        this.backEndPortIndex = new ConcurrentHashMap<>();
     }
 
     @Override
