@@ -3,13 +3,10 @@ package loadbalancer;
 import loadbalancer.factory.ClientFactoryImpl;
 import loadbalancer.monitor.CapacityFactorMonitor;
 import loadbalancer.monitor.CapacityFactorMonitorImpl;
-import org.apache.commons.io.IOUtils;
 import org.apache.commons.text.StringEscapeUtils;
 import org.apache.http.*;
-import org.apache.http.client.ClientProtocolException;
 import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.HttpGet;
-import org.apache.http.client.methods.HttpPost;
 import org.apache.http.config.SocketConfig;
 import org.apache.http.entity.BasicHttpEntity;
 import org.apache.http.impl.bootstrap.HttpServer;
@@ -21,7 +18,6 @@ import org.json.JSONObject;
 import java.io.*;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
-import java.nio.charset.StandardCharsets;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
@@ -39,9 +35,9 @@ public class LoadBalancer implements Runnable {
     private List<HttpResponseInterceptor> responseInterceptors = new ArrayList<>();
     private HttpProcessor httpProcessor;
     // maps hash ring locations to backend server ports
-    private Map<Integer, Integer> backendPortIndex = new ConcurrentHashMap<>();
+    private Map<Integer, Integer> backEndPortIndex;
     // maps port index to time at which the server was initiated
-    private Map<Integer, Long> backendStartTimes = new ConcurrentHashMap<>();
+    private Map<Integer, Long> backEndStartTimes;
     // maps the port that backend server is operating on to its capacity factor
     private ConcurrentMap<Integer, Double> capacityFactors;
     private CapacityFactorMonitor capacityFactorMonitor;
@@ -59,8 +55,10 @@ public class LoadBalancer implements Runnable {
         this.initiationTime = System.currentTimeMillis();
         this.startupServerCount = startupServerCount;
         this.clientRequestHandler = new ClientRequestHandler();
-        httpProcessor = new ImmutableHttpProcessor(requestInterceptors, responseInterceptors);
-        capacityFactors = new ConcurrentHashMap<>();
+        this.httpProcessor = new ImmutableHttpProcessor(requestInterceptors, responseInterceptors);
+        this.capacityFactors = new ConcurrentHashMap<>();
+        this.backEndPortIndex = new ConcurrentHashMap<>();
+        this.backEndStartTimes = new ConcurrentHashMap<>();
     }
 
     private class CapacityFactorMonitorRunnable implements Runnable {
@@ -133,11 +131,11 @@ public class LoadBalancer implements Runnable {
             break;
         }
 
-        startupBackendCluster();
-        this.capacityFactorMonitor = new CapacityFactorMonitorImpl(new ClientFactoryImpl(), this.capacityFactors, System.currentTimeMillis(), this.backendInitiatorPort);
+        this.capacityFactorMonitor = new CapacityFactorMonitorImpl(new ClientFactoryImpl(), this.capacityFactors, System.currentTimeMillis(), this.backendInitiatorPort, this.backEndPortIndex);
         CapacityFactorMonitorRunnable capacityFactorMonitorRunnable = new CapacityFactorMonitorRunnable(this.capacityFactorMonitor);
         capacityFactorMonitorThread = new Thread(capacityFactorMonitorRunnable);
         capacityFactorMonitorThread.start();
+        startupBackendCluster();
 
         HttpServer finalServer = server;
         Runtime.getRuntime().addShutdownHook(new Thread() {
@@ -222,59 +220,58 @@ public class LoadBalancer implements Runnable {
         int hashRingIndex = 0;
 
         for (int i = 0; i < this.startupServerCount; i++) {
-            int portInt = startupBackend();
-            backendPortIndex.put(hashRingIndex, portInt);
-            backendStartTimes.put(portInt, System.currentTimeMillis());
+            int portInt = this.capacityFactorMonitor.startUpBackEnd(hashRingIndex);
             hashRingIndex += step;
         }
     }
 
-    private int startupBackend() {
-        CloseableHttpClient httpClient = HttpClients.createDefault();
-
-        HttpPost httpPost = new HttpPost("http://127.0.0.1:" + this.backendInitiatorPort + "/backends");
-
-        int portInt = -1;
-
-        while(true) {
-            try {
-                Thread.sleep(100);
-                Logger.log("LoadBalancer | sent request to startup a backend", "capacityModulation");
-                CloseableHttpResponse response = httpClient.execute(httpPost);
-
-                Logger.log("LoadBalancer | received response", "capacityModulation");
-                HttpEntity responseBody = response.getEntity();
-                InputStream responseStream = responseBody.getContent();
-
-                String responseString = IOUtils.toString(responseStream, StandardCharsets.UTF_8.name());
-                response.close();
-                responseStream.close();
-                Logger.log("LoadBalancer | new backend port = " + responseString, "capacityModulation");
-                portInt = Integer.valueOf(responseString);
-                capacityFactors.put(portInt, -1.0);
-                Logger.log("LoadBalancer | backend ports:", "loadBalancerStartup");
-
-                for (Map.Entry<Integer, Integer> entry : backendPortIndex.entrySet())
-                    Logger.log(String.format("LoadBalancer | Index: %s | Port: %s", entry.getKey(), entry.getValue()), "loadBalancerStartup");
-
-            } catch (UnsupportedEncodingException | UnsupportedOperationException | ClientProtocolException e) {
-                System.out.println(e.toString() + " thrown in LoadBalancer#startupBackend");
-                e.printStackTrace();
-            } catch (InterruptedException e) {
-                System.out.println("InterruptedException thrown in LoadBalancer#startupBackend");
-            } catch (IOException e) {
-                System.out.println("IOException thrown in position 1 in LoadBalancer#startupBackend");
-                e.printStackTrace();
-            } finally {
-                try {
-                    httpClient.close();
-                } catch (IOException e) {
-                    System.out.println("IOException thrown in position 2 in LoadBalancer#startupBackend");
-                }
-                break;
-            }
-        }
-
-        return portInt;
-    }
+//    private int startupBackend() {
+//        CloseableHttpClient httpClient = HttpClients.createDefault();
+//
+//        HttpPost httpPost = new HttpPost("http://127.0.0.1:" + this.backendInitiatorPort + "/backends");
+//
+//        int portInt = -1;
+//
+//        while(true) {
+//            try {
+//                Thread.sleep(100);
+//                Logger.log("LoadBalancer | sent request to startup a backend", "capacityModulation");
+//                CloseableHttpResponse response = httpClient.execute(httpPost);
+//
+//                Logger.log("LoadBalancer | received response", "capacityModulation");
+//                HttpEntity responseBody = response.getEntity();
+//                InputStream responseStream = responseBody.getContent();
+//
+//                String responseString = IOUtils.toString(responseStream, StandardCharsets.UTF_8.name());
+//                response.close();
+//                responseStream.close();
+//                Logger.log("LoadBalancer | new backend port = " + responseString, "capacityModulation");
+//                portInt = Integer.valueOf(responseString);
+//                // looks like this is where the problem is occurring
+//                capacityFactors.put(portInt, -1.0);
+//                Logger.log("LoadBalancer | backend ports:", "loadBalancerStartup");
+//
+//                for (Map.Entry<Integer, Integer> entry : backendPortIndex.entrySet())
+//                    Logger.log(String.format("LoadBalancer | Index: %s | Port: %s", entry.getKey(), entry.getValue()), "loadBalancerStartup");
+//
+//            } catch (UnsupportedEncodingException | UnsupportedOperationException | ClientProtocolException e) {
+//                System.out.println(e.toString() + " thrown in LoadBalancer#startupBackend");
+//                e.printStackTrace();
+//            } catch (InterruptedException e) {
+//                System.out.println("InterruptedException thrown in LoadBalancer#startupBackend");
+//            } catch (IOException e) {
+//                System.out.println("IOException thrown in position 1 in LoadBalancer#startupBackend");
+//                e.printStackTrace();
+//            } finally {
+//                try {
+//                    httpClient.close();
+//                } catch (IOException e) {
+//                    System.out.println("IOException thrown in position 2 in LoadBalancer#startupBackend");
+//                }
+//                break;
+//            }
+//        }
+//
+//        return portInt;
+//    }
 }

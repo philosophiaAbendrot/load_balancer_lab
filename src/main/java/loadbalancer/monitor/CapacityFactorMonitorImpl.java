@@ -41,14 +41,14 @@ public class CapacityFactorMonitorImpl implements CapacityFactorMonitor {
     private Map<Integer, Integer> backEndPortIndex;
 
     public CapacityFactorMonitorImpl(ClientFactory clientFactory, ConcurrentMap<Integer, Double> capacityFactors, long initiationTime,
-                                     int backEndInitiatorPort) {
+                                     int backEndInitiatorPort, Map<Integer, Integer> backEndPortIndex) {
         this.clientFactory = clientFactory;
         this.reinforcedTimes = new ConcurrentHashMap<>();
         this.backEndStartTimes = new ConcurrentHashMap<>();
         this.capacityFactors = capacityFactors;
         this.initiationTime = initiationTime;
         this.backEndInitiatorPort = backEndInitiatorPort;
-        this.backEndPortIndex = new ConcurrentHashMap<>();
+        this.backEndPortIndex = backEndPortIndex;
     }
 
     @Override
@@ -124,9 +124,8 @@ public class CapacityFactorMonitorImpl implements CapacityFactorMonitor {
         return this.backEndPortIndex.get(hashRingPointer);
     }
 
-    private int startUpBackEnd() {
+    public int startUpBackEnd(int hashRingIndex) {
         CloseableHttpClient httpClient = this.clientFactory.buildApacheClient();
-
         HttpPost httpPost = new HttpPost("http://127.0.0.1:" + this.backEndInitiatorPort + "/backends");
 
         int portInt = -1;
@@ -170,6 +169,9 @@ public class CapacityFactorMonitorImpl implements CapacityFactorMonitor {
             }
         }
 
+        this.backEndPortIndex.put(hashRingIndex, portInt);
+        this.backEndStartTimes.put(portInt, System.currentTimeMillis());
+
         return portInt;
     }
 
@@ -206,11 +208,7 @@ public class CapacityFactorMonitorImpl implements CapacityFactorMonitor {
 
         Logger.log(String.format("LoadBalancer | selected location %d for new server", newServerHashRingLocation), "capacityModulation");
         // start a new server at the new hash ring location
-        int newServerPort = startUpBackEnd();
-        // record location of new dyno along with port
-        this.backEndPortIndex.put(newServerHashRingLocation, newServerPort);
-        // record initiation of backend server
-        this.backEndStartTimes.put(newServerPort, System.currentTimeMillis());
+        startUpBackEnd(newServerHashRingLocation);
         // record that backendPort was reinforced
         reinforcedTimes.put(backEndPort, System.currentTimeMillis());
     }
