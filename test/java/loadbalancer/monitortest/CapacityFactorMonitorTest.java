@@ -3,6 +3,7 @@ package loadbalancer.monitortest;
 import loadbalancer.factory.ClientFactory;
 import loadbalancer.monitor.CapacityFactorMonitor;
 import loadbalancer.monitor.CapacityFactorMonitorImpl;
+import loadbalancer.util.Logger;
 import org.apache.http.client.methods.HttpUriRequest;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.junit.jupiter.api.BeforeEach;
@@ -78,18 +79,55 @@ public class CapacityFactorMonitorTest {
         }
     }
 
-//    public static class CapacityFactorReceived {
-//        // test that capacityFactor received is recorded
-//        @Test
-//        @DisplayName("Should send capacity factor to port that BackEndInitiator is running on")
-//        public void shouldSendCapacityFactorToPort() {
-//
-//        }
-//    }
-
-    // test that capacity factor received is recorded
-
     // test port selection logic based on given resource id
+    public static class TestSelectPort {
+        CapacityFactorMonitor capFactorMonitor;
+        ClientFactory clientFactory;
+        CloseableHttpClient mockClient;
+        long currentTime;
+        int backEndInitiatorPort;
+
+        @BeforeEach
+        public void setup() {
+            Logger.configure(new String[] { "capacityModulation" });
+            this.clientFactory = Mockito.mock(ClientFactory.class);
+            this.mockClient = Mockito.mock(CloseableHttpClient.class);
+            this.currentTime = System.currentTimeMillis();
+            this.backEndInitiatorPort = 3_000;
+            this.capFactorMonitor = new CapacityFactorMonitorImpl(this.clientFactory, this.currentTime, this.backEndInitiatorPort);
+            when(this.clientFactory.buildApacheClient()).thenReturn(this.mockClient);
+        }
+
+        @Test
+        @DisplayName("When the next port is between position 0 and the initial position")
+        public void nextPortCounterClockWise() {
+            int hashRingIndex = 4_000;
+            int resourceId = 105_000;
+            int serverPort = this.capFactorMonitor.startUpBackEnd(hashRingIndex);
+            int selectedPort = this.capFactorMonitor.selectPort(resourceId);
+            assertEquals(serverPort, selectedPort);
+        }
+
+        @Test
+        @DisplayName("When the next port is between the last position and the initial position")
+        public void nextPortClockWise() {
+            int hashRingIndex = 2_000;
+            int resourceId = 105_000;
+            int serverPort = this.capFactorMonitor.startUpBackEnd(hashRingIndex);
+            int selectedPort = this.capFactorMonitor.selectPort(resourceId);
+            assertEquals(serverPort, selectedPort);
+        }
+
+        @Test
+        @DisplayName("When the next port is on the initial position")
+        public void nextPortOnInitialPosition() {
+            int hashRingIndex = 3_000;
+            int resourceId = 105_000;
+            int serverPort = this.capFactorMonitor.startUpBackEnd(hashRingIndex);
+            int selectedPort = this.capFactorMonitor.selectPort(resourceId);
+            assertEquals(serverPort, selectedPort);
+        }
+    }
 
     // test that startUpBackEnd method sends a request to BackEndInitiator port to start up a server when called
 
