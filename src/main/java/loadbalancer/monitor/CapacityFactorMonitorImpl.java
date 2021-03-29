@@ -52,12 +52,12 @@ public class CapacityFactorMonitorImpl implements CapacityFactorMonitor {
 
     @Override
     public void pingServers() throws IOException {
-        Logger.log("LoadBalancer | CFMonitor loop running", "capacityModulation");
+        Logger.log("LoadBalancer - CapacityFactorMonitorImpl | CFMonitor loop running", "capacityModulation");
 
         for (Map.Entry<Integer, Double> entry : capacityFactors.entrySet()) {
             int backEndPort = entry.getKey();
             CloseableHttpClient httpClient = this.clientFactory.buildApacheClient();
-            Logger.log(String.format("LoadBalancer | sending request for update on capacity factor to port %d", backEndPort), "telemetryUpdate");
+            Logger.log(String.format("LoadBalancer - CapacityFactorMonitorImpl | sending request for update on capacity factor to port %d", backEndPort), "telemetryUpdate");
             HttpGet httpGet = new HttpGet("http://127.0.0.1:" + backEndPort + "/capacity_factor");
 
             CloseableHttpResponse response = httpClient.execute(httpGet);
@@ -67,30 +67,30 @@ public class CapacityFactorMonitorImpl implements CapacityFactorMonitor {
             String responseString = IOUtils.toString(responseStream, StandardCharsets.UTF_8.name());
             JSONObject responseJson = new JSONObject(StringEscapeUtils.unescapeJson(responseString));
             double capacityFactor = responseJson.getDouble("capacity_factor");
-            Logger.log(String.format("LoadBalancer | received update on capacity factor: %s", capacityFactor), "telemetryUpdate");
+            Logger.log(String.format("LoadBalancer - CapacityFactorMonitorImpl | received update on capacity factor: %s", capacityFactor), "telemetryUpdate");
             entry.setValue(capacityFactor);
 
             responseStream.close();
             httpClient.close();
 
-            Logger.log("LoadBalancer | cf = " + capacityFactor, "capacityModulation");
+            Logger.log("LoadBalancer - CapacityFactorMonitorImpl | cf = " + capacityFactor, "capacityModulation");
 
             if (System.currentTimeMillis() > initiationTime + REST_INTERVAL) {
                 if (capacityFactor > CAPACITY_FACTOR_MAX) {
                     if (reinforcedTimes.containsKey(backEndPort)) {
                         // if a server has been started up to reinforce this server recently
                         long lastReinforced = reinforcedTimes.get(backEndPort);
-                        Logger.log(String.format("LoadBalancer | last reinforced = %d", lastReinforced), "capacityModulation");
+                        Logger.log(String.format("LoadBalancer - CapacityFactorMonitorImpl | last reinforced = %d", lastReinforced), "capacityModulation");
 
                         if (System.currentTimeMillis() > lastReinforced + REINFORCEMENT_INTERVAL) {
                             // if the server was reinforced a while ago, clear it out from the list of recently reinforced servers
-                            Logger.log(String.format("LoadBalancer | clearing backendPort %d from reinforcedTimes", backEndPort), "capacityModulation");
+                            Logger.log(String.format("LoadBalancer - CapacityFactorMonitorImpl | clearing backendPort %d from reinforcedTimes", backEndPort), "capacityModulation");
                             reinforcedTimes.remove(backEndPort);
                             // startup a new dyno
                             reinforceServer(backEndPort, capacityFactor);
                         } else {
                             // if the server was reinforced recently, do not reinforce it again
-                            Logger.log(String.format("LoadBalancer | skipping reinforcement of port %d", backEndPort), "capacityModulation");
+                            Logger.log(String.format("LoadBalancer - CapacityFactorMonitorImpl | skipping reinforcement of port %d", backEndPort), "capacityModulation");
                         }
                     } else {
                         // if the server has not been reinforced recently
@@ -132,23 +132,23 @@ public class CapacityFactorMonitorImpl implements CapacityFactorMonitor {
         while(true) {
             try {
                 Thread.sleep(100);
-                Logger.log("LoadBalancer | sent request to startup a backend", "capacityModulation");
+                Logger.log("LoadBalancer - CapacityFactorMonitorImpl | sent request to startup a backend", "capacityModulation");
                 CloseableHttpResponse response = httpClient.execute(httpPost);
 
-                Logger.log("LoadBalancer | received response", "capacityModulation");
+                Logger.log("LoadBalancer - CapacityFactorMonitorImpl | received response", "capacityModulation");
                 HttpEntity responseBody = response.getEntity();
                 InputStream responseStream = responseBody.getContent();
 
                 String responseString = IOUtils.toString(responseStream, StandardCharsets.UTF_8.name());
                 response.close();
                 responseStream.close();
-                Logger.log("LoadBalancer | new backend port = " + responseString, "capacityModulation");
+                Logger.log("LoadBalancer - CapacityFactorMonitorImpl | new backend port = " + responseString, "capacityModulation");
                 portInt = Integer.valueOf(responseString);
                 capacityFactors.put(portInt, -1.0);
-                Logger.log("LoadBalancer | backend ports:", "loadBalancerStartup");
+                Logger.log("LoadBalancer - CapacityFactorMonitorImpl | backend ports:", "loadBalancerStartup");
 
                 for (Map.Entry<Integer, Integer> entry : this.backEndPortIndex.entrySet())
-                    Logger.log(String.format("LoadBalancer | Index: %s | Port: %s", entry.getKey(), entry.getValue()), "loadBalancerStartup");
+                    Logger.log(String.format("LoadBalancer - CapacityFactorMonitorImpl | Index: %s | Port: %s", entry.getKey(), entry.getValue()), "loadBalancerStartup");
 
             } catch (UnsupportedEncodingException | UnsupportedOperationException | ClientProtocolException e) {
                 System.out.println(e.toString() + " thrown in LoadBalancer#startupBackend");
@@ -198,14 +198,14 @@ public class CapacityFactorMonitorImpl implements CapacityFactorMonitor {
 
     private void reinforceServer(int backEndPort, double capacityFactor) {
         // startup a new dyno
-        Logger.log(String.format("LoadBalancer | backendPort %d is overloaded with cf = %f", backEndPort, capacityFactor), "capacityModulation");
+        Logger.log(String.format("LoadBalancer - CapacityFactorMonitorImpl | backendPort %d is overloaded with cf = %f", backEndPort, capacityFactor), "capacityModulation");
         int newServerHashRingLocation = selectHashRingLocation(backEndPort);
 
         if (newServerHashRingLocation == -1) {
             return;
         }
 
-        Logger.log(String.format("LoadBalancer | selected location %d for new server", newServerHashRingLocation), "capacityModulation");
+        Logger.log(String.format("LoadBalancer - CapacityFactorMonitorImpl | selected location %d for new server", newServerHashRingLocation), "capacityModulation");
         // start a new server at the new hash ring location
         startUpBackEnd(newServerHashRingLocation);
         // record that backendPort was reinforced
@@ -245,15 +245,15 @@ public class CapacityFactorMonitorImpl implements CapacityFactorMonitor {
                     }
                 }
 
-                Logger.log("LoadBalancer | backendPort = " + backendPort, "capacityModulation");
-                Logger.log("LoadBalancer | backendPortIndex:", "capacityModulation");
+                Logger.log("LoadBalancer - CapacityFactorMonitorImpl | backendPort = " + backendPort, "capacityModulation");
+                Logger.log("LoadBalancer - CapacityFactorMonitorImpl | backendPortIndex:", "capacityModulation");
 
                 for (Map.Entry<Integer, Integer> entry : this.backEndPortIndex.entrySet()) {
                     Logger.log("entry: " + entry.getKey() + " | " + entry.getValue(), "capacityModulation");
                 }
 
-                Logger.log("LoadBalancer | selectHashRingLocation | currLoc = " + currLoc, "capacityModulation");
-                Logger.log("LoadBalancer | selectHashRingLocation | prevLoc = " + prevLoc, "capacityModulation");
+                Logger.log("LoadBalancer - CapacityFactorMonitorImpl | selectHashRingLocation | currLoc = " + currLoc, "capacityModulation");
+                Logger.log("LoadBalancer - CapacityFactorMonitorImpl | selectHashRingLocation | prevLoc = " + prevLoc, "capacityModulation");
 
             }
             selectedLocation = (currLoc + prevLoc) / 2;

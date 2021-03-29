@@ -1,6 +1,5 @@
 import org.apache.commons.io.IOUtils;
 import org.apache.http.HttpEntity;
-import org.apache.http.client.HttpClient;
 import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.HttpDelete;
 import org.apache.http.client.methods.HttpGet;
@@ -15,7 +14,6 @@ import org.mockito.Mockito;
 import loadbalancer.BackEndInitiator;
 import loadbalancer.factory.BackEndFactoryImpl;
 import loadbalancer.factory.BackEndFactory;
-import loadbalancer.util.Logger;
 import loadbalancer.monitor.RequestMonitor;
 import loadbalancer.BackEnd;
 
