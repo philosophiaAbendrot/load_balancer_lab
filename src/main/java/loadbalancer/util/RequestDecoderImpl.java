@@ -10,7 +10,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
 
-public class DecoderImpl implements Decoder {
+public class RequestDecoderImpl implements RequestDecoder {
     @Override
     public JSONObject extractJsonApacheResponse(CloseableHttpResponse response) throws IOException {
         HttpEntity responseBody = response.getEntity();
@@ -21,6 +21,9 @@ public class DecoderImpl implements Decoder {
         responseStream = responseBody.getContent();
         responseString = IOUtils.toString(responseStream, StandardCharsets.UTF_8.name());
         jsonObject = new JSONObject(StringEscapeUtils.unescapeJson(responseString));
+
+        responseStream.close();
+        response.close();
 
         return jsonObject;
     }

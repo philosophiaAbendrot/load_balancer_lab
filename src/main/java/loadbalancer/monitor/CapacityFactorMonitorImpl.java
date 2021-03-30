@@ -1,9 +1,9 @@
 package loadbalancer.monitor;
 
 import loadbalancer.factory.ClientFactory;
+import loadbalancer.util.RequestDecoder;
 import loadbalancer.util.Logger;
 import org.apache.commons.io.IOUtils;
-import org.apache.commons.text.StringEscapeUtils;
 import org.apache.http.HttpEntity;
 import org.apache.http.client.ClientProtocolException;
 import org.apache.http.client.methods.CloseableHttpResponse;
@@ -39,8 +39,9 @@ public class CapacityFactorMonitorImpl implements CapacityFactorMonitor {
     private Map<Integer, Long> reinforcedTimes;
     private Map<Integer, Long> backEndStartTimes;
     private Map<Integer, Integer> backEndPortIndex;
+    private RequestDecoder decoder;
 
-    public CapacityFactorMonitorImpl(ClientFactory clientFactory, long initiationTime, int backEndInitiatorPort) {
+    public CapacityFactorMonitorImpl(ClientFactory clientFactory, long initiationTime, int backEndInitiatorPort, RequestDecoder decoder) {
         this.clientFactory = clientFactory;
         this.reinforcedTimes = new ConcurrentHashMap<>();
         this.backEndStartTimes = new ConcurrentHashMap<>();
@@ -48,6 +49,7 @@ public class CapacityFactorMonitorImpl implements CapacityFactorMonitor {
         this.initiationTime = initiationTime;
         this.backEndInitiatorPort = backEndInitiatorPort;
         this.backEndPortIndex = new ConcurrentHashMap<>();
+        this.decoder = decoder;
     }
 
     @Override
@@ -61,16 +63,12 @@ public class CapacityFactorMonitorImpl implements CapacityFactorMonitor {
             HttpGet httpGet = new HttpGet("http://127.0.0.1:" + backEndPort + "/capacity_factor");
 
             CloseableHttpResponse response = httpClient.execute(httpGet);
-            HttpEntity responseBody = response.getEntity();
-            InputStream responseStream = responseBody.getContent();
+            JSONObject responseJson = this.decoder.extractJsonApacheResponse(response);
 
-            String responseString = IOUtils.toString(responseStream, StandardCharsets.UTF_8.name());
-            JSONObject responseJson = new JSONObject(StringEscapeUtils.unescapeJson(responseString));
             double capacityFactor = responseJson.getDouble("capacity_factor");
             Logger.log(String.format("LoadBalancer - CapacityFactorMonitorImpl | received update on capacity factor: %s", capacityFactor), "telemetryUpdate");
             entry.setValue(capacityFactor);
 
-            responseStream.close();
             httpClient.close();
 
             Logger.log("LoadBalancer - CapacityFactorMonitorImpl | cf = " + capacityFactor, "capacityModulation");

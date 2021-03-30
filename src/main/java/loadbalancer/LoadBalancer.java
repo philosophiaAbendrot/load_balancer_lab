@@ -3,6 +3,7 @@ package loadbalancer;
 import loadbalancer.factory.ClientFactoryImpl;
 import loadbalancer.monitor.CapacityFactorMonitor;
 import loadbalancer.monitor.CapacityFactorMonitorImpl;
+import loadbalancer.util.RequestDecoderImpl;
 import org.apache.commons.text.StringEscapeUtils;
 import org.apache.http.*;
 import org.apache.http.client.methods.CloseableHttpResponse;
@@ -121,7 +122,7 @@ public class LoadBalancer implements Runnable {
             break;
         }
 
-        this.capacityFactorMonitor = new CapacityFactorMonitorImpl(new ClientFactoryImpl(), System.currentTimeMillis(), this.backendInitiatorPort);
+        this.capacityFactorMonitor = new CapacityFactorMonitorImpl(new ClientFactoryImpl(), System.currentTimeMillis(), this.backendInitiatorPort, new RequestDecoderImpl());
         CapacityFactorMonitorRunnable capacityFactorMonitorRunnable = new CapacityFactorMonitorRunnable(this.capacityFactorMonitor);
         capacityFactorMonitorThread = new Thread(capacityFactorMonitorRunnable);
         capacityFactorMonitorThread.start();

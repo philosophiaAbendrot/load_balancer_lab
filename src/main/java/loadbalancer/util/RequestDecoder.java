@@ -5,7 +5,8 @@ import org.json.JSONObject;
 
 import java.io.IOException;
 
-public interface Decoder {
+public interface RequestDecoder {
     // extract JSON object from an Apache CloseableHttpResponse
+    // closes response
     JSONObject extractJsonApacheResponse( CloseableHttpResponse response) throws IOException;
 }

@@ -4,6 +4,7 @@ import loadbalancer.factory.ClientFactory;
 import loadbalancer.monitor.CapacityFactorMonitor;
 import loadbalancer.monitor.CapacityFactorMonitorImpl;
 import loadbalancer.util.Logger;
+import loadbalancer.util.RequestDecoderImpl;
 import org.apache.http.client.methods.HttpUriRequest;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.junit.jupiter.api.BeforeEach;
@@ -36,7 +37,7 @@ public class CapacityFactorMonitorTest {
             this.currentTime = System.currentTimeMillis();
             this.backEndInitiatorPort = 3_000;
             this.hashRingIndex = 1_000;
-            this.capFactorMonitor = new CapacityFactorMonitorImpl(this.clientFactory, this.currentTime, this.backEndInitiatorPort);
+            this.capFactorMonitor = new CapacityFactorMonitorImpl(this.clientFactory, this.currentTime, this.backEndInitiatorPort, new RequestDecoderImpl());
             this.argument = ArgumentCaptor.forClass(HttpUriRequest.class);
         }
 
@@ -94,7 +95,7 @@ public class CapacityFactorMonitorTest {
             this.mockClient = Mockito.mock(CloseableHttpClient.class);
             this.currentTime = System.currentTimeMillis();
             this.backEndInitiatorPort = 3_000;
-            this.capFactorMonitor = new CapacityFactorMonitorImpl(this.clientFactory, this.currentTime, this.backEndInitiatorPort);
+            this.capFactorMonitor = new CapacityFactorMonitorImpl(this.clientFactory, this.currentTime, this.backEndInitiatorPort, new RequestDecoderImpl());
             when(this.clientFactory.buildApacheClient()).thenReturn(this.mockClient);
         }
 
