@@ -132,16 +132,10 @@ public class CapacityFactorMonitorImpl implements CapacityFactorMonitor {
                 Thread.sleep(100);
                 Logger.log("LoadBalancer - CapacityFactorMonitorImpl | sent request to startup a backend", "capacityModulation");
                 CloseableHttpResponse response = httpClient.execute(httpPost);
-
                 Logger.log("LoadBalancer - CapacityFactorMonitorImpl | received response", "capacityModulation");
-                HttpEntity responseBody = response.getEntity();
-                InputStream responseStream = responseBody.getContent();
-
-                String responseString = IOUtils.toString(responseStream, StandardCharsets.UTF_8.name());
-                response.close();
-                responseStream.close();
-                Logger.log("LoadBalancer - CapacityFactorMonitorImpl | new backend port = " + responseString, "capacityModulation");
-                portInt = Integer.valueOf(responseString);
+                JSONObject jsonObj = this.decoder.extractJsonApacheResponse(response);
+                portInt = jsonObj.getInt("port");
+                Logger.log("LoadBalancer - CapacityFactorMonitorImpl | new backend port = " + portInt, "capacityModulation");
                 capacityFactors.put(portInt, -1.0);
                 Logger.log("LoadBalancer - CapacityFactorMonitorImpl | backend ports:", "loadBalancerStartup");
 

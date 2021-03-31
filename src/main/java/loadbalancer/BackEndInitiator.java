@@ -2,6 +2,7 @@ package loadbalancer;
 
 import loadbalancer.factory.BackEndFactory;
 import org.apache.commons.io.IOUtils;
+import org.apache.commons.text.StringEscapeUtils;
 import org.apache.http.*;
 import org.apache.http.config.SocketConfig;
 import org.apache.http.entity.BasicHttpEntity;
@@ -23,6 +24,7 @@ import java.util.concurrent.TimeUnit;
 import loadbalancer.monitor.ServerMonitor;
 import loadbalancer.util.Logger;
 import loadbalancer.monitor.RequestMonitor;
+import org.json.JSONObject;
 
 public class BackEndInitiator implements Runnable {
     public static final int DEFAULT_PORT = 8000;
@@ -187,8 +189,12 @@ public class BackEndInitiator implements Runnable {
 
             BackEndInitiator.this.portsToBackendThreads.put(backEnd.port, backEndThread);
             Logger.log("chosen backend port = " + backEnd.port, "capacityModulation");
+
+            JSONObject outputJsonObj = new JSONObject();
+            outputJsonObj.put("port", backEnd.port);
+            String htmlResponse = StringEscapeUtils.escapeJson(outputJsonObj.toString());
             BasicHttpEntity responseEntity = new BasicHttpEntity();
-            InputStream responseStream = IOUtils.toInputStream(String.valueOf(backEnd.port), StandardCharsets.UTF_8.name());
+            InputStream responseStream = IOUtils.toInputStream(String.valueOf(htmlResponse), StandardCharsets.UTF_8.name());
             responseEntity.setContent(responseStream);
             responseStream.close();
             httpResponse.setEntity(responseEntity);
