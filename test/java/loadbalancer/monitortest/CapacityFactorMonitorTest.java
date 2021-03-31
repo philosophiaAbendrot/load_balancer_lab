@@ -4,9 +4,12 @@ import loadbalancer.factory.ClientFactory;
 import loadbalancer.monitor.CapacityFactorMonitor;
 import loadbalancer.monitor.CapacityFactorMonitorImpl;
 import loadbalancer.util.Logger;
+import loadbalancer.util.RequestDecoder;
 import loadbalancer.util.RequestDecoderImpl;
+import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.HttpUriRequest;
 import org.apache.http.impl.client.CloseableHttpClient;
+import org.json.JSONObject;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -15,6 +18,7 @@ import org.mockito.Mockito;
 import java.io.IOException;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -85,18 +89,27 @@ public class CapacityFactorMonitorTest {
         CapacityFactorMonitor capFactorMonitor;
         ClientFactory clientFactory;
         CloseableHttpClient mockClient;
+        RequestDecoder mockDecoder;
         long currentTime;
         int backEndInitiatorPort;
+        int initialBackEndPort;
+        JSONObject mockJsonResponse;
 
         @BeforeEach
-        public void setup() {
+        public void setup() throws IOException {
             Logger.configure(new String[] { "capacityModulation" });
             this.clientFactory = Mockito.mock(ClientFactory.class);
             this.mockClient = Mockito.mock(CloseableHttpClient.class);
             this.currentTime = System.currentTimeMillis();
-            this.backEndInitiatorPort = 3_000;
-            this.capFactorMonitor = new CapacityFactorMonitorImpl(this.clientFactory, this.currentTime, this.backEndInitiatorPort, new RequestDecoderImpl());
+            this.backEndInitiatorPort = 8_080;
+            this.mockDecoder = Mockito.mock(RequestDecoder.class);
+            this.capFactorMonitor = new CapacityFactorMonitorImpl(this.clientFactory, this.currentTime, this.backEndInitiatorPort, this.mockDecoder);
+            this.mockJsonResponse = new JSONObject();
             when(this.clientFactory.buildApacheClient()).thenReturn(this.mockClient);
+            // sets port of first backend server to 3_000
+            this.initialBackEndPort = 3_000;
+            this.mockJsonResponse.put("port", this.initialBackEndPort);
+            when(this.mockDecoder.extractJsonApacheResponse(any(CloseableHttpResponse.class))).thenReturn(this.mockJsonResponse);
         }
 
         @Test
