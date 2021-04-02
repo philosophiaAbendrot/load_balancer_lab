@@ -3,8 +3,6 @@ package loadbalancer.monitor;
 import loadbalancer.factory.ClientFactory;
 import loadbalancer.util.RequestDecoder;
 import loadbalancer.util.Logger;
-import org.apache.commons.io.IOUtils;
-import org.apache.http.HttpEntity;
 import org.apache.http.client.ClientProtocolException;
 import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.HttpDelete;
@@ -14,9 +12,7 @@ import org.apache.http.impl.client.CloseableHttpClient;
 import org.json.JSONObject;
 
 import java.io.IOException;
-import java.io.InputStream;
 import java.io.UnsupportedEncodingException;
-import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -55,10 +51,10 @@ public class CapacityFactorMonitorImpl implements CapacityFactorMonitor {
     @Override
     public void pingServers() throws IOException {
         Logger.log("LoadBalancer - CapacityFactorMonitorImpl | CFMonitor loop running", "capacityModulation");
+        CloseableHttpClient httpClient = this.clientFactory.buildApacheClient();
 
         for (Map.Entry<Integer, Double> entry : capacityFactors.entrySet()) {
             int backEndPort = entry.getKey();
-            CloseableHttpClient httpClient = this.clientFactory.buildApacheClient();
             Logger.log(String.format("LoadBalancer - CapacityFactorMonitorImpl | sending request for update on capacity factor to port %d", backEndPort), "telemetryUpdate");
             HttpGet httpGet = new HttpGet("http://127.0.0.1:" + backEndPort + "/capacity_factor");
 
@@ -68,8 +64,6 @@ public class CapacityFactorMonitorImpl implements CapacityFactorMonitor {
             double capacityFactor = responseJson.getDouble("capacity_factor");
             Logger.log(String.format("LoadBalancer - CapacityFactorMonitorImpl | received update on capacity factor: %s", capacityFactor), "telemetryUpdate");
             entry.setValue(capacityFactor);
-
-            httpClient.close();
 
             Logger.log("LoadBalancer - CapacityFactorMonitorImpl | cf = " + capacityFactor, "capacityModulation");
 
@@ -102,6 +96,8 @@ public class CapacityFactorMonitorImpl implements CapacityFactorMonitor {
                 }
             }
         }
+
+        httpClient.close();
     }
 
     public int selectPort(int resourceId) {
