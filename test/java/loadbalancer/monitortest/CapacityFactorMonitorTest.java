@@ -6,7 +6,6 @@ import loadbalancer.monitor.CapacityFactorMonitorImpl;
 import loadbalancer.util.Logger;
 import loadbalancer.util.RequestDecoder;
 import loadbalancer.util.RequestDecoderImpl;
-import org.apache.http.client.HttpClient;
 import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.HttpUriRequest;
 import org.apache.http.impl.client.CloseableHttpClient;
@@ -18,8 +17,7 @@ import java.io.IOException;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.*;
 
 @TestInstance(TestInstance.Lifecycle.PER_METHOD)
 public class CapacityFactorMonitorTest {
@@ -37,57 +35,96 @@ public class CapacityFactorMonitorTest {
     }
 
     @Nested
+    @DisplayName("Tests startUpBackEnd() method")
+    class TestStartupBackEnd {
+        CapacityFactorMonitor capFactorMonitor;
+        RequestDecoder mockDecoder;
+        JSONObject mockJsonResponse;
+        CloseableHttpClient mockClient;
+        ArgumentCaptor<HttpUriRequest> argCaptor;
+        int hashRingIndex;
+
+        @BeforeEach
+        public void setup() {
+            this.argCaptor = ArgumentCaptor.forClass(HttpUriRequest.class);
+            this.mockClient = Mockito.mock(CloseableHttpClient.class);
+            this.mockDecoder = Mockito.mock(RequestDecoder.class);
+            this.capFactorMonitor = new CapacityFactorMonitorImpl(CapacityFactorMonitorTest.this.clientFactory, CapacityFactorMonitorTest.this.currentTime, CapacityFactorMonitorTest.BACKEND_INITIATOR_PORT, this.mockDecoder);
+            when(CapacityFactorMonitorTest.this.clientFactory.buildApacheClient()).thenReturn(this.mockClient);
+            this.hashRingIndex = 100;
+            this.capFactorMonitor.startUpBackEnd(this.hashRingIndex);
+        }
+
+        @Test
+        @DisplayName("Test that a request is sent to BackEndInitiator")
+        public void testRequestSentBackEndInitiator() throws IOException {
+            verify(this.mockClient, times(1)).execute(any(HttpUriRequest.class));
+        }
+
+        @Test
+        @DisplayName("Test that a request is sent to BackEndInitiator is a POST method")
+        public void testRequestSentBackEndInitiatorRequestServerStartup() throws IOException {
+            verify(this.mockClient, times(1)).execute(this.argCaptor.capture());
+            HttpUriRequest request = this.argCaptor.getAllValues().get(0);
+            assertEquals("POST", request.getMethod());
+        }
+
+        @Test
+        @DisplayName("Test that a request is sent to the BackEndInitiator is sent to the correct uri")
+        public void testRequestSentToCorrectUri() throws IOException {
+            verify(this.mockClient, times(1)).execute(this.argCaptor.capture());
+            HttpUriRequest request = this.argCaptor.getAllValues().get(0);
+            assertEquals("http://127.0.0.1:" + CapacityFactorMonitorTest.BACKEND_INITIATOR_PORT + "/backends", request.getURI().toString());
+        }
+    }
+
+    @Nested
     @DisplayName("Tests pingServers() method")
     class TestPingServers {
         CapacityFactorMonitor capFactorMonitor;
         int hashRingIndex;
         ArgumentCaptor<HttpUriRequest> argument;
+        int backEndPort;
 
         @BeforeEach
         public void setup() {
-            CapacityFactorMonitorTest.this.currentTime = System.currentTimeMillis();
             this.hashRingIndex = 1_000;
             this.capFactorMonitor = new CapacityFactorMonitorImpl(CapacityFactorMonitorTest.this.clientFactory, CapacityFactorMonitorTest.this.currentTime, CapacityFactorMonitorTest.BACKEND_INITIATOR_PORT, new RequestDecoderImpl());
             this.argument = ArgumentCaptor.forClass(HttpUriRequest.class);
+            when(CapacityFactorMonitorTest.this.clientFactory.buildApacheClient()).thenReturn(CapacityFactorMonitorTest.this.mockClient);
+            // startup a server
+            this.backEndPort = this.capFactorMonitor.startUpBackEnd(this.hashRingIndex);
+            System.out.println("this.backEndPort = " + this.backEndPort);
+
+            // run pingServer()
+            try {
+                this.capFactorMonitor.pingServers();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
         }
 
         @Test
         @DisplayName("Test that request is sent to backEndInitiator for update on capacity factor")
         public void shouldSendRequestWithPostMethod() throws IOException {
-            when(CapacityFactorMonitorTest.this.clientFactory.buildApacheClient()).thenReturn(CapacityFactorMonitorTest.this.mockClient);
-
-            // startup a server
-            this.capFactorMonitor.startUpBackEnd(this.hashRingIndex);
-
-            try {
-                this.capFactorMonitor.pingServers();
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
-
-            verify(CapacityFactorMonitorTest.this.mockClient).execute(this.argument.capture());
-            HttpUriRequest request = this.argument.getAllValues().get(0);
-            assertEquals("POST", request.getMethod());
+            verify(CapacityFactorMonitorTest.this.mockClient).execute(any(HttpUriRequest.class));
         }
 
         @Test
-        @DisplayName("Should send request to port that BackEndInitiator is running on")
+        @DisplayName("Request should be of type POST")
         public void shouldSendRequestToBackEndInitiator() throws IOException {
-            when(CapacityFactorMonitorTest.this.clientFactory.buildApacheClient()).thenReturn(CapacityFactorMonitorTest.this.mockClient);
-
-            // startup a server
-            this.capFactorMonitor.startUpBackEnd(this.hashRingIndex);
-
-            try {
-                this.capFactorMonitor.pingServers();
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
-
             verify(CapacityFactorMonitorTest.this.mockClient).execute(this.argument.capture());
             HttpUriRequest request = this.argument.getAllValues().get(0);
             assertEquals("POST", request.getMethod());
         }
+
+//        @Test
+//        @DisplayName("Request should go to correct URI")
+//        public void requestShouldGoToCorrectURI() throws IOException {
+//            verify(CapacityFactorMonitorTest.this.mockClient).execute(this.argument.capture());
+//            HttpUriRequest request = this.argument.getAllValues().get(0);
+//            assertEquals("http://127.0.0.1:" + this.backEndPort + "/capacity_factor", request.getURI());
+//        }
     }
 
     @Nested
@@ -102,9 +139,6 @@ public class CapacityFactorMonitorTest {
         @BeforeEach
         public void setup() throws IOException {
             Logger.configure(new String[] { "capacityModulation" });
-            CapacityFactorMonitorTest.this.clientFactory = Mockito.mock(ClientFactory.class);
-            CapacityFactorMonitorTest.this.mockClient = Mockito.mock(CloseableHttpClient.class);
-            CapacityFactorMonitorTest.this.currentTime = System.currentTimeMillis();
             this.mockDecoder = Mockito.mock(RequestDecoder.class);
             this.capFactorMonitor = new CapacityFactorMonitorImpl(CapacityFactorMonitorTest.this.clientFactory, CapacityFactorMonitorTest.this.currentTime, CapacityFactorMonitorTest.BACKEND_INITIATOR_PORT, this.mockDecoder);
             this.mockJsonResponse = new JSONObject();
@@ -145,23 +179,4 @@ public class CapacityFactorMonitorTest {
             assertEquals(serverPort, selectedPort);
         }
     }
-
-    @Nested
-    @DisplayName("Tests startUpBackEnd() method")
-    // test that startUpBackEnd method sends a request to BackEndInitiator port to start up a server when called
-    class TestStartupBackEnd {
-        CapacityFactorMonitor capFactorMonitor;
-        RequestDecoder mockDecoder;
-        int initialBackEndPort;
-        JSONObject mockJsonResponse;
-
-        @Test
-        @DisplayName("Test that a request is sent to BackEndInitiator")
-        public void testRequestSentBackEndInitiator() {
-
-
-        }
-    }
-
-    // test that startUpBackEnd records current time and portInt that the new server starts up on
 }
