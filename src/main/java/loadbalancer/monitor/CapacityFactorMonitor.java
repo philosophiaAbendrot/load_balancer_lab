@@ -7,4 +7,6 @@ public interface CapacityFactorMonitor {
     int selectPort(int resourceId);
 
     int startUpBackEnd(int hashRingIndex);
+
+    void shutDownBackEnd(int backEndPort);
 }

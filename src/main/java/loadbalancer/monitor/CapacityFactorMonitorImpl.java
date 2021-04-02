@@ -162,7 +162,8 @@ public class CapacityFactorMonitorImpl implements CapacityFactorMonitor {
         return portInt;
     }
 
-    private void shutDownBackEnd(int backEndPort) {
+    @Override
+    public void shutDownBackEnd(int backEndPort) {
         CloseableHttpClient httpClient = this.clientFactory.buildApacheClient();
         HttpDelete httpDelete = new HttpDelete("http://127.0.0.1:" + this.backEndInitiatorPort + "/backend/" + backEndPort);
 

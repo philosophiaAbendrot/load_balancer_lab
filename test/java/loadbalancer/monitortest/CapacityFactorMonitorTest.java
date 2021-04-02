@@ -6,6 +6,7 @@ import loadbalancer.monitor.CapacityFactorMonitorImpl;
 import loadbalancer.util.Logger;
 import loadbalancer.util.RequestDecoder;
 import org.apache.http.client.methods.CloseableHttpResponse;
+import org.apache.http.client.methods.HttpDelete;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.methods.HttpUriRequest;
 import org.apache.http.impl.client.CloseableHttpClient;
@@ -29,6 +30,7 @@ public class CapacityFactorMonitorTest {
 
     @BeforeEach
     public void setup() {
+        Logger.configure(new String[] { "capacityModulation" });
         this.clientFactory = Mockito.mock(ClientFactory.class);
         this.mockClient = Mockito.mock(CloseableHttpClient.class);
         this.currentTime = System.currentTimeMillis();
@@ -79,6 +81,68 @@ public class CapacityFactorMonitorTest {
     }
 
     @Nested
+    @DisplayName("Tests shutDownBackEnd() method")
+    class TestShutDownBackEnd {
+        CapacityFactorMonitor capFactorMonitor;
+        RequestDecoder mockDecoder;
+        JSONObject mockJsonResponse;
+        CloseableHttpResponse mockResponse;
+        CloseableHttpClient mockClient;
+        ArgumentCaptor<HttpUriRequest> argCaptor;
+        int hashRingIndex;
+        int backEndPort;
+
+        @BeforeEach
+        public void setup() throws IOException {
+            this.argCaptor = ArgumentCaptor.forClass(HttpUriRequest.class);
+            this.mockClient = Mockito.mock(CloseableHttpClient.class);
+            this.mockDecoder = Mockito.mock(RequestDecoder.class);
+            this.capFactorMonitor = new CapacityFactorMonitorImpl(CapacityFactorMonitorTest.this.clientFactory, CapacityFactorMonitorTest.this.currentTime, CapacityFactorMonitorTest.BACKEND_INITIATOR_PORT, this.mockDecoder);
+            when(CapacityFactorMonitorTest.this.clientFactory.buildApacheClient()).thenReturn(this.mockClient);
+            this.hashRingIndex = 100;
+
+            // set up canned response regarding the port of the server that the backend was started up on which is returned when a request is made through the
+            // mock HttpClient to the (virtual) BackEndInitiator to start a server
+            this.backEndPort = 1_000;
+            this.mockJsonResponse = new JSONObject();
+            this.mockJsonResponse.put("port", this.backEndPort);
+            this.capFactorMonitor = new CapacityFactorMonitorImpl(CapacityFactorMonitorTest.this.clientFactory, CapacityFactorMonitorTest.this.currentTime, CapacityFactorMonitorTest.BACKEND_INITIATOR_PORT, this.mockDecoder);
+            when(CapacityFactorMonitorTest.this.clientFactory.buildApacheClient()).thenReturn(CapacityFactorMonitorTest.this.mockClient);
+            this.mockResponse = Mockito.mock(CloseableHttpResponse.class);
+            when(CapacityFactorMonitorTest.this.mockClient.execute(any(HttpUriRequest.class))).thenReturn(this.mockResponse);
+            when(this.mockDecoder.extractJsonApacheResponse(any(CloseableHttpResponse.class))).thenReturn(this.mockJsonResponse);
+
+            // startup a server
+            this.capFactorMonitor.startUpBackEnd(this.hashRingIndex);
+
+            // send request to shut down a server
+            this.capFactorMonitor.shutDownBackEnd(this.backEndPort);
+        }
+
+        @Test
+        @DisplayName("Test that a request is sent to BackEndInitiator")
+        public void testRequestSentBackEndInitiator() throws IOException {
+            verify(CapacityFactorMonitorTest.this.mockClient, times(1)).execute(any(HttpDelete.class));
+        }
+
+        @Test
+        @DisplayName("Test that a request is sent to BackEndInitiator is a DELETE method")
+        public void testRequestSentBackEndInitiatorRequestServerStartup() throws IOException {
+            verify(CapacityFactorMonitorTest.this.mockClient, times(2)).execute(this.argCaptor.capture());
+            HttpUriRequest request = this.argCaptor.getAllValues().get(1);
+            assertEquals("DELETE", request.getMethod());
+        }
+
+        @Test
+        @DisplayName("Test that a request is sent to the BackEndInitiator is sent to the correct uri")
+        public void testRequestSentToCorrectUri() throws IOException {
+            verify(CapacityFactorMonitorTest.this.mockClient, times(2)).execute(this.argCaptor.capture());
+            HttpUriRequest request = this.argCaptor.getAllValues().get(1);
+            assertEquals("http://127.0.0.1:" + CapacityFactorMonitorTest.BACKEND_INITIATOR_PORT + "/backend/" + this.backEndPort, request.getURI().toString());
+        }
+    }
+
+    @Nested
     @DisplayName("Tests pingServers() method")
     class TestPingServers {
         CapacityFactorMonitor capFactorMonitor;
@@ -91,7 +155,6 @@ public class CapacityFactorMonitorTest {
 
         @BeforeEach
         public void setup() throws IOException {
-            Logger.configure(new String[] { "capacityModulation" });
             this.hashRingIndex = 1_000;
             this.mockDecoder = Mockito.mock(RequestDecoder.class);
             this.argument = ArgumentCaptor.forClass(HttpGet.class);
@@ -153,7 +216,6 @@ public class CapacityFactorMonitorTest {
 
         @BeforeEach
         public void setup() throws IOException {
-            Logger.configure(new String[] { "capacityModulation" });
             this.mockDecoder = Mockito.mock(RequestDecoder.class);
             this.capFactorMonitor = new CapacityFactorMonitorImpl(CapacityFactorMonitorTest.this.clientFactory, CapacityFactorMonitorTest.this.currentTime, CapacityFactorMonitorTest.BACKEND_INITIATOR_PORT, this.mockDecoder);
             this.mockJsonResponse = new JSONObject();
