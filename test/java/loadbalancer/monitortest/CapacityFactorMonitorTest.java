@@ -247,6 +247,30 @@ public class CapacityFactorMonitorTest {
             this.capFactorMonitorSpy.pingServers(System.currentTimeMillis() + 6_000);
             verify(this.capFactorMonitorSpy, times(1)).startUpBackEnd(anyInt());
         }
+
+        @Test
+        @DisplayName("When capacity factor is not higher than threshold, backEndStartUp() method is not called")
+        public void shouldNotCallBackEndStartUp() throws IOException {
+            this.mockJsonResponse.put("capacity_factor", 0.5);
+            this.capFactorMonitorSpy.pingServers(System.currentTimeMillis() + 6_000);
+            verify(this.capFactorMonitorSpy, times(0)).startUpBackEnd(anyInt());
+        }
+
+        @Test
+        @DisplayName("When capacity factor is lower than threshold, call shutDownBackEnd() method")
+        public void shouldCallShutDownBackEnd() throws IOException {
+            this.mockJsonResponse.put("capacity_factor", 0.1);
+            this.capFactorMonitorSpy.pingServers(System.currentTimeMillis() + 6_000);
+            verify(this.capFactorMonitorSpy, times(1)).shutDownBackEnd(anyInt());
+        }
+
+        @Test
+        @DisplayName("When capacity factor is between the min and max thresholds, shutDownBackEnd() should not be called")
+        public void shouldNotCallShutDownBackEnd() throws IOException {
+            this.mockJsonResponse.put("capacity_factor", 0.5);
+            this.capFactorMonitorSpy.pingServers(System.currentTimeMillis() + 6_000);
+            verify(this.capFactorMonitorSpy, times(0)).shutDownBackEnd(anyInt());
+        }
     }
 
     @Nested

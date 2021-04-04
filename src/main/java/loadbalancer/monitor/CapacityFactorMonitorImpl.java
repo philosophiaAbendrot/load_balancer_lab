@@ -88,7 +88,7 @@ public class CapacityFactorMonitorImpl implements CapacityFactorMonitor {
                         // if the server has not been reinforced recently
                         reinforceServer(backEndPort, capacityFactor);
                     }
-                } else if (capacityFactor < CAPACITY_FACTOR_MIN && System.currentTimeMillis() > this.backEndStartTimes.get(backEndPort) + MIN_TIME_TO_LIVE) {
+                } else if (capacityFactor < CAPACITY_FACTOR_MIN && currentTime > this.backEndStartTimes.get(backEndPort) + MIN_TIME_TO_LIVE) {
                     // if the server is underutilized and it has been running for at least MIN_TIME_TO_LIVE
                     // shutdown server
                     Logger.log(String.format("LoadBalancer | backendPort %d is underutilized with cf = %f", backEndPort, capacityFactor), "capacityModulation");
