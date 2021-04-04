@@ -5,6 +5,7 @@ import java.awt.*;
 import java.util.*;
 import java.util.List;
 
+import loadbalancer.factory.CapacityFactorMonitorFactoryImpl;
 import loadbalancer.vendor.Graph;
 import loadbalancer.util.Logger;
 import loadbalancer.factory.BackEndFactoryImpl;
@@ -43,7 +44,7 @@ public class Run {
         System.out.println("BackendInitiator running on port " + backendInitiatorPort);
 
         // start load balancer thread
-        LoadBalancer loadBalancer = new LoadBalancer(STARTUP_SERVER_COUNT, backendInitiatorPort);
+        LoadBalancer loadBalancer = new LoadBalancer(STARTUP_SERVER_COUNT, backendInitiatorPort, new CapacityFactorMonitorFactoryImpl());
         Thread loadBalancerThread = new Thread(loadBalancer);
         loadBalancerThread.start();
         int loadBalancerPort;

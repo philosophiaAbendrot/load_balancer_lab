@@ -1,5 +1,6 @@
 package loadbalancer;
 
+import loadbalancer.factory.CapacityFactorMonitorFactory;
 import loadbalancer.factory.ClientFactoryImpl;
 import loadbalancer.monitor.CapacityFactorMonitor;
 import loadbalancer.monitor.CapacityFactorMonitorImpl;
@@ -41,7 +42,7 @@ public class LoadBalancer implements Runnable {
     private List<Integer> incomingRequestTimestamps;
     private ClientRequestHandler clientRequestHandler;
 
-    public LoadBalancer(int startupServerCount, int backendInitiatorPort) {
+    public LoadBalancer( int startupServerCount, int backendInitiatorPort, CapacityFactorMonitorFactory capFactMonitorFact ) {
         // dummy port to indicate that the port has not been set
         this.backendInitiatorPort = backendInitiatorPort;
         this.port = -1;
