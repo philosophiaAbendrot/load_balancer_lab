@@ -49,7 +49,7 @@ public class CapacityFactorMonitorImpl implements CapacityFactorMonitor {
     }
 
     @Override
-    public void pingServers() throws IOException {
+    public void pingServers(long currentTime) throws IOException {
         Logger.log("LoadBalancer - CapacityFactorMonitorImpl | CFMonitor loop running", "capacityModulation");
         CloseableHttpClient httpClient = this.clientFactory.buildApacheClient();
 
@@ -67,14 +67,14 @@ public class CapacityFactorMonitorImpl implements CapacityFactorMonitor {
 
             Logger.log("LoadBalancer - CapacityFactorMonitorImpl | cf = " + capacityFactor, "capacityModulation");
 
-            if (System.currentTimeMillis() > initiationTime + REST_INTERVAL) {
+            if (currentTime > initiationTime + REST_INTERVAL) {
                 if (capacityFactor > CAPACITY_FACTOR_MAX) {
                     if (reinforcedTimes.containsKey(backEndPort)) {
                         // if a server has been started up to reinforce this server recently
                         long lastReinforced = reinforcedTimes.get(backEndPort);
                         Logger.log(String.format("LoadBalancer - CapacityFactorMonitorImpl | last reinforced = %d", lastReinforced), "capacityModulation");
 
-                        if (System.currentTimeMillis() > lastReinforced + REINFORCEMENT_INTERVAL) {
+                        if (currentTime > lastReinforced + REINFORCEMENT_INTERVAL) {
                             // if the server was reinforced a while ago, clear it out from the list of recently reinforced servers
                             Logger.log(String.format("LoadBalancer - CapacityFactorMonitorImpl | clearing backendPort %d from reinforcedTimes", backEndPort), "capacityModulation");
                             reinforcedTimes.remove(backEndPort);
@@ -189,7 +189,6 @@ public class CapacityFactorMonitorImpl implements CapacityFactorMonitor {
         // startup a new dyno
         Logger.log(String.format("LoadBalancer - CapacityFactorMonitorImpl | backendPort %d is overloaded with cf = %f", backEndPort, capacityFactor), "capacityModulation");
         int newServerHashRingLocation = selectHashRingLocation(backEndPort);
-
         if (newServerHashRingLocation == -1) {
             return;
         }

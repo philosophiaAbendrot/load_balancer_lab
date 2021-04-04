@@ -63,7 +63,7 @@ public class LoadBalancer implements Runnable {
         public void run() {
             while (true) {
                 try {
-                    this.capacityFactorMonitor.pingServers();
+                    this.capacityFactorMonitor.pingServers(System.currentTimeMillis());
                     Thread.sleep(500);
                 } catch(IOException e) {
 
