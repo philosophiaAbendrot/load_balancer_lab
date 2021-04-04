@@ -70,7 +70,7 @@ public class Run {
         List<Client> clients = new ArrayList<>();
 
         for (int i = 0; i < NUM_CLIENTS; i++) {
-            Client client = new Client(Integer.toString(i), this.maxDemandTime, new ConstantDemandFunctionImpl(CONSTANT_DEMAND_REST_INTERVAL));
+            Client client = new Client(Integer.toString(i), this.maxDemandTime, new ConstantDemandFunctionImpl(CONSTANT_DEMAND_REST_INTERVAL), new ClientFactoryImpl());
             Thread clientThread = new Thread(client);
             clients.add(client);
             clientThreads.add(clientThread);

@@ -1,12 +1,12 @@
 package loadbalancer;
 
+import loadbalancer.factory.ClientFactory;
 import loadbalancer.services.DemandFunction;
 import org.apache.commons.io.IOUtils;
 import org.apache.http.*;
 import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.impl.client.CloseableHttpClient;
-import org.apache.http.impl.client.HttpClients;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
@@ -15,7 +15,6 @@ import java.util.*;
 import loadbalancer.util.Logger;
 
 public class Client implements Runnable {
-    CloseableHttpClient httpClient;
     long maxDemandTime;
     private static int loadBalancerPort;
     int resourceId;
@@ -23,8 +22,9 @@ public class Client implements Runnable {
     List<Integer> requestTimestamps;
     long requestStartTime;
     DemandFunction demandFunction;
+    ClientFactory clientFactory;
 
-    public Client(String _name, long maxDemandTime, DemandFunction demandFunction) {
+    public Client(String _name, long maxDemandTime, DemandFunction demandFunction, ClientFactory clientFactory) {
         this.name = _name;
         Random random = new Random();
         this.maxDemandTime = maxDemandTime;
@@ -33,6 +33,7 @@ public class Client implements Runnable {
         // first request is sent up to 15 seconds after initialization to stagger the incoming requests
         this.requestStartTime = System.currentTimeMillis() + (long)((new Random()).nextInt(15000));
         this.demandFunction = demandFunction;
+        this.clientFactory = clientFactory;
     }
 
     public static void setLoadBalancerPort(int port) {
@@ -57,13 +58,13 @@ public class Client implements Runnable {
             }
 
             try {
-                httpClient = HttpClients.createDefault();
                 String path;
                 path = "/api/" + resourceId;
-                HttpGet httpget = new HttpGet("http://127.0.0.1:" + Client.loadBalancerPort + path);
+                HttpGet httpGet = new HttpGet("http://127.0.0.1:" + Client.loadBalancerPort + path);
                 Logger.log(String.format("Client %s | path: %s", name, path), "clientStartup");
                 long timestamp = System.currentTimeMillis();
-                CloseableHttpResponse response = sendRequest(httpget);
+                CloseableHttpClient httpClient = this.clientFactory.buildApacheClient();
+                CloseableHttpResponse response = httpClient.execute(httpGet);
                 // record timestamp at which request was fired off to the load balancer
                 this.requestTimestamps.add((int)(timestamp / 1000));
                 printResponse(response);
@@ -87,10 +88,6 @@ public class Client implements Runnable {
     // return a hash table mapping seconds since 1970 to number of requests sent
     public List<Integer> deliverData() {
         return this.requestTimestamps;
-    }
-
-    private CloseableHttpResponse sendRequest(HttpGet httpget) throws IOException {
-        return httpClient.execute(httpget);
     }
 
     private void printResponse(CloseableHttpResponse response) throws IOException {
