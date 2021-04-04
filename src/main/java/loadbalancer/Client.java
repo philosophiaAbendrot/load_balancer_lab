@@ -1,5 +1,6 @@
 package loadbalancer;
 
+import loadbalancer.services.DemandFunction;
 import org.apache.commons.io.IOUtils;
 import org.apache.http.*;
 import org.apache.http.client.methods.CloseableHttpResponse;
@@ -21,8 +22,9 @@ public class Client implements Runnable {
     String name;
     List<Integer> requestTimestamps;
     long requestStartTime;
+    DemandFunction demandFunction;
 
-    public Client(String _name, long maxDemandTime) {
+    public Client(String _name, long maxDemandTime, DemandFunction demandFunction) {
         this.name = _name;
         Random random = new Random();
         this.maxDemandTime = maxDemandTime;
@@ -30,6 +32,7 @@ public class Client implements Runnable {
         this.requestTimestamps = Collections.synchronizedList(new ArrayList<>());
         // first request is sent up to 15 seconds after initialization to stagger the incoming requests
         this.requestStartTime = System.currentTimeMillis() + (long)((new Random()).nextInt(15000));
+        this.demandFunction = demandFunction;
     }
 
     public static void setLoadBalancerPort(int port) {
@@ -71,9 +74,7 @@ public class Client implements Runnable {
             }
 
             try {
-                int freq = requestFrequency();
-                Logger.log("Client | frequency = " + freq, "loadModulation");
-                Thread.sleep(freq);
+                this.demandFunction.rest();
             } catch (InterruptedException e) {
                 Logger.log("Client | Client thread interrupted", "threadManagement");
                 Thread.currentThread().interrupt();
@@ -86,31 +87,6 @@ public class Client implements Runnable {
     // return a hash table mapping seconds since 1970 to number of requests sent
     public List<Integer> deliverData() {
         return this.requestTimestamps;
-    }
-
-    private int requestFrequency() {
-        long x = System.currentTimeMillis();
-        double variabilityRange = 0.6;
-
-        // demand function
-        // -0.0005(x - 20)^2 + 0.5
-
-        return 1000;
-
-//        if (Math.abs(x - maxDemandTime) >= 19500) {
-//            return Integer.MAX_VALUE;
-//        } else {
-//            // demand curve is a downward facing parabola
-//            double delta = (x - maxDemandTime) / 1000.0;
-//            double demand = Math.max(-0.0005 * Math.pow(delta, 2) + 0.5, 0.07);
-//            // introduce variability
-//            Random rand = new Random();
-//            double variabilityFactor = 0.7 +  0.6 * rand.nextDouble();
-//            Logger.log("Client | demand = " + demand, "recordingData");
-//            int waitTime = (int)Math.round(1000 / demand * variabilityFactor);
-//            Logger.log("Client | waitTime = " + waitTime, "recordingData");
-//            return waitTime;
-//        }
     }
 
     private CloseableHttpResponse sendRequest(HttpGet httpget) throws IOException {

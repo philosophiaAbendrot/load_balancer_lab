@@ -1,7 +1,7 @@
 package loadbalancer.factory;
 
 import loadbalancer.BackEnd;
-import loadbalancer.monitor.RequestMonitor;
+import loadbalancer.services.monitor.RequestMonitor;
 
 public class BackEndFactoryImpl implements BackEndFactory {
     public BackEnd produceBackEnd(RequestMonitor reqMonitor) {

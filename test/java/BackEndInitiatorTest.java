@@ -14,7 +14,7 @@ import org.mockito.Mockito;
 import loadbalancer.BackEndInitiator;
 import loadbalancer.factory.BackEndFactoryImpl;
 import loadbalancer.factory.BackEndFactory;
-import loadbalancer.monitor.RequestMonitor;
+import loadbalancer.services.monitor.RequestMonitor;
 import loadbalancer.BackEnd;
 
 import java.io.IOException;

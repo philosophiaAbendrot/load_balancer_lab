@@ -1,8 +1,8 @@
 package loadbalancer.monitortest;
 
 import loadbalancer.factory.ClientFactory;
-import loadbalancer.monitor.CapacityFactorMonitor;
-import loadbalancer.monitor.CapacityFactorMonitorImpl;
+import loadbalancer.services.monitor.CapacityFactorMonitor;
+import loadbalancer.services.monitor.CapacityFactorMonitorImpl;
 import loadbalancer.util.Logger;
 import loadbalancer.util.RequestDecoder;
 import org.apache.http.client.methods.CloseableHttpResponse;

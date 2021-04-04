@@ -1,4 +1,4 @@
-package loadbalancer.monitor;
+package loadbalancer.services.monitor;
 
 import loadbalancer.util.Logger;
 import java.util.Iterator;

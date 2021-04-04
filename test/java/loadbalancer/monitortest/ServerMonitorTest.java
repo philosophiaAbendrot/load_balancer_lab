@@ -6,7 +6,7 @@ import org.junit.jupiter.api.Test;
 
 import java.util.*;
 
-import loadbalancer.monitor.ServerMonitor;
+import loadbalancer.services.monitor.ServerMonitor;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 

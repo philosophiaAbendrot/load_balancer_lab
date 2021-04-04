@@ -1,4 +1,4 @@
-package loadbalancer.monitor;
+package loadbalancer.services.monitor;
 import java.io.IOException;
 
 public interface CapacityFactorMonitor {

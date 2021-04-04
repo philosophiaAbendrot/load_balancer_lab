@@ -3,7 +3,7 @@ import loadbalancer.factory.CapacityFactorMonitorFactory;
 import loadbalancer.factory.ClientFactory;
 import loadbalancer.factory.ClientFactoryImpl;
 import loadbalancer.util.RequestDecoder;
-import loadbalancer.monitor.CapacityFactorMonitor;
+import loadbalancer.services.monitor.CapacityFactorMonitor;
 
 import org.junit.jupiter.api.*;
 import org.mockito.Mockito;

@@ -1,7 +1,7 @@
 package loadbalancer.factory;
 
-import loadbalancer.monitor.CapacityFactorMonitor;
-import loadbalancer.monitor.CapacityFactorMonitorImpl;
+import loadbalancer.services.monitor.CapacityFactorMonitor;
+import loadbalancer.services.monitor.CapacityFactorMonitorImpl;
 import loadbalancer.util.RequestDecoder;
 import loadbalancer.util.RequestDecoderImpl;
 

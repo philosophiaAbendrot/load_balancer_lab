@@ -7,6 +7,7 @@ import java.util.List;
 
 import loadbalancer.factory.CapacityFactorMonitorFactoryImpl;
 import loadbalancer.factory.ClientFactoryImpl;
+import loadbalancer.services.ConstantDemandFunctionImpl;
 import loadbalancer.vendor.Graph;
 import loadbalancer.util.Logger;
 import loadbalancer.factory.BackEndFactoryImpl;
@@ -16,6 +17,7 @@ public class Run {
     long maxDemandTime;
     final static int CLIENT_REQUEST_SEND_TIME = 40_000;
     final static int STARTUP_SERVER_COUNT = 10;
+    final static int CONSTANT_DEMAND_REST_INTERVAL = 1_000;
 
     public Run() {
         maxDemandTime = System.currentTimeMillis() + 20_000;
@@ -68,7 +70,7 @@ public class Run {
         List<Client> clients = new ArrayList<>();
 
         for (int i = 0; i < NUM_CLIENTS; i++) {
-            Client client = new Client(Integer.toString(i), this.maxDemandTime);
+            Client client = new Client(Integer.toString(i), this.maxDemandTime, new ConstantDemandFunctionImpl(CONSTANT_DEMAND_REST_INTERVAL));
             Thread clientThread = new Thread(client);
             clients.add(client);
             clientThreads.add(clientThread);

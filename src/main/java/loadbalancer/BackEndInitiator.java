@@ -21,9 +21,9 @@ import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.TimeUnit;
 
-import loadbalancer.monitor.ServerMonitor;
+import loadbalancer.services.monitor.ServerMonitor;
 import loadbalancer.util.Logger;
-import loadbalancer.monitor.RequestMonitor;
+import loadbalancer.services.monitor.RequestMonitor;
 import org.json.JSONObject;
 
 public class BackEndInitiator implements Runnable {
