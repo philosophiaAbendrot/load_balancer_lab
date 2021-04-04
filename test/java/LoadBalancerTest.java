@@ -78,18 +78,4 @@ public class LoadBalancerTest {
             verify(LoadBalancerTest.this.capacityFactorMonitorMock, times(LoadBalancerTest.this.startUpServerCount)).startUpBackEnd(anyInt());
         }
     }
-
-    @Nested
-    @DisplayName("Test request redirection")
-    public class TestRequestRedirection {
-        @BeforeEach
-        public void setup() {
-        }
-
-        @Test
-        @DisplayName("load balancer should redirect incoming request")
-        public void loadBalancerShouldRedirectIncomingRequest() {
-
-        }
-    }
 }

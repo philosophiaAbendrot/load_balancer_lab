@@ -42,8 +42,9 @@ public class LoadBalancer implements Runnable {
     long initiationTime;
     private List<Integer> incomingRequestTimestamps;
     private ClientRequestHandler clientRequestHandler;
+    private ClientFactory clientFactory;
 
-    public LoadBalancer( int startupServerCount, int backendInitiatorPort, CapacityFactorMonitorFactory capFactMonitorFact, ClientFactory httpClientFactory ) {
+    public LoadBalancer( int startupServerCount, int backendInitiatorPort, CapacityFactorMonitorFactory capFactMonitorFact, ClientFactory clientFactory ) {
         // dummy port to indicate that the port has not been set
         this.backendInitiatorPort = backendInitiatorPort;
         this.port = -1;
@@ -53,6 +54,7 @@ public class LoadBalancer implements Runnable {
         this.clientRequestHandler = new ClientRequestHandler();
         this.httpProcessor = new ImmutableHttpProcessor(requestInterceptors, responseInterceptors);
         this.capacityFactorMonitorFactory = capFactMonitorFact;
+        this.clientFactory = clientFactory;
     }
 
     private class CapacityFactorMonitorRunnable implements Runnable {
@@ -173,8 +175,7 @@ public class LoadBalancer implements Runnable {
     private class ClientRequestHandler implements HttpRequestHandler {
         @Override
         public void handle(HttpRequest httpRequest, HttpResponse httpResponse, HttpContext httpContext) {
-            CloseableHttpClient httpClient = HttpClients.createDefault();
-
+            CloseableHttpClient httpClient = LoadBalancer.this.clientFactory.buildApacheClient();
             String uri = httpRequest.getRequestLine().getUri();
             String[] uriArr = uri.split("/", 0);
             int resourceId = Integer.parseInt(uriArr[uriArr.length - 1]);
