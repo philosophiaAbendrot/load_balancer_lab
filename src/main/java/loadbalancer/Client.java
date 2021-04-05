@@ -24,14 +24,14 @@ public class Client implements Runnable {
     DemandFunction demandFunction;
     HttpClientFactory clientFactory;
 
-    public Client(String _name, long maxDemandTime, DemandFunction demandFunction, HttpClientFactory clientFactory) {
+    public Client(String _name, long maxDemandTime, DemandFunction demandFunction, HttpClientFactory clientFactory, long requestStartTime, int resourceId) {
         this.name = _name;
         Random random = new Random();
         this.maxDemandTime = maxDemandTime;
-        this.resourceId = random.nextInt(10_000);
+        this.resourceId = resourceId;
         this.requestTimestamps = Collections.synchronizedList(new ArrayList<>());
         // first request is sent up to 15 seconds after initialization to stagger the incoming requests
-        this.requestStartTime = System.currentTimeMillis() + (long)((new Random()).nextInt(15000));
+        this.requestStartTime = requestStartTime;
         this.demandFunction = demandFunction;
         this.clientFactory = clientFactory;
     }

@@ -18,6 +18,7 @@ public class Run {
     final static int CLIENT_REQUEST_SEND_TIME = 40_000;
     final static int STARTUP_SERVER_COUNT = 10;
     final static int CONSTANT_DEMAND_REST_INTERVAL = 1_000;
+    Random rand;
 
     public Run() {
         maxDemandTime = System.currentTimeMillis() + 20_000;
@@ -25,6 +26,7 @@ public class Run {
 
     // start simulation
     public void start() {
+        this.rand = new Random();
 //        Logger.configure(new String[] { "threadManagement", "loadModulation", "recordingData", "capacityModulation" });
         Logger.configure(new String[] { "capacityModulation" });
         Logger.log("Run | started Run thread", "threadManagement");
@@ -70,7 +72,7 @@ public class Run {
         List<Client> clients = new ArrayList<>();
 
         for (int i = 0; i < NUM_CLIENTS; i++) {
-            Client client = new Client(Integer.toString(i), this.maxDemandTime, new ConstantDemandFunctionImpl(CONSTANT_DEMAND_REST_INTERVAL), new HttpClientFactoryImpl());
+            Client client = new Client(Integer.toString(i), this.maxDemandTime, new ConstantDemandFunctionImpl(CONSTANT_DEMAND_REST_INTERVAL), new HttpClientFactoryImpl(), System.currentTimeMillis() + (long)((new Random()).nextInt(15000)), this.rand.nextInt(10_000));
             Thread clientThread = new Thread(client);
             clients.add(client);
             clientThreads.add(clientThread);
