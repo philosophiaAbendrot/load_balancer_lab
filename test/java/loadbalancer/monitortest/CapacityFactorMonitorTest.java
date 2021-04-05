@@ -1,6 +1,6 @@
 package loadbalancer.monitortest;
 
-import loadbalancer.factory.ClientFactory;
+import loadbalancer.factory.HttpClientFactory;
 import loadbalancer.services.monitor.CapacityFactorMonitor;
 import loadbalancer.services.monitor.CapacityFactorMonitorImpl;
 import loadbalancer.util.Logger;
@@ -24,14 +24,14 @@ import static org.mockito.Mockito.*;
 public class CapacityFactorMonitorTest {
     // test that ping servers sends a request to existing backends
     private static final int BACKEND_INITIATOR_PORT = 8080;
-    ClientFactory clientFactory;
+    HttpClientFactory clientFactory;
     CloseableHttpClient mockClient;
     long currentTime;
 
     @BeforeEach
     public void setup() {
         Logger.configure(new String[] { "capacityModulation" });
-        this.clientFactory = Mockito.mock(ClientFactory.class);
+        this.clientFactory = Mockito.mock(HttpClientFactory.class);
         this.mockClient = Mockito.mock(CloseableHttpClient.class);
         this.currentTime = System.currentTimeMillis();
     }

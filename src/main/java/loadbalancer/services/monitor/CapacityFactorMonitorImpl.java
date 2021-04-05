@@ -1,6 +1,6 @@
 package loadbalancer.services.monitor;
 
-import loadbalancer.factory.ClientFactory;
+import loadbalancer.factory.HttpClientFactory;
 import loadbalancer.util.RequestDecoder;
 import loadbalancer.util.Logger;
 import org.apache.http.client.ClientProtocolException;
@@ -28,7 +28,7 @@ public class CapacityFactorMonitorImpl implements CapacityFactorMonitor {
     private final int MIN_TIME_TO_LIVE = 5_000;
     private final int HASH_RING_DENOMINATIONS = 6_000;
 
-    private ClientFactory clientFactory;
+    private HttpClientFactory clientFactory;
     private int backEndInitiatorPort;
     private ConcurrentMap<Integer, Double> capacityFactors;
     long initiationTime;
@@ -37,7 +37,7 @@ public class CapacityFactorMonitorImpl implements CapacityFactorMonitor {
     private Map<Integer, Integer> backEndPortIndex;
     private RequestDecoder decoder;
 
-    public CapacityFactorMonitorImpl(ClientFactory clientFactory, long initiationTime, int backEndInitiatorPort, RequestDecoder decoder) {
+    public CapacityFactorMonitorImpl(HttpClientFactory clientFactory, long initiationTime, int backEndInitiatorPort, RequestDecoder decoder) {
         this.clientFactory = clientFactory;
         this.reinforcedTimes = new ConcurrentHashMap<>();
         this.backEndStartTimes = new ConcurrentHashMap<>();

@@ -1,8 +1,8 @@
 package loadbalancer;
 
 import loadbalancer.factory.CapacityFactorMonitorFactory;
-import loadbalancer.factory.ClientFactory;
-import loadbalancer.factory.ClientFactoryImpl;
+import loadbalancer.factory.HttpClientFactory;
+import loadbalancer.factory.HttpClientFactoryImpl;
 import loadbalancer.services.monitor.CapacityFactorMonitor;
 import loadbalancer.util.RequestDecoderImpl;
 import org.apache.commons.text.StringEscapeUtils;
@@ -41,9 +41,9 @@ public class LoadBalancer implements Runnable {
     long initiationTime;
     private List<Integer> incomingRequestTimestamps;
     private ClientRequestHandler clientRequestHandler;
-    private ClientFactory clientFactory;
+    private HttpClientFactory clientFactory;
 
-    public LoadBalancer( int startupServerCount, int backendInitiatorPort, CapacityFactorMonitorFactory capFactMonitorFact, ClientFactory clientFactory ) {
+    public LoadBalancer( int startupServerCount, int backendInitiatorPort, CapacityFactorMonitorFactory capFactMonitorFact, HttpClientFactory clientFactory ) {
         // dummy port to indicate that the port has not been set
         this.backendInitiatorPort = backendInitiatorPort;
         this.port = -1;
@@ -124,7 +124,7 @@ public class LoadBalancer implements Runnable {
             break;
         }
 
-        this.capacityFactorMonitor = this.capacityFactorMonitorFactory.produceCapacityFactorMonitor(new ClientFactoryImpl(), this.backendInitiatorPort, new RequestDecoderImpl());
+        this.capacityFactorMonitor = this.capacityFactorMonitorFactory.produceCapacityFactorMonitor(new HttpClientFactoryImpl(), this.backendInitiatorPort, new RequestDecoderImpl());
         CapacityFactorMonitorRunnable capacityFactorMonitorRunnable = new CapacityFactorMonitorRunnable(this.capacityFactorMonitor);
         capacityFactorMonitorThread = new Thread(capacityFactorMonitorRunnable);
         capacityFactorMonitorThread.start();

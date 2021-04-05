@@ -6,7 +6,7 @@ import java.util.*;
 import java.util.List;
 
 import loadbalancer.factory.CapacityFactorMonitorFactoryImpl;
-import loadbalancer.factory.ClientFactoryImpl;
+import loadbalancer.factory.HttpClientFactoryImpl;
 import loadbalancer.services.ConstantDemandFunctionImpl;
 import loadbalancer.vendor.Graph;
 import loadbalancer.util.Logger;
@@ -47,7 +47,7 @@ public class Run {
         System.out.println("BackendInitiator running on port " + backendInitiatorPort);
 
         // start load balancer thread
-        LoadBalancer loadBalancer = new LoadBalancer(STARTUP_SERVER_COUNT, backendInitiatorPort, new CapacityFactorMonitorFactoryImpl(), new ClientFactoryImpl());
+        LoadBalancer loadBalancer = new LoadBalancer(STARTUP_SERVER_COUNT, backendInitiatorPort, new CapacityFactorMonitorFactoryImpl(), new HttpClientFactoryImpl());
         Thread loadBalancerThread = new Thread(loadBalancer);
         loadBalancerThread.start();
         int loadBalancerPort;
@@ -70,7 +70,7 @@ public class Run {
         List<Client> clients = new ArrayList<>();
 
         for (int i = 0; i < NUM_CLIENTS; i++) {
-            Client client = new Client(Integer.toString(i), this.maxDemandTime, new ConstantDemandFunctionImpl(CONSTANT_DEMAND_REST_INTERVAL), new ClientFactoryImpl());
+            Client client = new Client(Integer.toString(i), this.maxDemandTime, new ConstantDemandFunctionImpl(CONSTANT_DEMAND_REST_INTERVAL), new HttpClientFactoryImpl());
             Thread clientThread = new Thread(client);
             clients.add(client);
             clientThreads.add(clientThread);

@@ -1,6 +1,6 @@
 package loadbalancer;
 
-import loadbalancer.factory.ClientFactory;
+import loadbalancer.factory.HttpClientFactory;
 import loadbalancer.services.DemandFunction;
 import org.apache.commons.io.IOUtils;
 import org.apache.http.*;
@@ -22,9 +22,9 @@ public class Client implements Runnable {
     List<Integer> requestTimestamps;
     long requestStartTime;
     DemandFunction demandFunction;
-    ClientFactory clientFactory;
+    HttpClientFactory clientFactory;
 
-    public Client(String _name, long maxDemandTime, DemandFunction demandFunction, ClientFactory clientFactory) {
+    public Client(String _name, long maxDemandTime, DemandFunction demandFunction, HttpClientFactory clientFactory) {
         this.name = _name;
         Random random = new Random();
         this.maxDemandTime = maxDemandTime;

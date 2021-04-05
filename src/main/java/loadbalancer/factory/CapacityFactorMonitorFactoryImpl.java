@@ -7,7 +7,7 @@ import loadbalancer.util.RequestDecoderImpl;
 
 public class CapacityFactorMonitorFactoryImpl implements CapacityFactorMonitorFactory {
     @Override
-    public CapacityFactorMonitor produceCapacityFactorMonitor( ClientFactory clientFact, int backEndInitiatorPort, RequestDecoder decoder ) {
-        return new CapacityFactorMonitorImpl(new ClientFactoryImpl(), System.currentTimeMillis(), backEndInitiatorPort, new RequestDecoderImpl());
+    public CapacityFactorMonitor produceCapacityFactorMonitor(HttpClientFactory clientFact, int backEndInitiatorPort, RequestDecoder decoder ) {
+        return new CapacityFactorMonitorImpl(new HttpClientFactoryImpl(), System.currentTimeMillis(), backEndInitiatorPort, new RequestDecoderImpl());
     }
 }

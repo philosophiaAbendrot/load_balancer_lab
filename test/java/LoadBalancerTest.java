@@ -1,7 +1,7 @@
 import loadbalancer.LoadBalancer;
 import loadbalancer.factory.CapacityFactorMonitorFactory;
-import loadbalancer.factory.ClientFactory;
-import loadbalancer.factory.ClientFactoryImpl;
+import loadbalancer.factory.HttpClientFactory;
+import loadbalancer.factory.HttpClientFactoryImpl;
 import loadbalancer.util.RequestDecoder;
 import loadbalancer.services.monitor.CapacityFactorMonitor;
 
@@ -30,7 +30,7 @@ public class LoadBalancerTest {
         this.backEndInitiatorPort = 8080;
         this.capacityFactorMonitorMock = Mockito.mock(CapacityFactorMonitor.class);
         when(this.capacityFactorMonitorMock.startUpBackEnd(anyInt())).thenReturn(DEFAULT_BACKEND_PORT);
-        when(this.capacityFactorMonitorFactoryMock.produceCapacityFactorMonitor(any(ClientFactory.class), anyInt(), any(RequestDecoder.class))).thenReturn(this.capacityFactorMonitorMock);
+        when(this.capacityFactorMonitorFactoryMock.produceCapacityFactorMonitor(any(HttpClientFactory.class), anyInt(), any(RequestDecoder.class))).thenReturn(this.capacityFactorMonitorMock);
     }
 
     @AfterEach
@@ -42,11 +42,11 @@ public class LoadBalancerTest {
     @Nested
     @DisplayName("Test initialization of LoadBalancer")
     public class TestInitialization {
-        ClientFactory clientFactoryMock;
+        HttpClientFactory clientFactoryMock;
 
         @BeforeEach
         public void setup() {
-            this.clientFactoryMock = new ClientFactoryImpl();
+            this.clientFactoryMock = new HttpClientFactoryImpl();
             LoadBalancerTest.this.loadBalancer = new LoadBalancer(LoadBalancerTest.this.startUpServerCount, LoadBalancerTest.this.backEndInitiatorPort, LoadBalancerTest.this.capacityFactorMonitorFactoryMock, this.clientFactoryMock);
             LoadBalancerTest.this.loadBalancerThread = new Thread(LoadBalancerTest.this.loadBalancer);
 
@@ -69,7 +69,7 @@ public class LoadBalancerTest {
         @Test
         @DisplayName("load balancer should initialize a CapacityFactorImpl instance")
         public void loadBalancerShouldInitializeCapacityFactorImpl() {
-            verify(LoadBalancerTest.this.capacityFactorMonitorFactoryMock, times(1)).produceCapacityFactorMonitor(any(ClientFactory.class), anyInt(), any(RequestDecoder.class));
+            verify(LoadBalancerTest.this.capacityFactorMonitorFactoryMock, times(1)).produceCapacityFactorMonitor(any(HttpClientFactory.class), anyInt(), any(RequestDecoder.class));
         }
 
         @Test
