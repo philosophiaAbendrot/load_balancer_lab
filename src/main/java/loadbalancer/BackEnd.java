@@ -25,7 +25,7 @@ public class BackEnd implements Runnable {
     private class TelemetryCurator implements Runnable {
         @Override
         public void run() {
-            Logger.log("BackEnd | Started TelemetryCurator thread", "threadManagement");
+            Logger.log("BackEnd | Started TelemetryCurator thread", Logger.LogType.THREAD_MANAGEMENT);
             long startTime = System.currentTimeMillis();
 
             while (System.currentTimeMillis() < startTime + TELEMETRY_CURATOR_RUNNING_TIME) {
@@ -36,7 +36,7 @@ public class BackEnd implements Runnable {
                     System.out.println("Backend Telemetry curator thread interrupted");
                 }
             }
-            Logger.log("BackEnd | Terminated TelemetryCurator thread", "threadManagement");
+            Logger.log("BackEnd | Terminated TelemetryCurator thread", Logger.LogType.THREAD_MANAGEMENT);
         }
     }
 
@@ -49,14 +49,14 @@ public class BackEnd implements Runnable {
 
             double capacityFactor = BackEnd.this.reqMonitor.getCapacityFactor(System.currentTimeMillis());
 
-            Logger.log(String.format("Backend | capacityFactor = %f", capacityFactor), "requestPassing");
+            Logger.log(String.format("Backend | capacityFactor = %f", capacityFactor), Logger.LogType.REQUEST_PASSING);
 
             JSONObject outputJsonObj = new JSONObject();
             outputJsonObj.put("capacity_factor", capacityFactor);
 
             // encode html content
             String htmlResponse = StringEscapeUtils.escapeJson(outputJsonObj.toString());
-            Logger.log("BackEnd | CapacityFactorRequestHandler processed request", "requestPassing");
+            Logger.log("BackEnd | CapacityFactorRequestHandler processed request", Logger.LogType.REQUEST_PASSING);
             // send out response
             httpExchange.sendResponseHeaders(200, htmlResponse.length());
             outputStream.write(htmlResponse.getBytes());
@@ -76,7 +76,7 @@ public class BackEnd implements Runnable {
 
         private void handleResponse(HttpExchange httpExchange, String requestParams) throws IOException {
             long startTime = System.currentTimeMillis();
-            Logger.log("BackEnd | received request from load balancer", "requestPassing");
+            Logger.log("BackEnd | received request from load balancer", Logger.LogType.REQUEST_PASSING);
             try {
                 Thread.sleep(200);
             } catch(InterruptedException e) {
@@ -100,7 +100,7 @@ public class BackEnd implements Runnable {
             // send out response
             httpExchange.sendResponseHeaders(200, htmlResponse.length());
             outputStream.write(htmlResponse.getBytes());
-            Logger.log("BackEnd | sent request back to load balancer", "requestPassing");
+            Logger.log("BackEnd | sent request back to load balancer", Logger.LogType.REQUEST_PASSING);
             outputStream.flush();
             outputStream.close();
             long endTime = System.currentTimeMillis();
@@ -134,7 +134,7 @@ public class BackEnd implements Runnable {
 
     @Override
     public void run() {
-        Logger.log("BackEnd | Started BackEnd thread", "threadManagement");
+        Logger.log("BackEnd | Started BackEnd thread", Logger.LogType.THREAD_MANAGEMENT);
         // start server
         ThreadPoolExecutor threadPoolExecutor = (ThreadPoolExecutor) Executors.newFixedThreadPool(1);
         HttpHandler customHttpHandler = new CustomHttpHandler();
@@ -143,7 +143,7 @@ public class BackEnd implements Runnable {
 
         for (int i = 0; i < selectablePorts.length; i++) {
             port = selectablePorts[i];
-            Logger.log(String.format("attempting to start server on port %d\n", port), "backendStartup");
+            Logger.log(String.format("attempting to start server on port %d\n", port), Logger.LogType.BACKEND_STARTUP);
 
             try {
                 InetAddress host = InetAddress.getByName("127.0.0.1");
@@ -152,10 +152,10 @@ public class BackEnd implements Runnable {
                 server.createContext("/", customHttpHandler);
                 server.createContext("/capacity_factor", capacityFactorRequestHandler);
                 server.setExecutor(threadPoolExecutor);
-                Logger.log(String.format("BackEnd | Server started on %s", socketAddress.toString()), "backendStartup");
+                Logger.log(String.format("BackEnd | Server started on %s", socketAddress.toString()), Logger.LogType.BACKEND_STARTUP);
                 break;
             } catch(IOException e) {
-                Logger.log(String.format("BackEnd | Failed to start server on port %d", port), "backendStartup");
+                Logger.log(String.format("BackEnd | Failed to start server on port %d", port), Logger.LogType.BACKEND_STARTUP);
             }
         }
 
@@ -165,13 +165,13 @@ public class BackEnd implements Runnable {
 
         // start server
         server.start();
-        Logger.log("Server started on port " + this.port, "backendStartup");
+        Logger.log("Server started on port " + this.port, Logger.LogType.BACKEND_STARTUP);
 
         while(true) {
             try {
                 Thread.sleep(500);
             } catch (InterruptedException e) {
-                Logger.log("BackEnd | BackEnd thread interrupted", "threadManagement");
+                Logger.log("BackEnd | BackEnd thread interrupted", Logger.LogType.THREAD_MANAGEMENT);
                 Thread.currentThread().interrupt();
                 server.stop(3);
                 threadPoolExecutor.shutdown();
@@ -179,6 +179,6 @@ public class BackEnd implements Runnable {
             }
         }
 
-        Logger.log("BackEnd | Terminated BackEnd thread", "threadManagement");
+        Logger.log("BackEnd | Terminated BackEnd thread", Logger.LogType.THREAD_MANAGEMENT);
     }
 }

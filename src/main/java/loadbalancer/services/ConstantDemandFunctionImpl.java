@@ -11,7 +11,7 @@ public class ConstantDemandFunctionImpl implements DemandFunction {
 
     @Override
     public void rest() throws InterruptedException {
-        Logger.log("Client | restInterval = " + this.restInterval, "loadModulation");
+        Logger.log("Client | restInterval = " + this.restInterval, Logger.LogType.LOAD_MODULATION);
         Thread.sleep(this.restInterval);
     }
 

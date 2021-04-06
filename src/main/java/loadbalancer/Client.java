@@ -42,9 +42,9 @@ public class Client implements Runnable {
 
     @Override
     public void run() {
-        Logger.log("Client | Started Client thread", "threadManagement");
+        Logger.log("Client | Started Client thread", Logger.LogType.THREAD_MANAGEMENT);
         start();
-        Logger.log("Client | Terminated Client thread", "threadManagement");
+        Logger.log("Client | Terminated Client thread", Logger.LogType.THREAD_MANAGEMENT);
     }
 
     void start() {
@@ -61,7 +61,7 @@ public class Client implements Runnable {
                 String path;
                 path = "/api/" + resourceId;
                 HttpGet httpGet = new HttpGet("http://127.0.0.1:" + Client.loadBalancerPort + path);
-                Logger.log(String.format("Client %s | path: %s", name, path), "clientStartup");
+                Logger.log(String.format("Client %s | path: %s", name, path), Logger.LogType.CLIENT_STARTUP);
                 long timestamp = System.currentTimeMillis();
                 CloseableHttpClient httpClient = this.clientFactory.buildApacheClient();
                 CloseableHttpResponse response = httpClient.execute(httpGet);
@@ -77,9 +77,9 @@ public class Client implements Runnable {
             try {
                 this.demandFunction.rest();
             } catch (InterruptedException e) {
-                Logger.log("Client | Client thread interrupted", "threadManagement");
+                Logger.log("Client | Client thread interrupted", Logger.LogType.THREAD_MANAGEMENT);
                 Thread.currentThread().interrupt();
-                Logger.log("Client | Terminated Client Thread", "threadManagement");
+                Logger.log("Client | Terminated Client Thread", Logger.LogType.THREAD_MANAGEMENT);
                 break;
             }
         }
@@ -94,7 +94,7 @@ public class Client implements Runnable {
         HttpEntity responseBody = response.getEntity();
         InputStream bodyStream = responseBody.getContent();
         String responseString = IOUtils.toString(bodyStream, StandardCharsets.UTF_8.name());
-        Logger.log(String.format("Client %s | response body: %s", name, responseString), "requestPassing");
+        Logger.log(String.format("Client %s | response body: %s", name, responseString), Logger.LogType.REQUEST_PASSING);
         bodyStream.close();
     }
 }

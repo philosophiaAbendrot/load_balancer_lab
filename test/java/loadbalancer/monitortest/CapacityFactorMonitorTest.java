@@ -30,7 +30,7 @@ public class CapacityFactorMonitorTest {
 
     @BeforeEach
     public void setup() {
-        Logger.configure(new String[] { "capacityModulation" });
+        Logger.configure(new Logger.LogType[] { Logger.LogType.CAPACITY_MODULATION });
         this.clientFactory = Mockito.mock(HttpClientFactory.class);
         this.mockClient = Mockito.mock(CloseableHttpClient.class);
         this.currentTime = System.currentTimeMillis();

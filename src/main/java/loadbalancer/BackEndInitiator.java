@@ -51,7 +51,7 @@ public class BackEndInitiator implements Runnable {
 
     @Override
     public void run() {
-        Logger.log("BackEndInitiator | Started BackendInitiator thread", "threadManagement");
+        Logger.log("BackEndInitiator | Started BackendInitiator thread", Logger.LogType.THREAD_MANAGEMENT);
         InetAddress hostAddress = null;
         this.serverMonitorRunnable = new ServerMonitorRunnable(new ServerMonitor());
         Thread serverMonitorThread = new Thread(serverMonitorRunnable);
@@ -111,7 +111,7 @@ public class BackEndInitiator implements Runnable {
 
             server.awaitTermination(Long.MAX_VALUE, TimeUnit.SECONDS);
         } catch (InterruptedException e) {
-            Logger.log("BackEndInitiator | BackEndInitiator thread interrupted", "threadManagement");
+            Logger.log("BackEndInitiator | BackEndInitiator thread interrupted", Logger.LogType.THREAD_MANAGEMENT);
         } finally {
             // shutdown server
             server.shutdown(5, TimeUnit.SECONDS);
@@ -120,14 +120,14 @@ public class BackEndInitiator implements Runnable {
                 Thread backendThread = entry.getValue();
                 int threadId = (int)backendThread.getId();
                 backendThread.interrupt();
-                Logger.log("BackEndInitiator | Terminating backend thread " + threadId, "threadManagement");
+                Logger.log("BackEndInitiator | Terminating backend thread " + threadId, Logger.LogType.THREAD_MANAGEMENT);
             }
 
             // terminate server monitor thread
             serverMonitorThread.interrupt();
-            Logger.log("BackEndInitiator | Terminated server monitor thread", "threadManagement");
+            Logger.log("BackEndInitiator | Terminated server monitor thread", Logger.LogType.THREAD_MANAGEMENT);
             Thread.currentThread().interrupt();
-            Logger.log("BackEndInitiator | Terminated BackEndInitiator thread", "threadManagement");
+            Logger.log("BackEndInitiator | Terminated BackEndInitiator thread", Logger.LogType.THREAD_MANAGEMENT);
         }
     }
 
@@ -148,7 +148,7 @@ public class BackEndInitiator implements Runnable {
 
         @Override
         public void run() {
-            Logger.log("BackendInitiator | Starting ServerMonitor", "threadManagement");
+            Logger.log("BackendInitiator | Starting ServerMonitor", Logger.LogType.THREAD_MANAGEMENT);
 
             while (true) {
                 try {
@@ -156,7 +156,7 @@ public class BackEndInitiator implements Runnable {
                     int currentSecond = (int)(System.currentTimeMillis() / 1000);
                     this.serverMonitor.addRecord(currentSecond, BackEndInitiator.this.portsToBackendThreads.size());
                 } catch (InterruptedException e) {
-                    Logger.log("BackEndInitiator | Shutting down ServerMonitor", "threadManagement");
+                    Logger.log("BackEndInitiator | Shutting down ServerMonitor", Logger.LogType.THREAD_MANAGEMENT);
                     Thread.currentThread().interrupt();
                     break;
                 }
@@ -171,10 +171,10 @@ public class BackEndInitiator implements Runnable {
     private class ServerStartHandler implements HttpRequestHandler {
         @Override
         public void handle(HttpRequest httpRequest, HttpResponse httpResponse, HttpContext httpContext) throws IOException {
-            Logger.log("BackendInitiator | received backend initiate request", "capacityModulation");
+            Logger.log("BackendInitiator | received backend initiate request", Logger.LogType.CAPACITY_MODULATION);
             BackEnd backEnd = BackEndInitiator.this.backEndFactory.produceBackEnd(new RequestMonitor("BackEnd"));
             Thread backEndThread = BackEndInitiator.this.backEndFactory.produceBackEndThread(backEnd);
-            Logger.log("BackendInitiator | started backend thread", "capacityModulation");
+            Logger.log("BackendInitiator | started backend thread", Logger.LogType.CAPACITY_MODULATION);
             backEndThread.start();
 
             // wait for backend port to be selected by backend
@@ -183,12 +183,12 @@ public class BackEndInitiator implements Runnable {
                 try {
                     Thread.sleep(20);
                 } catch(InterruptedException e) {
-                    Logger.log("BackEndInitiator | initiateRequestHandler thread interrupted", "threadManagement");
+                    Logger.log("BackEndInitiator | initiateRequestHandler thread interrupted", Logger.LogType.THREAD_MANAGEMENT);
                 }
             }
 
             BackEndInitiator.this.portsToBackendThreads.put(backEnd.port, backEndThread);
-            Logger.log("chosen backend port = " + backEnd.port, "capacityModulation");
+            Logger.log("chosen backend port = " + backEnd.port, Logger.LogType.CAPACITY_MODULATION);
 
             JSONObject outputJsonObj = new JSONObject();
             outputJsonObj.put("port", backEnd.port);
@@ -208,12 +208,12 @@ public class BackEndInitiator implements Runnable {
             String uri = httpRequest.getRequestLine().getUri();
             String[] parsedUri = uri.split("/");
             int port = Integer.valueOf(parsedUri[parsedUri.length - 1]);
-            Logger.log("BackEndInitiator | received request to shutdown backend on port " + port, "capacityModulation");
+            Logger.log("BackEndInitiator | received request to shutdown backend on port " + port, Logger.LogType.CAPACITY_MODULATION);
 
             if (method.equals("DELETE")) {
                 BackEndInitiator.this.portsToBackendThreads.get(port).interrupt();
                 BackEndInitiator.this.portsToBackendThreads.remove(port);
-                Logger.log("BackEndInitiator | Shut down backend server running on port " + port, "capacityModulation");
+                Logger.log("BackEndInitiator | Shut down backend server running on port " + port, Logger.LogType.CAPACITY_MODULATION);
             }
         }
     }

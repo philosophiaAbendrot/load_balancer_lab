@@ -78,13 +78,13 @@ public class LoadBalancer implements Runnable {
                 }
             }
 
-            Logger.log("LoadBalancer | Terminated CapacityFactorMonitor thread", "threadManagement");
+            Logger.log("LoadBalancer | Terminated CapacityFactorMonitor thread", Logger.LogType.THREAD_MANAGEMENT);
         }
     }
 
     @Override
     public void run() {
-        Logger.log("LoadBalancer | LoadBalancer thread started", "threadManagement");
+        Logger.log("LoadBalancer | LoadBalancer thread started", Logger.LogType.THREAD_MANAGEMENT);
         InetAddress hostAddress = null;
 
         try {
@@ -141,14 +141,14 @@ public class LoadBalancer implements Runnable {
         try {
             server.awaitTermination(Long.MAX_VALUE, TimeUnit.SECONDS);
         } catch (InterruptedException e) {
-            Logger.log("LoadBalancer | LoadBalancer thread interrupted", "threadManagement");
+            Logger.log("LoadBalancer | LoadBalancer thread interrupted", Logger.LogType.THREAD_MANAGEMENT);
         } finally {
             server.shutdown(5, TimeUnit.SECONDS);
             // shut down capacity factor monitor thread
             capacityFactorMonitorThread.interrupt();
             // shut down this thread
             Thread.currentThread().interrupt();
-            Logger.log("LoadBalancer | LoadBalancer thread terminated", "threadManagement");
+            Logger.log("LoadBalancer | LoadBalancer thread terminated", Logger.LogType.THREAD_MANAGEMENT);
         }
     }
 
@@ -180,8 +180,8 @@ public class LoadBalancer implements Runnable {
             int resourceId = Integer.parseInt(uriArr[uriArr.length - 1]);
             int backendPort = LoadBalancer.this.capacityFactorMonitor.selectPort(resourceId);
 
-            Logger.log(String.format("LoadBalancer | resourceId = %d", resourceId), "requestPassing");
-            Logger.log(String.format("LoadBalancer | relaying message to backend server at port %d", backendPort), "requestPassing");
+            Logger.log(String.format("LoadBalancer | resourceId = %d", resourceId), Logger.LogType.REQUEST_PASSING);
+            Logger.log(String.format("LoadBalancer | relaying message to backend server at port %d", backendPort), Logger.LogType.REQUEST_PASSING);
 
             // record request incoming timestamp
             LoadBalancer.this.incomingRequestTimestamps.add((int)(System.currentTimeMillis() / 1000));

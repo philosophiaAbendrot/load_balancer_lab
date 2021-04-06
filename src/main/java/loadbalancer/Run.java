@@ -27,9 +27,8 @@ public class Run {
     // start simulation
     public void start() {
         this.rand = new Random();
-//        Logger.configure(new String[] { "threadManagement", "loadModulation", "recordingData", "capacityModulation" });
-        Logger.configure(new String[] { "capacityModulation" });
-        Logger.log("Run | started Run thread", "threadManagement");
+        Logger.configure(new Logger.LogType[] { Logger.LogType.CAPACITY_MODULATION });
+        Logger.log("Run | started Run thread", Logger.LogType.THREAD_MANAGEMENT);
 
         // start backend initiator thread
         BackEndInitiator backendInitiator = new BackEndInitiator(new BackEndFactoryImpl());
@@ -111,7 +110,7 @@ public class Run {
             }
         }
 
-        Logger.log("Run | shutdown stage 1: shutdown client threads", "threadManagement");
+        Logger.log("Run | shutdown stage 1: shutdown client threads", Logger.LogType.THREAD_MANAGEMENT);
 
         try {
             Thread.sleep(5_000);
@@ -120,13 +119,13 @@ public class Run {
         }
 
         // collect data from load balancer
-        Logger.log("collecting request log data from load balancer", "recordingData");
+        Logger.log("collecting request log data from load balancer", Logger.LogType.RECORDING_DATA);
         SortedMap<Integer, Integer> loadBalancerRequestLog = loadBalancer.deliverData();
 
         // shutdown load balancer
         loadBalancerThread.interrupt();
 
-        Logger.log("Run | shutdown stage 2: Shutdown LoadBalancer thread", "threadManagement");
+        Logger.log("Run | shutdown stage 2: Shutdown LoadBalancer thread", Logger.LogType.THREAD_MANAGEMENT);
 
         try {
             Thread.sleep(5_000);
@@ -140,8 +139,8 @@ public class Run {
 
         // shutdown BackEndInitiator instance
         backendInitiatorThread.interrupt();
-        Logger.log("Run | shutdown stage 3: Shutdown BackendInitiator thread", "threadManagement");
-        Logger.log("Run | terminated Run thread", "threadManagement");
+        Logger.log("Run | shutdown stage 3: Shutdown BackendInitiator thread", Logger.LogType.THREAD_MANAGEMENT);
+        Logger.log("Run | terminated Run thread", Logger.LogType.THREAD_MANAGEMENT);
 
         // Graph collected metrics
         List<Double> synthesizedClientRequestLogOutput = new ArrayList<>();

@@ -47,7 +47,7 @@ public class RequestMonitor {
     }
 
     public void clearOutData(long currentTime) {
-        Logger.log("RequestMonitor - " + this.parentClass + " | clearOutTelemetry running", "telemetryUpdate");
+        Logger.log("RequestMonitor - " + this.parentClass + " | clearOutTelemetry running", Logger.LogType.TELEMETRY_UPDATE);
         // delete request data which are out of date
         Iterator<RequestDatum> iterator = this.requestData.iterator();
         int deleteCount = 0;
@@ -62,7 +62,7 @@ public class RequestMonitor {
             }
         }
 
-        Logger.log("RequestMonitor - " + this.parentClass + " | " + deleteCount + " data deleted.", "telemetryUpdate");
+        Logger.log("RequestMonitor - " + this.parentClass + " | " + deleteCount + " data deleted.", Logger.LogType.TELEMETRY_UPDATE);
     }
 
     public double getCapacityFactor(long endTime) {
@@ -74,7 +74,7 @@ public class RequestMonitor {
                 runningTime += datum.processingTime;
 
             double capacityFactor = runningTime / (double)(endTime - startTime);
-            Logger.log(String.format("Backend | capacityFactor = %f", capacityFactor), "requestPassing");
+            Logger.log(String.format("Backend | capacityFactor = %f", capacityFactor), Logger.LogType.REQUEST_PASSING);
 
             return capacityFactor;
         } else {
