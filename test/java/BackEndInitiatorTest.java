@@ -1,3 +1,5 @@
+import loadbalancer.util.RequestDecoder;
+import loadbalancer.util.RequestDecoderImpl;
 import org.apache.commons.io.IOUtils;
 import org.apache.http.HttpEntity;
 import org.apache.http.client.methods.CloseableHttpResponse;
@@ -5,6 +7,7 @@ import org.apache.http.client.methods.HttpDelete;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.methods.HttpPost;
 import org.apache.http.impl.client.CloseableHttpClient;
+import org.json.JSONObject;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
@@ -133,12 +136,15 @@ public class BackEndInitiatorTest {
 
             try {
                 CloseableHttpResponse response = client.execute(req);
+                RequestDecoder decoder = new RequestDecoderImpl();
+                JSONObject jsonObj = decoder.extractJsonApacheResponse(response);
+                int portInt = jsonObj.getInt("port");
                 HttpEntity responseBody = response.getEntity();
                 InputStream responseStream = responseBody.getContent();
                 String responseString = IOUtils.toString(responseStream, StandardCharsets.UTF_8.name());
                 response.close();
                 responseStream.close();
-                this.backEndPort = Integer.valueOf(responseString);
+                this.backEndPort = portInt;
                 client.close();
             } catch (IOException e) {
                 e.printStackTrace();
