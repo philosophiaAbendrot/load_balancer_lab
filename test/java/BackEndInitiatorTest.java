@@ -7,6 +7,7 @@ import org.apache.http.client.methods.HttpPost;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.apache.http.impl.client.HttpClients;
 import org.mockito.Mockito;
@@ -27,7 +28,9 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 
 public class BackEndInitiatorTest {
-    public static class MockBackEndTests {
+    @Nested
+    @DisplayName("Testing with a mock backend")
+    public class MockBackEndTests {
         BackEndFactory mockFactory;
         BackEnd mockBackEnd;
         Thread mockBackEndThread;
@@ -102,7 +105,9 @@ public class BackEndInitiatorTest {
         }
     }
 
-    public static class LiveBackEndTests {
+    @Nested
+    @DisplayName("Testing with a live backend")
+    public class LiveBackEndTests {
         BackEndFactory factory;
         BackEnd backEnd;
         Thread backEndThread;
