@@ -9,6 +9,7 @@ import loadbalancerlab.loadbalancer.LoadBalancer;
 import loadbalancerlab.factory.CapacityFactorMonitorFactoryImpl;
 import loadbalancerlab.factory.HttpClientFactoryImpl;
 import loadbalancerlab.services.ConstantDemandFunctionImpl;
+import loadbalancerlab.util.RequestDecoderImpl;
 import loadbalancerlab.vendor.Graph;
 import loadbalancerlab.util.Logger;
 import loadbalancerlab.factory.CacheServerFactoryImpl;
@@ -34,7 +35,7 @@ public class Executor {
         Logger.log("Run | started Run thread", Logger.LogType.THREAD_MANAGEMENT);
 
         // start cache server manager thread
-        CacheServerManager cacheServerManager = new CacheServerManager(new CacheServerFactoryImpl());
+        CacheServerManager cacheServerManager = new CacheServerManager(new CacheServerFactoryImpl(), new HttpClientFactoryImpl(), new RequestDecoderImpl());
         Thread cacheServerManagerThread = new Thread(cacheServerManager);
         cacheServerManagerThread.start();
 

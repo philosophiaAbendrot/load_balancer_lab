@@ -2,6 +2,7 @@ package loadbalancerlab.cacheservermanager;
 
 import loadbalancerlab.factory.CacheServerFactory;
 import loadbalancerlab.factory.HttpClientFactory;
+import loadbalancerlab.util.RequestDecoder;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.text.StringEscapeUtils;
 import org.apache.http.*;
@@ -22,7 +23,8 @@ import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.TimeUnit;
 
-import loadbalancerlab.services.monitor.ServerMonitor;
+import loadbalancerlab.cacheservermanager.ServerMonitor;
+import loadbalancerlab.cacheservermanager.ServerMonitorRunnable;
 import loadbalancerlab.util.Logger;
 import loadbalancerlab.services.monitor.RequestMonitor;
 import org.json.JSONObject;
@@ -33,32 +35,33 @@ public class CacheServerManager implements Runnable {
     private int port;
     private List<HttpRequestInterceptor> requestInterceptors = new ArrayList<HttpRequestInterceptor>();
     private List<HttpResponseInterceptor> responseInterceptors = new ArrayList<HttpResponseInterceptor>();
-    private Map<Integer, Thread> portsToServerThreads = new ConcurrentHashMap<>();
+    Map<Integer, Thread> portsToServerThreads = new ConcurrentHashMap<>();
     private HttpProcessor httpProcessor;
     private int[] selectablePorts = new int[100];
-    private ServerMonitorRunnable serverMonitorRunnable;
     private CacheServerFactory cacheServerFactory;
     private HttpClientFactory clientFactory;
+    public RequestDecoder reqDecoder;
+    private ServerMonitorRunnable serverMonitor;
 
-    public CacheServerManager(CacheServerFactory cacheServerFactory, HttpClientFactory clientFactory) {
+    public CacheServerManager( CacheServerFactory cacheServerFactory, HttpClientFactory clientFactory, RequestDecoder reqDecoder) {
         this.port = -1;
         this.cacheServerFactory = cacheServerFactory;
         this.clientFactory = clientFactory;
+        this.reqDecoder = reqDecoder;
 
         // reserve ports 37000 through 37099 as usable ports
-        for (int i = 0; i < selectablePorts.length; i++) {
+        for (int i = 0; i < selectablePorts.length; i++)
             this.selectablePorts[i] = 37100 + i;
-        }
 
         this.httpProcessor = new ImmutableHttpProcessor(this.requestInterceptors, this.responseInterceptors);
+        this.serverMonitor = new ServerMonitorRunnable(clientFactory, reqDecoder, this);
     }
 
     @Override
     public void run() {
         Logger.log("CacheServerManager | Started CacheServerManager thread", Logger.LogType.THREAD_MANAGEMENT);
         InetAddress hostAddress = null;
-        this.serverMonitorRunnable = new ServerMonitorRunnable(new ServerMonitor());
-        Thread serverMonitorThread = new Thread(serverMonitorRunnable);
+        Thread serverMonitorThread = new Thread((Runnable) this.serverMonitor);
         serverMonitorThread.start();
 
         try {
@@ -140,36 +143,7 @@ public class CacheServerManager implements Runnable {
     }
 
     public SortedMap<Integer, Integer> deliverData() {
-        return this.serverMonitorRunnable.deliverData();
-    }
-
-    private class ServerMonitorRunnable implements Runnable {
-        ServerMonitor serverMonitor;
-
-        public ServerMonitorRunnable(ServerMonitor serverMonitor) {
-            this.serverMonitor = serverMonitor;
-        }
-
-        @Override
-        public void run() {
-            Logger.log("CacheServerManager | Starting ServerMonitor", Logger.LogType.THREAD_MANAGEMENT);
-
-            while (true) {
-                try {
-                    Thread.sleep(100);
-                    int currentSecond = (int)(System.currentTimeMillis() / 1000);
-                    this.serverMonitor.addRecord(currentSecond, CacheServerManager.this.portsToServerThreads.size());
-                } catch (InterruptedException e) {
-                    Logger.log("CacheServerManager | Shutting down ServerMonitor", Logger.LogType.THREAD_MANAGEMENT);
-                    Thread.currentThread().interrupt();
-                    break;
-                }
-            }
-        }
-
-        public SortedMap<Integer, Integer> deliverData() {
-            return serverMonitor.deliverData();
-        }
+        return this.serverMonitor.deliverData();
     }
 
     private class ServerStartHandler implements HttpRequestHandler {

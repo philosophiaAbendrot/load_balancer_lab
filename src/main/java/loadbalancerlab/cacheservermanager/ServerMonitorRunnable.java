@@ -2,19 +2,24 @@ package loadbalancerlab.cacheservermanager;
 
 import loadbalancerlab.factory.HttpClientFactory;
 import loadbalancerlab.util.RequestDecoder;
+import loadbalancerlab.util.Logger;
 import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.json.JSONObject;
 
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 
-public class ServerMonitorImpl implements ServerMonitor {
+public class ServerMonitorRunnable implements ServerMonitor, Runnable {
+    ConcurrentMap<Integer, ServerInfo> serverInfoTable;
+    HttpClientFactory clientFactory;
+    RequestDecoder reqDecoder;
+    SortedMap<Integer, Integer> serverCount;
+    CacheServerManager cacheServerManager;
+
     private static class ServerInfo {
         int id;
         int port;
@@ -26,13 +31,28 @@ public class ServerMonitorImpl implements ServerMonitor {
         }
     }
 
-    ConcurrentMap<Integer, ServerInfo> serverInfoTable;
-    HttpClientFactory clientFactory;
-    RequestDecoder reqDecoder;
-
-    public ServerMonitorImpl( HttpClientFactory httpClientFactory, RequestDecoder reqDecoder ) {
+    public ServerMonitorRunnable( HttpClientFactory httpClientFactory, RequestDecoder reqDecoder, CacheServerManager cacheServerManager ) {
         this.serverInfoTable = new ConcurrentHashMap<>();
         this.clientFactory = httpClientFactory;
+        this.serverCount = new TreeMap<>();
+        this.cacheServerManager = cacheServerManager;
+    }
+
+    @Override
+    public void run() {
+        Logger.log("ServerMonitorRunnable | Starting ServerMonitor", Logger.LogType.THREAD_MANAGEMENT);
+
+        while (true) {
+            try {
+                Thread.sleep(100);
+                int currentSecond = (int)(System.currentTimeMillis() / 1000);
+                updateServerCount(currentSecond, cacheServerManager.portsToServerThreads.size());
+            } catch (InterruptedException e) {
+                Logger.log("ServerMonitorRunnable | Shutting down ServerMonitorRunnable", Logger.LogType.THREAD_MANAGEMENT);
+                Thread.currentThread().interrupt();
+                break;
+            }
+        }
     }
 
     @Override
@@ -60,5 +80,18 @@ public class ServerMonitorImpl implements ServerMonitor {
     @Override
     public void addServer( int id, int port ) {
         this.serverInfoTable.put(id, new ServerInfo(id, port));
+    }
+
+    @Override
+    public void updateServerCount( int currentSecond, int numServers ) {
+        if (!this.serverCount.containsKey(currentSecond))
+            this.serverCount.put(currentSecond, numServers);
+    }
+
+    @Override
+    public SortedMap<Integer, Integer> deliverData() {
+        SortedMap<Integer, Integer> copyMap = new TreeMap<>();
+        copyMap.putAll(this.serverCount);
+        return copyMap;
     }
 }

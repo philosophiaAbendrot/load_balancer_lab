@@ -20,6 +20,7 @@ import loadbalancerlab.factory.CacheServerFactoryImpl;
 import loadbalancerlab.factory.CacheServerFactory;
 import loadbalancerlab.services.monitor.RequestMonitor;
 import loadbalancerlab.cacheserver.CacheServer;
+import loadbalancerlab.factory.HttpClientFactoryImpl;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -51,7 +52,7 @@ public class CacheServerManagerTest {
             when(this.mockFactory.produceCacheServer(any(RequestMonitor.class))).thenReturn(mockCacheServer);
             when(this.mockFactory.produceCacheServerThread(any(CacheServer.class))).thenReturn(this.mockCacheServerThread);
 
-            this.cacheServerManager = new CacheServerManager(this.mockFactory);
+            this.cacheServerManager = new CacheServerManager(this.mockFactory, new HttpClientFactoryImpl(), new RequestDecoderImpl());
             this.cacheServerMonitorThread = new Thread(this.cacheServerManager);
             this.cacheServerMonitorThread.start();
             this.cacheServerMonitorPort = CacheServerManagerTest.waitUntilServerReady(this.cacheServerManager);
@@ -120,7 +121,7 @@ public class CacheServerManagerTest {
         @BeforeEach
         public void setup() {
             this.factory = new CacheServerFactoryImpl();
-            this.cacheServerManager = new CacheServerManager(this.factory);
+            this.cacheServerManager = new CacheServerManager(this.factory, new HttpClientFactoryImpl(), new RequestDecoderImpl());
             this.cacheServerMonitorThread = new Thread(this.cacheServerManager);
             this.cacheServerMonitorThread.start();
             this.cacheServerMonitorPort = CacheServerManagerTest.waitUntilServerReady(this.cacheServerManager);
