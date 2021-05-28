@@ -12,7 +12,7 @@ import loadbalancer.vendor.Graph;
 import loadbalancer.util.Logger;
 import loadbalancer.factory.BackEndFactoryImpl;
 
-public class Run {
+public class Executor {
     final static int NUM_CLIENTS = 50;
     long maxDemandTime;
     final static int CLIENT_REQUEST_SEND_TIME = 40_000;
@@ -20,7 +20,7 @@ public class Run {
     final static int CONSTANT_DEMAND_REST_INTERVAL = 1_000;
     Random rand;
 
-    public Run() {
+    public Executor() {
         maxDemandTime = System.currentTimeMillis() + 20_000;
     }
 
@@ -189,6 +189,6 @@ public class Run {
     }
 
     public static void main(String[] args) {
-        new Run().start();
+        new Executor().start();
     }
 }
