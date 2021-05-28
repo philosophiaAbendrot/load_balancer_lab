@@ -15,7 +15,7 @@ import org.junit.jupiter.api.Test;
 import org.apache.http.impl.client.HttpClients;
 import org.mockito.Mockito;
 
-import loadbalancer.BackEndInitiator;
+import loadbalancer.CacheServerManager;
 import loadbalancer.factory.BackEndFactoryImpl;
 import loadbalancer.factory.BackEndFactory;
 import loadbalancer.services.monitor.RequestMonitor;
@@ -30,16 +30,16 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 
-public class BackEndInitiatorTest {
+public class CacheServerManagerTest {
     @Nested
     @DisplayName("Testing with a mock backend")
     public class MockBackEndTests {
         BackEndFactory mockFactory;
         BackEnd mockBackEnd;
         Thread mockBackEndThread;
-        BackEndInitiator initiator;
-        Thread initiatorThread;
-        int backEndInitiatorPort;
+        CacheServerManager cacheServerManager;
+        Thread cacheServerMonitorThread;
+        int cacheServerMonitorPort;
 
         @BeforeEach
         public void setup() {
@@ -51,17 +51,17 @@ public class BackEndInitiatorTest {
             when(this.mockFactory.produceBackEnd(any(RequestMonitor.class))).thenReturn(mockBackEnd);
             when(this.mockFactory.produceBackEndThread(any(BackEnd.class))).thenReturn(this.mockBackEndThread);
 
-            this.initiator = new BackEndInitiator(this.mockFactory);
-            this.initiatorThread = new Thread(this.initiator);
-            this.initiatorThread.start();
-            this.backEndInitiatorPort = BackEndInitiatorTest.waitUntilServerReady(this.initiator);
+            this.cacheServerManager = new CacheServerManager(this.mockFactory);
+            this.cacheServerMonitorThread = new Thread(this.cacheServerManager);
+            this.cacheServerMonitorThread.start();
+            this.cacheServerMonitorPort = CacheServerManagerTest.waitUntilServerReady(this.cacheServerManager);
         }
 
         @Test
-        @DisplayName("BackEndInitiator should start up a BackEnd instance when sent a request telling it to do so")
-        public void BackEndInitiatorShouldStartBackEndInstance() {
+        @DisplayName("CacheServerMonitor should start up a BackEnd instance when sent a request telling it to do so")
+        public void CacheServerMonitorShouldStartBackEndInstance() {
             CloseableHttpClient client = HttpClients.createDefault();
-            HttpPost req = new HttpPost("http://127.0.0.1:" + this.backEndInitiatorPort + "/backends");
+            HttpPost req = new HttpPost("http://127.0.0.1:" + this.cacheServerMonitorPort + "/cache-servers");
 
             try {
                 CloseableHttpResponse response = client.execute(req);
@@ -70,17 +70,17 @@ public class BackEndInitiatorTest {
                 e.printStackTrace();
             }
 
-            this.initiatorThread.interrupt();
+            this.cacheServerMonitorThread.interrupt();
 
             verify(this.mockFactory, times(1)).produceBackEnd(any(RequestMonitor.class));
             verify(this.mockFactory, times(1)).produceBackEndThread(any(BackEnd.class));
         }
 
         @Test
-        @DisplayName("When BackEndInitiator thread is interrupted, it interrupts all backend servers that it has spawned")
-        public void BackEndInitiatorThreadInterruptedInterruptsAllBackEndServers() {
+        @DisplayName("When CacheServerMonitor thread is interrupted, it interrupts all backend servers that it has spawned")
+        public void CacheServerMonitorThreadInterruptedInterruptsAllBackEndServers() {
             CloseableHttpClient client = HttpClients.createDefault();
-            HttpPost req = new HttpPost("http://127.0.0.1:" + this.backEndInitiatorPort + "/backends");
+            HttpPost req = new HttpPost("http://127.0.0.1:" + this.cacheServerMonitorPort + "/cache-servers");
 
             // send request to server and wait for it to be received
             try {
@@ -93,10 +93,10 @@ public class BackEndInitiatorTest {
                 e.printStackTrace();
             }
 
-            // interrupt BackEndInitiator thread
-            this.initiatorThread.interrupt();
+            // interrupt cacheServerMonitor thread
+            this.cacheServerMonitorThread.interrupt();
 
-            // wait for BackEndInitiator to run interruption callbacks
+            // wait for CacheServerMonitor to run interruption callbacks
             try {
                 Thread.sleep(100);
             } catch(InterruptedException e) {
@@ -114,24 +114,24 @@ public class BackEndInitiatorTest {
         BackEndFactory factory;
         BackEnd backEnd;
         Thread backEndThread;
-        BackEndInitiator initiator;
-        Thread initiatorThread;
-        int backEndInitiatorPort;
+        CacheServerManager cacheServerManager;
+        Thread cacheServerMonitorThread;
+        int cacheServerMonitorPort;
         int backEndPort;
 
         @BeforeEach
         public void setup() {
             this.factory = new BackEndFactoryImpl();
-            this.initiator = new BackEndInitiator(this.factory);
-            this.initiatorThread = new Thread(this.initiator);
-            this.initiatorThread.start();
-            this.backEndInitiatorPort = BackEndInitiatorTest.waitUntilServerReady(this.initiator);
+            this.cacheServerManager = new CacheServerManager(this.factory);
+            this.cacheServerMonitorThread = new Thread(this.cacheServerManager);
+            this.cacheServerMonitorThread.start();
+            this.cacheServerMonitorPort = CacheServerManagerTest.waitUntilServerReady(this.cacheServerManager);
             startServerAndGetPort();
         }
 
         private void startServerAndGetPort() {
             CloseableHttpClient client = HttpClients.createDefault();
-            HttpPost req = new HttpPost("http://127.0.0.1:" + this.backEndInitiatorPort + "/backends");
+            HttpPost req = new HttpPost("http://127.0.0.1:" + this.cacheServerMonitorPort + "/cache-servers");
             this.backEndPort = -1;
 
             try {
@@ -166,7 +166,7 @@ public class BackEndInitiatorTest {
                 } catch (IOException e) { e.printStackTrace(); }
             }
 
-            this.initiatorThread.interrupt();
+            this.cacheServerMonitorThread.interrupt();
 
             assertEquals(status, 200);
         }
@@ -175,7 +175,7 @@ public class BackEndInitiatorTest {
         @DisplayName("When a request is sent to shut down a certain server, that server should be shut down")
         public void shutDownSpecificServer() {
             CloseableHttpClient client = HttpClients.createDefault();
-            HttpDelete req = new HttpDelete("http://127.0.0.1:" + this.backEndInitiatorPort + "/backend/" + this.backEndPort);
+            HttpDelete req = new HttpDelete("http://127.0.0.1:" + this.cacheServerMonitorPort + "/cache-server/" + this.backEndPort);
 
             try {
                 CloseableHttpResponse response = client.execute(req);
@@ -195,16 +195,16 @@ public class BackEndInitiatorTest {
 
     // waits until a server has started up
     // returns port
-    private static int waitUntilServerReady(BackEndInitiator initiator) {
-        int backEndInitiatorPort = initiator.getPort();
+    private static int waitUntilServerReady(CacheServerManager cacheServerManager) {
+        int cacheServerMonitorPort = cacheServerManager.getPort();
 
-        while (backEndInitiatorPort == -1) {
+        while (cacheServerMonitorPort == -1) {
             try {
                 Thread.sleep(20);
-                backEndInitiatorPort = initiator.getPort();
+                cacheServerMonitorPort = cacheServerManager.getPort();
             } catch (InterruptedException e) { }
         }
 
-        return backEndInitiatorPort;
+        return cacheServerMonitorPort;
     }
 }

@@ -76,7 +76,7 @@ public class CapacityFactorMonitorTest {
         public void testRequestSentToCorrectUri() throws IOException {
             verify(this.mockClient, times(1)).execute(this.argCaptor.capture());
             HttpUriRequest request = this.argCaptor.getAllValues().get(0);
-            assertEquals("http://127.0.0.1:" + CapacityFactorMonitorTest.BACKEND_INITIATOR_PORT + "/backends", request.getURI().toString());
+            assertEquals("http://127.0.0.1:" + CapacityFactorMonitorTest.BACKEND_INITIATOR_PORT + "/cache-servers", request.getURI().toString());
         }
     }
 
@@ -138,7 +138,7 @@ public class CapacityFactorMonitorTest {
         public void testRequestSentToCorrectUri() throws IOException {
             verify(CapacityFactorMonitorTest.this.mockClient, times(2)).execute(this.argCaptor.capture());
             HttpUriRequest request = this.argCaptor.getAllValues().get(1);
-            assertEquals("http://127.0.0.1:" + CapacityFactorMonitorTest.BACKEND_INITIATOR_PORT + "/backend/" + this.backEndPort, request.getURI().toString());
+            assertEquals("http://127.0.0.1:" + CapacityFactorMonitorTest.BACKEND_INITIATOR_PORT + "/cache-server/" + this.backEndPort, request.getURI().toString());
         }
     }
 

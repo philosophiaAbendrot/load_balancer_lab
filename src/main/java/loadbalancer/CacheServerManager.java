@@ -26,18 +26,18 @@ import loadbalancer.util.Logger;
 import loadbalancer.services.monitor.RequestMonitor;
 import org.json.JSONObject;
 
-public class BackEndInitiator implements Runnable {
+public class CacheServerManager implements Runnable {
     public static final int DEFAULT_PORT = 8000;
     private int port;
     private List<HttpRequestInterceptor> requestInterceptors = new ArrayList<HttpRequestInterceptor>();
     private List<HttpResponseInterceptor> responseInterceptors = new ArrayList<HttpResponseInterceptor>();
-    private Map<Integer, Thread> portsToBackendThreads = new ConcurrentHashMap<>();
+    private Map<Integer, Thread> portsToServerThreads = new ConcurrentHashMap<>();
     private HttpProcessor httpProcessor;
     private int[] selectablePorts = new int[100];
     private ServerMonitorRunnable serverMonitorRunnable;
     private BackEndFactory backEndFactory;
 
-    public BackEndInitiator(BackEndFactory backEndFactory) {
+    public CacheServerManager(BackEndFactory backEndFactory) {
         this.port = -1;
         this.backEndFactory = backEndFactory;
 
@@ -51,7 +51,7 @@ public class BackEndInitiator implements Runnable {
 
     @Override
     public void run() {
-        Logger.log("BackEndInitiator | Started BackendInitiator thread", Logger.LogType.THREAD_MANAGEMENT);
+        Logger.log("CacheServerManager | Started CacheServerManager thread", Logger.LogType.THREAD_MANAGEMENT);
         InetAddress hostAddress = null;
         this.serverMonitorRunnable = new ServerMonitorRunnable(new ServerMonitor());
         Thread serverMonitorThread = new Thread(serverMonitorRunnable);
@@ -60,7 +60,7 @@ public class BackEndInitiator implements Runnable {
         try {
             hostAddress = InetAddress.getByName("127.0.0.1");
         } catch (UnknownHostException e) {
-            System.out.println("UnknownHostException within BackendInitiator#run");
+            System.out.println("UnknownHostException within CacheServerManager#run");
             e.printStackTrace();
         }
 
@@ -81,20 +81,20 @@ public class BackEndInitiator implements Runnable {
                         .setListenerPort(chosenPort)
                         .setHttpProcessor(httpProcessor)
                         .setSocketConfig(config)
-                        .registerHandler("/backends", new ServerStartHandler())
-                        .registerHandler("/backend/*", new ServerUpdateHandler())
+                        .registerHandler("/cache-servers", new ServerStartHandler())
+                        .registerHandler("/cache-server/*", new ServerUpdateHandler())
                         .create();
 
                 server.start();
             } catch(IOException e) {
-                System.out.println("IOException within BackEndInitiator#run");
+                System.out.println("IOException within CacheServerManager#run");
                 System.out.println("Failed to start server on selected port. Trying another port");
                 chosenPort++;
                 continue;
             }
 
             // break out of loop if server successfully started
-            System.out.println("BackEndInitiator | Server successfully started on port " + chosenPort);
+            System.out.println("CacheServerManager | Server successfully started on port " + chosenPort);
             break;
         }
 
@@ -111,23 +111,23 @@ public class BackEndInitiator implements Runnable {
 
             server.awaitTermination(Long.MAX_VALUE, TimeUnit.SECONDS);
         } catch (InterruptedException e) {
-            Logger.log("BackEndInitiator | BackEndInitiator thread interrupted", Logger.LogType.THREAD_MANAGEMENT);
+            Logger.log("CacheServerManager | CacheServerManager thread interrupted", Logger.LogType.THREAD_MANAGEMENT);
         } finally {
             // shutdown server
             server.shutdown(5, TimeUnit.SECONDS);
             // shutdown all backend servers spawned by this server
-            for (Map.Entry<Integer, Thread> entry : this.portsToBackendThreads.entrySet()) {
+            for (Map.Entry<Integer, Thread> entry : this.portsToServerThreads.entrySet()) {
                 Thread backendThread = entry.getValue();
                 int threadId = (int)backendThread.getId();
                 backendThread.interrupt();
-                Logger.log("BackEndInitiator | Terminating backend thread " + threadId, Logger.LogType.THREAD_MANAGEMENT);
+                Logger.log("CacheServerManager | Terminating CacheServer thread " + threadId, Logger.LogType.THREAD_MANAGEMENT);
             }
 
             // terminate server monitor thread
             serverMonitorThread.interrupt();
-            Logger.log("BackEndInitiator | Terminated server monitor thread", Logger.LogType.THREAD_MANAGEMENT);
+            Logger.log("CacheServerManager | Terminated server monitor thread", Logger.LogType.THREAD_MANAGEMENT);
             Thread.currentThread().interrupt();
-            Logger.log("BackEndInitiator | Terminated BackEndInitiator thread", Logger.LogType.THREAD_MANAGEMENT);
+            Logger.log("CacheServerManager | Terminated CacheServerManager thread", Logger.LogType.THREAD_MANAGEMENT);
         }
     }
 
@@ -148,15 +148,15 @@ public class BackEndInitiator implements Runnable {
 
         @Override
         public void run() {
-            Logger.log("BackendInitiator | Starting ServerMonitor", Logger.LogType.THREAD_MANAGEMENT);
+            Logger.log("CacheServerManager | Starting ServerMonitor", Logger.LogType.THREAD_MANAGEMENT);
 
             while (true) {
                 try {
                     Thread.sleep(100);
                     int currentSecond = (int)(System.currentTimeMillis() / 1000);
-                    this.serverMonitor.addRecord(currentSecond, BackEndInitiator.this.portsToBackendThreads.size());
+                    this.serverMonitor.addRecord(currentSecond, CacheServerManager.this.portsToServerThreads.size());
                 } catch (InterruptedException e) {
-                    Logger.log("BackEndInitiator | Shutting down ServerMonitor", Logger.LogType.THREAD_MANAGEMENT);
+                    Logger.log("CacheServerManager | Shutting down ServerMonitor", Logger.LogType.THREAD_MANAGEMENT);
                     Thread.currentThread().interrupt();
                     break;
                 }
@@ -171,10 +171,10 @@ public class BackEndInitiator implements Runnable {
     private class ServerStartHandler implements HttpRequestHandler {
         @Override
         public void handle(HttpRequest httpRequest, HttpResponse httpResponse, HttpContext httpContext) throws IOException {
-            Logger.log("BackendInitiator | received backend initiate request", Logger.LogType.CAPACITY_MODULATION);
-            BackEnd backEnd = BackEndInitiator.this.backEndFactory.produceBackEnd(new RequestMonitor("BackEnd"));
-            Thread backEndThread = BackEndInitiator.this.backEndFactory.produceBackEndThread(backEnd);
-            Logger.log("BackendInitiator | started backend thread", Logger.LogType.CAPACITY_MODULATION);
+            Logger.log("CacheServerManager | received backend initiate request", Logger.LogType.CAPACITY_MODULATION);
+            BackEnd backEnd = CacheServerManager.this.backEndFactory.produceBackEnd(new RequestMonitor("BackEnd"));
+            Thread backEndThread = CacheServerManager.this.backEndFactory.produceBackEndThread(backEnd);
+            Logger.log("CacheServerManager | started backend thread", Logger.LogType.CAPACITY_MODULATION);
             backEndThread.start();
 
             // wait for backend port to be selected by backend
@@ -183,11 +183,11 @@ public class BackEndInitiator implements Runnable {
                 try {
                     Thread.sleep(20);
                 } catch(InterruptedException e) {
-                    Logger.log("BackEndInitiator | initiateRequestHandler thread interrupted", Logger.LogType.THREAD_MANAGEMENT);
+                    Logger.log("CacheServerManager | initiateRequestHandler thread interrupted", Logger.LogType.THREAD_MANAGEMENT);
                 }
             }
 
-            BackEndInitiator.this.portsToBackendThreads.put(backEnd.port, backEndThread);
+            CacheServerManager.this.portsToServerThreads.put(backEnd.port, backEndThread);
             Logger.log("chosen backend port = " + backEnd.port, Logger.LogType.CAPACITY_MODULATION);
 
             JSONObject outputJsonObj = new JSONObject();
@@ -208,12 +208,12 @@ public class BackEndInitiator implements Runnable {
             String uri = httpRequest.getRequestLine().getUri();
             String[] parsedUri = uri.split("/");
             int port = Integer.valueOf(parsedUri[parsedUri.length - 1]);
-            Logger.log("BackEndInitiator | received request to shutdown backend on port " + port, Logger.LogType.CAPACITY_MODULATION);
+            Logger.log("CacheServerManager | received request to shutdown backend on port " + port, Logger.LogType.CAPACITY_MODULATION);
 
             if (method.equals("DELETE")) {
-                BackEndInitiator.this.portsToBackendThreads.get(port).interrupt();
-                BackEndInitiator.this.portsToBackendThreads.remove(port);
-                Logger.log("BackEndInitiator | Shut down backend server running on port " + port, Logger.LogType.CAPACITY_MODULATION);
+                CacheServerManager.this.portsToServerThreads.get(port).interrupt();
+                CacheServerManager.this.portsToServerThreads.remove(port);
+                Logger.log("CacheServerManager | Shut down backend server running on port " + port, Logger.LogType.CAPACITY_MODULATION);
             }
         }
     }

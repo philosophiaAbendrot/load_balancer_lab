@@ -30,25 +30,25 @@ public class Executor {
         Logger.configure(new Logger.LogType[] { Logger.LogType.CAPACITY_MODULATION });
         Logger.log("Run | started Run thread", Logger.LogType.THREAD_MANAGEMENT);
 
-        // start backend initiator thread
-        BackEndInitiator backendInitiator = new BackEndInitiator(new BackEndFactoryImpl());
-        Thread backendInitiatorThread = new Thread(backendInitiator);
-        backendInitiatorThread.start();
+        // start cache server manager thread
+        CacheServerManager cacheServerManager = new CacheServerManager(new BackEndFactoryImpl());
+        Thread cacheServerManagerThread = new Thread(cacheServerManager);
+        cacheServerManagerThread.start();
 
-        int backendInitiatorPort;
+        int cacheServerManagerPort;
 
-        while ((backendInitiatorPort = backendInitiator.getPort()) == -1) {
+        while ((cacheServerManagerPort = cacheServerManager.getPort()) == -1) {
             try {
                 Thread.sleep(10);
             } catch (InterruptedException e) {
-                System.out.println("Run | BackEndInitiator startup waiting loop interrupted");
+                System.out.println("Run | CacheServerManager startup waiting loop interrupted");
             }
         }
 
-        System.out.println("BackendInitiator running on port " + backendInitiatorPort);
+        System.out.println("CacheServerManager running on port " + cacheServerManagerPort);
 
         // start load balancer thread
-        LoadBalancer loadBalancer = new LoadBalancer(STARTUP_SERVER_COUNT, backendInitiatorPort, new CapacityFactorMonitorFactoryImpl(), new HttpClientFactoryImpl());
+        LoadBalancer loadBalancer = new LoadBalancer(STARTUP_SERVER_COUNT, cacheServerManagerPort, new CapacityFactorMonitorFactoryImpl(), new HttpClientFactoryImpl());
         Thread loadBalancerThread = new Thread(loadBalancer);
         loadBalancerThread.start();
         int loadBalancerPort;
@@ -134,12 +134,12 @@ public class Executor {
             e.printStackTrace();
         }
 
-        // collect data from BackEndInitiator instance
-        SortedMap<Integer, Integer> serverCountLog = backendInitiator.deliverData();
+        // collect data from CacheServerManager instance
+        SortedMap<Integer, Integer> serverCountLog = cacheServerManager.deliverData();
 
-        // shutdown BackEndInitiator instance
-        backendInitiatorThread.interrupt();
-        Logger.log("Run | shutdown stage 3: Shutdown BackendInitiator thread", Logger.LogType.THREAD_MANAGEMENT);
+        // shutdown CacheServerManager instance
+        cacheServerManagerThread.interrupt();
+        Logger.log("Run | shutdown stage 3: Shutdown CacheServerManager thread", Logger.LogType.THREAD_MANAGEMENT);
         Logger.log("Run | terminated Run thread", Logger.LogType.THREAD_MANAGEMENT);
 
         // Graph collected metrics
@@ -177,7 +177,7 @@ public class Executor {
         secondFrame.setLocationRelativeTo(null);
         secondFrame.setVisible(true);
 
-        // graph backend initiator backend server count vs time
+        // graph cacheServerManager backend server count vs time
         Graph thirdPanel = new Graph(serverCountLogOutput);
         thirdPanel.setPreferredSize((new Dimension(800, 600)));
         JFrame thirdFrame = new JFrame("Backend servers active vs time");

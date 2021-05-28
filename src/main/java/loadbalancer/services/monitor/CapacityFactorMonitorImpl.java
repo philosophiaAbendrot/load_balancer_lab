@@ -119,7 +119,7 @@ public class CapacityFactorMonitorImpl implements CapacityFactorMonitor {
 
     public int startUpBackEnd(int hashRingIndex) {
         CloseableHttpClient httpClient = this.clientFactory.buildApacheClient();
-        HttpPost httpPost = new HttpPost("http://127.0.0.1:" + this.backEndInitiatorPort + "/backends");
+        HttpPost httpPost = new HttpPost("http://127.0.0.1:" + this.backEndInitiatorPort + "/cache-servers");
 
         int portInt = -1;
 
@@ -165,7 +165,7 @@ public class CapacityFactorMonitorImpl implements CapacityFactorMonitor {
     @Override
     public void shutDownBackEnd(int backEndPort) {
         CloseableHttpClient httpClient = this.clientFactory.buildApacheClient();
-        HttpDelete httpDelete = new HttpDelete("http://127.0.0.1:" + this.backEndInitiatorPort + "/backend/" + backEndPort);
+        HttpDelete httpDelete = new HttpDelete("http://127.0.0.1:" + this.backEndInitiatorPort + "/cache-server/" + backEndPort);
 
         try {
             Thread.sleep(100);
