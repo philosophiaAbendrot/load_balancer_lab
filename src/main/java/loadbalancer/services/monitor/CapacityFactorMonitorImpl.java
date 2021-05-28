@@ -29,22 +29,22 @@ public class CapacityFactorMonitorImpl implements CapacityFactorMonitor {
     private final int HASH_RING_DENOMINATIONS = 6_000;
 
     private HttpClientFactory clientFactory;
-    private int backEndInitiatorPort;
+    private int cacheServerManagerPort;
     private ConcurrentMap<Integer, Double> capacityFactors;
     long initiationTime;
     private Map<Integer, Long> reinforcedTimes;
-    private Map<Integer, Long> backEndStartTimes;
-    private Map<Integer, Integer> backEndPortIndex;
+    private Map<Integer, Long> cacheServerStartTimes;
+    private Map<Integer, Integer> cacheServerPortIndex;
     private RequestDecoder decoder;
 
-    public CapacityFactorMonitorImpl(HttpClientFactory clientFactory, long initiationTime, int backEndInitiatorPort, RequestDecoder decoder) {
+    public CapacityFactorMonitorImpl(HttpClientFactory clientFactory, long initiationTime, int cacheServerManagerPort, RequestDecoder decoder) {
         this.clientFactory = clientFactory;
         this.reinforcedTimes = new ConcurrentHashMap<>();
-        this.backEndStartTimes = new ConcurrentHashMap<>();
+        this.cacheServerStartTimes = new ConcurrentHashMap<>();
         this.capacityFactors = new ConcurrentHashMap<>();
         this.initiationTime = initiationTime;
-        this.backEndInitiatorPort = backEndInitiatorPort;
-        this.backEndPortIndex = new ConcurrentHashMap<>();
+        this.cacheServerManagerPort = cacheServerManagerPort;
+        this.cacheServerPortIndex = new ConcurrentHashMap<>();
         this.decoder = decoder;
     }
 
@@ -54,9 +54,9 @@ public class CapacityFactorMonitorImpl implements CapacityFactorMonitor {
         CloseableHttpClient httpClient = this.clientFactory.buildApacheClient();
 
         for (Map.Entry<Integer, Double> entry : capacityFactors.entrySet()) {
-            int backEndPort = entry.getKey();
-            Logger.log(String.format("LoadBalancer - CapacityFactorMonitorImpl | sending request for update on capacity factor to port %d", backEndPort), Logger.LogType.TELEMETRY_UPDATE);
-            HttpGet httpGet = new HttpGet("http://127.0.0.1:" + backEndPort + "/capacity_factor");
+            int cacheServerPort = entry.getKey();
+            Logger.log(String.format("LoadBalancer - CapacityFactorMonitorImpl | sending request for update on capacity factor to port %d", cacheServerPort), Logger.LogType.TELEMETRY_UPDATE);
+            HttpGet httpGet = new HttpGet("http://127.0.0.1:" + cacheServerPort + "/capacity_factor");
 
             CloseableHttpResponse response = httpClient.execute(httpGet);
             JSONObject responseJson = this.decoder.extractJsonApacheResponse(response);
@@ -69,30 +69,30 @@ public class CapacityFactorMonitorImpl implements CapacityFactorMonitor {
 
             if (currentTime > initiationTime + REST_INTERVAL) {
                 if (capacityFactor > CAPACITY_FACTOR_MAX) {
-                    if (reinforcedTimes.containsKey(backEndPort)) {
+                    if (reinforcedTimes.containsKey(cacheServerPort)) {
                         // if a server has been started up to reinforce this server recently
-                        long lastReinforced = reinforcedTimes.get(backEndPort);
+                        long lastReinforced = reinforcedTimes.get(cacheServerPort);
                         Logger.log(String.format("LoadBalancer - CapacityFactorMonitorImpl | last reinforced = %d", lastReinforced), Logger.LogType.CAPACITY_MODULATION);
 
                         if (currentTime > lastReinforced + REINFORCEMENT_INTERVAL) {
                             // if the server was reinforced a while ago, clear it out from the list of recently reinforced servers
-                            Logger.log(String.format("LoadBalancer - CapacityFactorMonitorImpl | clearing backendPort %d from reinforcedTimes", backEndPort), Logger.LogType.CAPACITY_MODULATION);
-                            reinforcedTimes.remove(backEndPort);
+                            Logger.log(String.format("LoadBalancer - CapacityFactorMonitorImpl | clearing cache server port %d from reinforcedTimes", cacheServerPort), Logger.LogType.CAPACITY_MODULATION);
+                            reinforcedTimes.remove(cacheServerPort);
                             // startup a new dyno
-                            reinforceServer(backEndPort, capacityFactor);
+                            reinforceServer(cacheServerPort, capacityFactor);
                         } else {
                             // if the server was reinforced recently, do not reinforce it again
-                            Logger.log(String.format("LoadBalancer - CapacityFactorMonitorImpl | skipping reinforcement of port %d", backEndPort), Logger.LogType.CAPACITY_MODULATION);
+                            Logger.log(String.format("LoadBalancer - CapacityFactorMonitorImpl | skipping reinforcement of port %d", cacheServerPort), Logger.LogType.CAPACITY_MODULATION);
                         }
                     } else {
                         // if the server has not been reinforced recently
-                        reinforceServer(backEndPort, capacityFactor);
+                        reinforceServer(cacheServerPort, capacityFactor);
                     }
-                } else if (capacityFactor < CAPACITY_FACTOR_MIN && currentTime > this.backEndStartTimes.get(backEndPort) + MIN_TIME_TO_LIVE) {
+                } else if (capacityFactor < CAPACITY_FACTOR_MIN && currentTime > this.cacheServerStartTimes.get(cacheServerPort) + MIN_TIME_TO_LIVE) {
                     // if the server is underutilized and it has been running for at least MIN_TIME_TO_LIVE
                     // shutdown server
-                    Logger.log(String.format("LoadBalancer | backendPort %d is underutilized with cf = %f", backEndPort, capacityFactor), Logger.LogType.CAPACITY_MODULATION);
-                    shutDownBackEnd(backEndPort);
+                    Logger.log(String.format("LoadBalancer | cache server port %d is underutilized with cf = %f", cacheServerPort, capacityFactor), Logger.LogType.CAPACITY_MODULATION);
+                    shutdownCacheServer(cacheServerPort);
                 }
             }
         }
@@ -104,8 +104,8 @@ public class CapacityFactorMonitorImpl implements CapacityFactorMonitor {
         int hashRingPointer = resourceId % HASH_RING_DENOMINATIONS;
 
         while (true) {
-            // rotate clockwise on the hash ring until a backend port is found
-            if (this.backEndPortIndex.containsKey(hashRingPointer))
+            // rotate clockwise on the hash ring until a cache server port is found
+            if (this.cacheServerPortIndex.containsKey(hashRingPointer))
                 break;
 
             if (hashRingPointer == HASH_RING_DENOMINATIONS)
@@ -114,98 +114,98 @@ public class CapacityFactorMonitorImpl implements CapacityFactorMonitor {
                 hashRingPointer++;
         }
 
-        return this.backEndPortIndex.get(hashRingPointer);
+        return this.cacheServerPortIndex.get(hashRingPointer);
     }
 
-    public int startUpBackEnd(int hashRingIndex) {
+    public int startupCacheServer(int hashRingIndex) {
         CloseableHttpClient httpClient = this.clientFactory.buildApacheClient();
-        HttpPost httpPost = new HttpPost("http://127.0.0.1:" + this.backEndInitiatorPort + "/cache-servers");
+        HttpPost httpPost = new HttpPost("http://127.0.0.1:" + this.cacheServerManagerPort + "/cache-servers");
 
         int portInt = -1;
 
         while(true) {
             try {
                 Thread.sleep(100);
-                Logger.log("LoadBalancer - CapacityFactorMonitorImpl | sent request to startup a backend", Logger.LogType.CAPACITY_MODULATION);
+                Logger.log("LoadBalancer - CapacityFactorMonitorImpl | sent request to startup a cache server", Logger.LogType.CAPACITY_MODULATION);
                 CloseableHttpResponse response = httpClient.execute(httpPost);
                 Logger.log("LoadBalancer - CapacityFactorMonitorImpl | received response", Logger.LogType.CAPACITY_MODULATION);
                 JSONObject jsonObj = this.decoder.extractJsonApacheResponse(response);
                 portInt = jsonObj.getInt("port");
-                Logger.log("LoadBalancer - CapacityFactorMonitorImpl | new backend port = " + portInt, Logger.LogType.CAPACITY_MODULATION);
+                Logger.log("LoadBalancer - CapacityFactorMonitorImpl | new cache server port = " + portInt, Logger.LogType.CAPACITY_MODULATION);
                 capacityFactors.put(portInt, -1.0);
-                Logger.log("LoadBalancer - CapacityFactorMonitorImpl | backend ports:", Logger.LogType.LOAD_BALANCER_STARTUP);
+                Logger.log("LoadBalancer - CapacityFactorMonitorImpl | cache server ports:", Logger.LogType.LOAD_BALANCER_STARTUP);
 
-                for (Map.Entry<Integer, Integer> entry : this.backEndPortIndex.entrySet())
+                for (Map.Entry<Integer, Integer> entry : this.cacheServerPortIndex.entrySet())
                     Logger.log(String.format("LoadBalancer - CapacityFactorMonitorImpl | Index: %s | Port: %s", entry.getKey(), entry.getValue()), Logger.LogType.LOAD_BALANCER_STARTUP);
 
             } catch (UnsupportedEncodingException | UnsupportedOperationException | ClientProtocolException e) {
-                System.out.println(e.toString() + " thrown in LoadBalancer#startupBackend");
+                System.out.println(e.toString() + " thrown in LoadBalancer#startupCacheServer");
                 e.printStackTrace();
             } catch (InterruptedException e) {
-                System.out.println("InterruptedException thrown in LoadBalancer#startupBackend");
+                System.out.println("InterruptedException thrown in LoadBalancer#startupCacheServer");
             } catch (IOException e) {
-                System.out.println("IOException thrown in position 1 in LoadBalancer#startupBackend");
+                System.out.println("IOException thrown in position 1 in LoadBalancer#startupCacheServer");
                 e.printStackTrace();
             } finally {
                 try {
                     httpClient.close();
                 } catch (IOException e) {
-                    System.out.println("IOException thrown in position 2 in LoadBalancer#startupBackend");
+                    System.out.println("IOException thrown in position 2 in LoadBalancer#startupCacheServer");
                 }
                 break;
             }
         }
 
-        this.backEndPortIndex.put(hashRingIndex, portInt);
-        this.backEndStartTimes.put(portInt, System.currentTimeMillis());
+        this.cacheServerPortIndex.put(hashRingIndex, portInt);
+        this.cacheServerStartTimes.put(portInt, System.currentTimeMillis());
 
         return portInt;
     }
 
     @Override
-    public void shutDownBackEnd(int backEndPort) {
+    public void shutdownCacheServer(int cacheServerPort) {
         CloseableHttpClient httpClient = this.clientFactory.buildApacheClient();
-        HttpDelete httpDelete = new HttpDelete("http://127.0.0.1:" + this.backEndInitiatorPort + "/cache-server/" + backEndPort);
+        HttpDelete httpDelete = new HttpDelete("http://127.0.0.1:" + this.cacheServerManagerPort + "/cache-server/" + cacheServerPort);
 
         try {
             Thread.sleep(100);
-            Logger.log("LoadBalancer | sent request to shutdown backend running on port " + backEndPort, Logger.LogType.CAPACITY_MODULATION);
+            Logger.log("LoadBalancer | sent request to shutdown cache server running on port " + cacheServerPort, Logger.LogType.CAPACITY_MODULATION);
             httpClient.execute(httpDelete);
         } catch (InterruptedException e) {
-            System.out.println("InterruptedException thrown in LoadBalancer#shutdownBackend");
+            System.out.println("InterruptedException thrown in LoadBalancer#shutdownCacheServer");
         } catch (IOException e) {
-            System.out.println("IOException thrown in position 1 LoadBalancer#shutdownBackend");
+            System.out.println("IOException thrown in position 1 LoadBalancer#shutdownCacheServer");
         } finally {
             try {
                 httpClient.close();
             } catch (IOException e) {
-                System.out.println("IOException thrown in position 2 in LoadBalancer#shutdownBackend");
+                System.out.println("IOException thrown in position 2 in LoadBalancer#shutdownCacheServer");
             }
-            capacityFactors.remove(backEndPort);
+            capacityFactors.remove(cacheServerPort);
         }
     }
 
-    private void reinforceServer(int backEndPort, double capacityFactor) {
+    private void reinforceServer(int cacheServerPort, double capacityFactor) {
         // startup a new dyno
-        Logger.log(String.format("LoadBalancer - CapacityFactorMonitorImpl | backendPort %d is overloaded with cf = %f", backEndPort, capacityFactor), Logger.LogType.CAPACITY_MODULATION);
-        int newServerHashRingLocation = selectHashRingLocation(backEndPort);
+        Logger.log(String.format("LoadBalancer - CapacityFactorMonitorImpl | cache server port %d is overloaded with cf = %f", cacheServerPort, capacityFactor), Logger.LogType.CAPACITY_MODULATION);
+        int newServerHashRingLocation = selectHashRingLocation(cacheServerPort);
         if (newServerHashRingLocation == -1) {
             return;
         }
 
         Logger.log(String.format("LoadBalancer - CapacityFactorMonitorImpl | selected location %d for new server", newServerHashRingLocation), Logger.LogType.CAPACITY_MODULATION);
         // start a new server at the new hash ring location
-        startUpBackEnd(newServerHashRingLocation);
-        // record that backendPort was reinforced
-        reinforcedTimes.put(backEndPort, System.currentTimeMillis());
+        startupCacheServer(newServerHashRingLocation);
+        // record that cache server port was reinforced
+        reinforcedTimes.put(cacheServerPort, System.currentTimeMillis());
     }
 
     // takes location of overloaded server as input and returns the location where a new server should be placed
     // returns -1 if there's no place to put the server on the hash ring
-    private int selectHashRingLocation(int backendPort) {
+    private int selectHashRingLocation(int cacheServerPort) {
         Integer currLoc = null, prevLoc = null;
 
-        List<Integer> locations = new ArrayList<>(this.backEndPortIndex.keySet());
+        List<Integer> locations = new ArrayList<>(this.cacheServerPortIndex.keySet());
         Collections.sort(locations);
         int selectedLocation;
 
@@ -215,8 +215,8 @@ public class CapacityFactorMonitorImpl implements CapacityFactorMonitor {
             selectedLocation = HASH_RING_DENOMINATIONS / 2;
         } else {
             int firstLocation = locations.get(0);
-            if (this.backEndPortIndex.get(firstLocation) == backendPort) {
-                // if backend is in the first position in hash ring
+            if (this.cacheServerPortIndex.get(firstLocation) == cacheServerPort) {
+                // if cache server is in the first position in hash ring
                 currLoc = locations.get(0);
                 // then the previous server is the server in the last position
                 prevLoc = locations.get(locations.size() - 1);
@@ -224,7 +224,7 @@ public class CapacityFactorMonitorImpl implements CapacityFactorMonitor {
                 // otherwise
                 // the previous server is the server in the next position proceeding counterclockwise from the server
                 for (int i = 0; i < locations.size(); i++) {
-                    if (this.backEndPortIndex.get(locations.get(i)) == backendPort) {
+                    if (this.cacheServerPortIndex.get(locations.get(i)) == cacheServerPort) {
                         prevLoc = currLoc;
                         currLoc = locations.get(i);
                         break;
@@ -233,10 +233,10 @@ public class CapacityFactorMonitorImpl implements CapacityFactorMonitor {
                     }
                 }
 
-                Logger.log("LoadBalancer - CapacityFactorMonitorImpl | backendPort = " + backendPort, Logger.LogType.CAPACITY_MODULATION);
-                Logger.log("LoadBalancer - CapacityFactorMonitorImpl | backendPortIndex:", Logger.LogType.CAPACITY_MODULATION);
+                Logger.log("LoadBalancer - CapacityFactorMonitorImpl | cache server = " + cacheServerPort, Logger.LogType.CAPACITY_MODULATION);
+                Logger.log("LoadBalancer - CapacityFactorMonitorImpl | cacheServerPortIndex:", Logger.LogType.CAPACITY_MODULATION);
 
-                for (Map.Entry<Integer, Integer> entry : this.backEndPortIndex.entrySet()) {
+                for (Map.Entry<Integer, Integer> entry : this.cacheServerPortIndex.entrySet()) {
                     Logger.log("entry: " + entry.getKey() + " | " + entry.getValue(), Logger.LogType.CAPACITY_MODULATION);
                 }
 
@@ -247,7 +247,7 @@ public class CapacityFactorMonitorImpl implements CapacityFactorMonitor {
             selectedLocation = (currLoc + prevLoc) / 2;
         }
 
-        if (this.backEndPortIndex.containsKey(selectedLocation)) {
+        if (this.cacheServerPortIndex.containsKey(selectedLocation)) {
             return -1;
         } else {
             return selectedLocation;

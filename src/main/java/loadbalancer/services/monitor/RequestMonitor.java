@@ -74,7 +74,7 @@ public class RequestMonitor {
                 runningTime += datum.processingTime;
 
             double capacityFactor = runningTime / (double)(endTime - startTime);
-            Logger.log(String.format("Backend | capacityFactor = %f", capacityFactor), Logger.LogType.REQUEST_PASSING);
+            Logger.log(String.format("CacheServer | capacityFactor = %f", capacityFactor), Logger.LogType.REQUEST_PASSING);
 
             return capacityFactor;
         } else {

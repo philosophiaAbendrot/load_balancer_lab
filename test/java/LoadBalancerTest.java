@@ -14,9 +14,9 @@ import static org.mockito.Mockito.*;
 
 @TestInstance(TestInstance.Lifecycle.PER_METHOD)
 public class LoadBalancerTest {
-    static final int DEFAULT_BACKEND_PORT = 5050;
+    static final int DEFAULT_CACHE_SERVER_PORT = 5050;
     int startUpServerCount;
-    int backEndInitiatorPort;
+    int cacheServerManagerPort;
     CapacityFactorMonitorFactory capacityFactorMonitorFactoryMock;
     CapacityFactorMonitor capacityFactorMonitorMock;
     int loadBalancerPort;
@@ -27,9 +27,9 @@ public class LoadBalancerTest {
     public void setup() {
         this.capacityFactorMonitorFactoryMock = Mockito.mock(CapacityFactorMonitorFactory.class);
         this.startUpServerCount = 10;
-        this.backEndInitiatorPort = 8080;
+        this.cacheServerManagerPort = 8080;
         this.capacityFactorMonitorMock = Mockito.mock(CapacityFactorMonitor.class);
-        when(this.capacityFactorMonitorMock.startUpBackEnd(anyInt())).thenReturn(DEFAULT_BACKEND_PORT);
+        when(this.capacityFactorMonitorMock.startupCacheServer(anyInt())).thenReturn(DEFAULT_CACHE_SERVER_PORT);
         when(this.capacityFactorMonitorFactoryMock.produceCapacityFactorMonitor(any(HttpClientFactory.class), anyInt(), any(RequestDecoder.class))).thenReturn(this.capacityFactorMonitorMock);
     }
 
@@ -47,7 +47,7 @@ public class LoadBalancerTest {
         @BeforeEach
         public void setup() {
             this.clientFactoryMock = new HttpClientFactoryImpl();
-            LoadBalancerTest.this.loadBalancer = new LoadBalancer(LoadBalancerTest.this.startUpServerCount, LoadBalancerTest.this.backEndInitiatorPort, LoadBalancerTest.this.capacityFactorMonitorFactoryMock, this.clientFactoryMock);
+            LoadBalancerTest.this.loadBalancer = new LoadBalancer(LoadBalancerTest.this.startUpServerCount, LoadBalancerTest.this.cacheServerManagerPort, LoadBalancerTest.this.capacityFactorMonitorFactoryMock, this.clientFactoryMock);
             LoadBalancerTest.this.loadBalancerThread = new Thread(LoadBalancerTest.this.loadBalancer);
 
             LoadBalancerTest.this.loadBalancerThread.start();
@@ -73,9 +73,9 @@ public class LoadBalancerTest {
         }
 
         @Test
-        @DisplayName("load balancer should send requests to start up x backend server threads immediately following startup")
-        public void loadBalancerShouldSpawnBackEndThreads() {
-            verify(LoadBalancerTest.this.capacityFactorMonitorMock, times(LoadBalancerTest.this.startUpServerCount)).startUpBackEnd(anyInt());
+        @DisplayName("load balancer should send requests to start up x cache server threads immediately following startup")
+        public void loadBalancerShouldSpawnCacheServerThreads() {
+            verify(LoadBalancerTest.this.capacityFactorMonitorMock, times(LoadBalancerTest.this.startUpServerCount)).startupCacheServer(anyInt());
         }
     }
 }

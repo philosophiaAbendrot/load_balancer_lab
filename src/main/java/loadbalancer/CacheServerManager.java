@@ -1,6 +1,6 @@
 package loadbalancer;
 
-import loadbalancer.factory.BackEndFactory;
+import loadbalancer.factory.CacheServerFactory;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.text.StringEscapeUtils;
 import org.apache.http.*;
@@ -35,11 +35,11 @@ public class CacheServerManager implements Runnable {
     private HttpProcessor httpProcessor;
     private int[] selectablePorts = new int[100];
     private ServerMonitorRunnable serverMonitorRunnable;
-    private BackEndFactory backEndFactory;
+    private CacheServerFactory cacheServerFactory;
 
-    public CacheServerManager(BackEndFactory backEndFactory) {
+    public CacheServerManager(CacheServerFactory cacheServerFactory) {
         this.port = -1;
-        this.backEndFactory = backEndFactory;
+        this.cacheServerFactory = cacheServerFactory;
 
         // reserve ports 37000 through 37099 as usable ports
         for (int i = 0; i < selectablePorts.length; i++) {
@@ -115,11 +115,11 @@ public class CacheServerManager implements Runnable {
         } finally {
             // shutdown server
             server.shutdown(5, TimeUnit.SECONDS);
-            // shutdown all backend servers spawned by this server
+            // shutdown all cache servers spawned by this server
             for (Map.Entry<Integer, Thread> entry : this.portsToServerThreads.entrySet()) {
-                Thread backendThread = entry.getValue();
-                int threadId = (int)backendThread.getId();
-                backendThread.interrupt();
+                Thread serverThread = entry.getValue();
+                int threadId = (int)serverThread.getId();
+                serverThread.interrupt();
                 Logger.log("CacheServerManager | Terminating CacheServer thread " + threadId, Logger.LogType.THREAD_MANAGEMENT);
             }
 
@@ -171,15 +171,15 @@ public class CacheServerManager implements Runnable {
     private class ServerStartHandler implements HttpRequestHandler {
         @Override
         public void handle(HttpRequest httpRequest, HttpResponse httpResponse, HttpContext httpContext) throws IOException {
-            Logger.log("CacheServerManager | received backend initiate request", Logger.LogType.CAPACITY_MODULATION);
-            BackEnd backEnd = CacheServerManager.this.backEndFactory.produceBackEnd(new RequestMonitor("BackEnd"));
-            Thread backEndThread = CacheServerManager.this.backEndFactory.produceBackEndThread(backEnd);
-            Logger.log("CacheServerManager | started backend thread", Logger.LogType.CAPACITY_MODULATION);
-            backEndThread.start();
+            Logger.log("CacheServerManager | received cache server initiate request", Logger.LogType.CAPACITY_MODULATION);
+            CacheServer cacheServer = CacheServerManager.this.cacheServerFactory.produceCacheServer(new RequestMonitor("CacheServer"));
+            Thread cacheServerThread = CacheServerManager.this.cacheServerFactory.produceCacheServerThread(cacheServer);
+            Logger.log("CacheServerManager | started cache server thread", Logger.LogType.CAPACITY_MODULATION);
+            cacheServerThread.start();
 
-            // wait for backend port to be selected by backend
-            while (backEnd.port == 0) {
-                // check periodically for the backend port
+            // wait for port to be selected by cache server
+            while (cacheServer.port == 0) {
+                // check periodically for the cache server port
                 try {
                     Thread.sleep(20);
                 } catch(InterruptedException e) {
@@ -187,11 +187,11 @@ public class CacheServerManager implements Runnable {
                 }
             }
 
-            CacheServerManager.this.portsToServerThreads.put(backEnd.port, backEndThread);
-            Logger.log("chosen backend port = " + backEnd.port, Logger.LogType.CAPACITY_MODULATION);
+            CacheServerManager.this.portsToServerThreads.put(cacheServer.port, cacheServerThread);
+            Logger.log("chosen cache server port = " + cacheServer.port, Logger.LogType.CAPACITY_MODULATION);
 
             JSONObject outputJsonObj = new JSONObject();
-            outputJsonObj.put("port", backEnd.port);
+            outputJsonObj.put("port", cacheServer.port);
             String htmlResponse = StringEscapeUtils.escapeJson(outputJsonObj.toString());
             BasicHttpEntity responseEntity = new BasicHttpEntity();
             InputStream responseStream = IOUtils.toInputStream(String.valueOf(htmlResponse), StandardCharsets.UTF_8.name());
@@ -208,12 +208,12 @@ public class CacheServerManager implements Runnable {
             String uri = httpRequest.getRequestLine().getUri();
             String[] parsedUri = uri.split("/");
             int port = Integer.valueOf(parsedUri[parsedUri.length - 1]);
-            Logger.log("CacheServerManager | received request to shutdown backend on port " + port, Logger.LogType.CAPACITY_MODULATION);
+            Logger.log("CacheServerManager | received request to shutdown cache server on port " + port, Logger.LogType.CAPACITY_MODULATION);
 
             if (method.equals("DELETE")) {
                 CacheServerManager.this.portsToServerThreads.get(port).interrupt();
                 CacheServerManager.this.portsToServerThreads.remove(port);
-                Logger.log("CacheServerManager | Shut down backend server running on port " + port, Logger.LogType.CAPACITY_MODULATION);
+                Logger.log("CacheServerManager | Shut down cache server running on port " + port, Logger.LogType.CAPACITY_MODULATION);
             }
         }
     }

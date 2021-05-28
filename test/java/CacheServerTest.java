@@ -7,31 +7,31 @@ import org.junit.jupiter.api.Test;
 import java.io.IOException;
 
 import loadbalancer.services.monitor.RequestMonitor;
-import loadbalancer.BackEnd;
+import loadbalancer.CacheServer;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
-public class BackEndTest {
-    private BackEnd backend;
-    private Thread backendThread;
+public class CacheServerTest {
+    private CacheServer cacheServer;
+    private Thread cacheServerThread;
 
     @Test
-    @DisplayName("Test that backend server is running and accepting requests")
-    public void checkBackendServerRunning() {
-        backend = new BackEnd(new RequestMonitor("BackEnd"));
-        backendThread = new Thread(backend);
+    @DisplayName("Test that cache server is running and accepting requests")
+    public void checkCacheServerRunning() {
+        cacheServer = new CacheServer(new RequestMonitor("CacheServer"));
+        cacheServerThread = new Thread(cacheServer);
         int status = -1;
 
         try {
-            backendThread.start();
+            cacheServerThread.start();
 
             try {
                 Thread.sleep(100);
             } catch (InterruptedException e) {  }
 
-            int port = backend.port;
+            int port = cacheServer.port;
 
-            // send a request to the backend port
+            // send a request to the cache server port
             CloseableHttpClient httpClient = HttpClients.createDefault();
             HttpGet getRequest = new HttpGet("http://127.0.0.1:" + port);
             CloseableHttpResponse response = httpClient.execute(getRequest);
@@ -39,9 +39,9 @@ public class BackEndTest {
         } catch (IOException e) {
             e.printStackTrace();
         } finally {
-            backendThread.interrupt();
+            cacheServerThread.interrupt();
         }
 
-        assertEquals(200, status, "Backend server is not running and accepting requests");
+        assertEquals(200, status, "Cache server is not running and accepting requests");
     }
 }

@@ -29,11 +29,11 @@ public class LoadBalancer implements Runnable {
     private final int DEFAULT_PORT = 3_000;
 
     private int port;
-    private int backendInitiatorPort;
+    private int cacheServerManagerPort;
     private List<HttpRequestInterceptor> requestInterceptors = new ArrayList<>();
     private List<HttpResponseInterceptor> responseInterceptors = new ArrayList<>();
     private HttpProcessor httpProcessor;
-    // maps the port that backend server is operating on to its capacity factor
+    // maps the port that cache server server is operating on to its capacity factor
     private CapacityFactorMonitor capacityFactorMonitor;
     private CapacityFactorMonitorFactory capacityFactorMonitorFactory;
     private Thread capacityFactorMonitorThread = null;
@@ -43,9 +43,9 @@ public class LoadBalancer implements Runnable {
     private ClientRequestHandler clientRequestHandler;
     private HttpClientFactory clientFactory;
 
-    public LoadBalancer( int startupServerCount, int backendInitiatorPort, CapacityFactorMonitorFactory capFactMonitorFact, HttpClientFactory clientFactory ) {
+    public LoadBalancer(int startupServerCount, int cacheServerManagerPort, CapacityFactorMonitorFactory capFactMonitorFact, HttpClientFactory clientFactory ) {
         // dummy port to indicate that the port has not been set
-        this.backendInitiatorPort = backendInitiatorPort;
+        this.cacheServerManagerPort = cacheServerManagerPort;
         this.port = -1;
         this.incomingRequestTimestamps = Collections.synchronizedList(new LinkedList<>());
         this.initiationTime = System.currentTimeMillis();
@@ -124,11 +124,11 @@ public class LoadBalancer implements Runnable {
             break;
         }
 
-        this.capacityFactorMonitor = this.capacityFactorMonitorFactory.produceCapacityFactorMonitor(new HttpClientFactoryImpl(), this.backendInitiatorPort, new RequestDecoderImpl());
+        this.capacityFactorMonitor = this.capacityFactorMonitorFactory.produceCapacityFactorMonitor(new HttpClientFactoryImpl(), this.cacheServerManagerPort, new RequestDecoderImpl());
         CapacityFactorMonitorRunnable capacityFactorMonitorRunnable = new CapacityFactorMonitorRunnable(this.capacityFactorMonitor);
         capacityFactorMonitorThread = new Thread(capacityFactorMonitorRunnable);
         capacityFactorMonitorThread.start();
-        startupBackendCluster();
+        startupCacheServerCluster();
 
         HttpServer finalServer = server;
         Runtime.getRuntime().addShutdownHook(new Thread() {
@@ -178,41 +178,41 @@ public class LoadBalancer implements Runnable {
             String uri = httpRequest.getRequestLine().getUri();
             String[] uriArr = uri.split("/", 0);
             int resourceId = Integer.parseInt(uriArr[uriArr.length - 1]);
-            int backendPort = LoadBalancer.this.capacityFactorMonitor.selectPort(resourceId);
+            int cacheServerPort = LoadBalancer.this.capacityFactorMonitor.selectPort(resourceId);
 
             Logger.log(String.format("LoadBalancer | resourceId = %d", resourceId), Logger.LogType.REQUEST_PASSING);
-            Logger.log(String.format("LoadBalancer | relaying message to backend server at port %d", backendPort), Logger.LogType.REQUEST_PASSING);
+            Logger.log(String.format("LoadBalancer | relaying message to cache server at port %d", cacheServerPort), Logger.LogType.REQUEST_PASSING);
 
             // record request incoming timestamp
             LoadBalancer.this.incomingRequestTimestamps.add((int)(System.currentTimeMillis() / 1000));
-            HttpGet httpget = new HttpGet("http://127.0.0.1:" + backendPort);
+            HttpGet httpget = new HttpGet("http://127.0.0.1:" + cacheServerPort);
 
             try {
                 CloseableHttpResponse response = httpClient.execute(httpget);
                 HttpEntity responseBody = response.getEntity();
                 httpResponse.setEntity(responseBody);
             } catch (IOException e) {
-                // if request to Backend failed
+                // if request to cache server failed
                 JSONObject outputJsonObj = new JSONObject();
-                outputJsonObj.put("error_message", "Backend failed to respond");
+                outputJsonObj.put("error_message", "Cache server failed to respond");
                 String htmlResponse = StringEscapeUtils.escapeJson(outputJsonObj.toString());
                 InputStream stream = new ByteArrayInputStream(htmlResponse.getBytes());
                 BasicHttpEntity responseBody = new BasicHttpEntity();
                 responseBody.setContent(stream);
                 httpResponse.setStatusCode(500);
                 httpResponse.setEntity((HttpEntity)responseBody);
-                System.out.println("LoadBalancer | IOException : Backend failed to respond.");
+                System.out.println("LoadBalancer | IOException : Cache server failed to respond.");
             }
         }
     }
 
-    // BACKEND INITIALIZATION CODE
-    private void startupBackendCluster() {
+    // CACHE SERVER INITIALIZATION CODE
+    private void startupCacheServerCluster() {
         int step = HASH_RING_DENOMINATIONS / this.startupServerCount;
         int hashRingIndex = 0;
 
         for (int i = 0; i < this.startupServerCount; i++) {
-            this.capacityFactorMonitor.startUpBackEnd(hashRingIndex);
+            this.capacityFactorMonitor.startupCacheServer(hashRingIndex);
             hashRingIndex += step;
         }
     }

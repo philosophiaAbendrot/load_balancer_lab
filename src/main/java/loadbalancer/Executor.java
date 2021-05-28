@@ -10,7 +10,7 @@ import loadbalancer.factory.HttpClientFactoryImpl;
 import loadbalancer.services.ConstantDemandFunctionImpl;
 import loadbalancer.vendor.Graph;
 import loadbalancer.util.Logger;
-import loadbalancer.factory.BackEndFactoryImpl;
+import loadbalancer.factory.CacheServerFactoryImpl;
 
 public class Executor {
     final static int NUM_CLIENTS = 50;
@@ -31,7 +31,7 @@ public class Executor {
         Logger.log("Run | started Run thread", Logger.LogType.THREAD_MANAGEMENT);
 
         // start cache server manager thread
-        CacheServerManager cacheServerManager = new CacheServerManager(new BackEndFactoryImpl());
+        CacheServerManager cacheServerManager = new CacheServerManager(new CacheServerFactoryImpl());
         Thread cacheServerManagerThread = new Thread(cacheServerManager);
         cacheServerManagerThread.start();
 
@@ -177,10 +177,10 @@ public class Executor {
         secondFrame.setLocationRelativeTo(null);
         secondFrame.setVisible(true);
 
-        // graph cacheServerManager backend server count vs time
+        // graph cacheServerManager cache server count vs time
         Graph thirdPanel = new Graph(serverCountLogOutput);
         thirdPanel.setPreferredSize((new Dimension(800, 600)));
-        JFrame thirdFrame = new JFrame("Backend servers active vs time");
+        JFrame thirdFrame = new JFrame("Cache servers active vs time");
         thirdFrame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         thirdFrame.getContentPane().add(thirdPanel);
         thirdFrame.pack();

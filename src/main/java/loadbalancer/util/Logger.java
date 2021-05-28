@@ -18,7 +18,7 @@ public class Logger {
         REQUEST_PASSING,
         CLIENT_STARTUP,
         CAPACITY_MODULATION,
-        BACKEND_STARTUP,
+        CACHE_SERVER_STARTUP,
         TELEMETRY_UPDATE,
         LOAD_BALANCER_STARTUP,
         ALWAYS_PRINT
