@@ -149,7 +149,7 @@ public class CacheServer implements Runnable {
                 InetSocketAddress socketAddress = new InetSocketAddress(host, port);
                 server = HttpServer.create(socketAddress, 0);
                 server.createContext("/", customHttpHandler);
-                server.createContext("/capacity_factor", capacityFactorRequestHandler);
+                server.createContext("/capacity-factor", capacityFactorRequestHandler);
                 server.setExecutor(threadPoolExecutor);
                 Logger.log(String.format("CacheServer | Server started on %s", socketAddress.toString()), Logger.LogType.CACHE_SERVER_STARTUP);
                 break;

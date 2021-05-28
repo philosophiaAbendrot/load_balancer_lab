@@ -1,6 +1,7 @@
 package loadbalancerlab.cacheservermanager;
 
 import loadbalancerlab.factory.CacheServerFactory;
+import loadbalancerlab.factory.HttpClientFactory;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.text.StringEscapeUtils;
 import org.apache.http.*;
@@ -37,10 +38,12 @@ public class CacheServerManager implements Runnable {
     private int[] selectablePorts = new int[100];
     private ServerMonitorRunnable serverMonitorRunnable;
     private CacheServerFactory cacheServerFactory;
+    private HttpClientFactory clientFactory;
 
-    public CacheServerManager(CacheServerFactory cacheServerFactory) {
+    public CacheServerManager(CacheServerFactory cacheServerFactory, HttpClientFactory clientFactory) {
         this.port = -1;
         this.cacheServerFactory = cacheServerFactory;
+        this.clientFactory = clientFactory;
 
         // reserve ports 37000 through 37099 as usable ports
         for (int i = 0; i < selectablePorts.length; i++) {
