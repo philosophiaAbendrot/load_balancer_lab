@@ -1,6 +1,6 @@
 package loadbalancer.factory;
 
-import loadbalancer.CacheServer;
+import loadbalancer.cacheserver.CacheServer;
 import loadbalancer.services.monitor.RequestMonitor;
 
 public interface CacheServerFactory {

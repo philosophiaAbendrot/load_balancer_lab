@@ -19,7 +19,7 @@ import loadbalancer.CacheServerManager;
 import loadbalancer.factory.CacheServerFactoryImpl;
 import loadbalancer.factory.CacheServerFactory;
 import loadbalancer.services.monitor.RequestMonitor;
-import loadbalancer.CacheServer;
+import loadbalancer.cacheserver.CacheServer;
 
 import java.io.IOException;
 import java.io.InputStream;

@@ -25,6 +25,7 @@ import loadbalancer.services.monitor.ServerMonitor;
 import loadbalancer.util.Logger;
 import loadbalancer.services.monitor.RequestMonitor;
 import org.json.JSONObject;
+import loadbalancer.cacheserver.CacheServer;
 
 public class CacheServerManager implements Runnable {
     public static final int DEFAULT_PORT = 8000;
