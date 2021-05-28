@@ -15,7 +15,7 @@ import org.junit.jupiter.api.Test;
 import org.apache.http.impl.client.HttpClients;
 import org.mockito.Mockito;
 
-import loadbalancerlab.CacheServerManager;
+import loadbalancerlab.cacheservermanager.CacheServerManager;
 import loadbalancerlab.factory.CacheServerFactoryImpl;
 import loadbalancerlab.factory.CacheServerFactory;
 import loadbalancerlab.services.monitor.RequestMonitor;

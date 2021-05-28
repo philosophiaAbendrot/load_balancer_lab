@@ -1,4 +1,4 @@
-package loadbalancerlab;
+package loadbalancerlab.cacheservermanager;
 
 import loadbalancerlab.factory.CacheServerFactory;
 import org.apache.commons.io.IOUtils;

@@ -13,6 +13,7 @@ import loadbalancerlab.vendor.Graph;
 import loadbalancerlab.util.Logger;
 import loadbalancerlab.factory.CacheServerFactoryImpl;
 import loadbalancerlab.client.Client;
+import loadbalancerlab.cacheservermanager.CacheServerManager;
 
 public class Executor {
     final static int NUM_CLIENTS = 50;
