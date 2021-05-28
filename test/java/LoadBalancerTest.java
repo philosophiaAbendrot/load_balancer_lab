@@ -1,9 +1,9 @@
-import loadbalancer.LoadBalancer;
-import loadbalancer.factory.CapacityFactorMonitorFactory;
-import loadbalancer.factory.HttpClientFactory;
-import loadbalancer.factory.HttpClientFactoryImpl;
-import loadbalancer.util.RequestDecoder;
-import loadbalancer.services.monitor.CapacityFactorMonitor;
+import loadbalancerlab.loadbalancer.LoadBalancer;
+import loadbalancerlab.factory.CapacityFactorMonitorFactory;
+import loadbalancerlab.factory.HttpClientFactory;
+import loadbalancerlab.factory.HttpClientFactoryImpl;
+import loadbalancerlab.util.RequestDecoder;
+import loadbalancerlab.services.monitor.CapacityFactorMonitor;
 
 import org.junit.jupiter.api.*;
 import org.mockito.Mockito;

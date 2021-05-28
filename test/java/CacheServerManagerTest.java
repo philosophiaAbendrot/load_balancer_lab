@@ -1,5 +1,5 @@
-import loadbalancer.util.RequestDecoder;
-import loadbalancer.util.RequestDecoderImpl;
+import loadbalancerlab.util.RequestDecoder;
+import loadbalancerlab.util.RequestDecoderImpl;
 import org.apache.commons.io.IOUtils;
 import org.apache.http.HttpEntity;
 import org.apache.http.client.methods.CloseableHttpResponse;
@@ -15,11 +15,11 @@ import org.junit.jupiter.api.Test;
 import org.apache.http.impl.client.HttpClients;
 import org.mockito.Mockito;
 
-import loadbalancer.CacheServerManager;
-import loadbalancer.factory.CacheServerFactoryImpl;
-import loadbalancer.factory.CacheServerFactory;
-import loadbalancer.services.monitor.RequestMonitor;
-import loadbalancer.cacheserver.CacheServer;
+import loadbalancerlab.CacheServerManager;
+import loadbalancerlab.factory.CacheServerFactoryImpl;
+import loadbalancerlab.factory.CacheServerFactory;
+import loadbalancerlab.services.monitor.RequestMonitor;
+import loadbalancerlab.cacheserver.CacheServer;
 
 import java.io.IOException;
 import java.io.InputStream;

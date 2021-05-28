@@ -1,12 +1,12 @@
-import loadbalancer.client.Client;
-import loadbalancer.factory.HttpClientFactory;
-import loadbalancer.util.Logger;
+import loadbalancerlab.client.Client;
+import loadbalancerlab.factory.HttpClientFactory;
+import loadbalancerlab.util.Logger;
 import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.HttpUriRequest;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.junit.jupiter.api.*;
 
-import loadbalancer.services.ConstantDemandFunctionImpl;
+import loadbalancerlab.services.ConstantDemandFunctionImpl;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mockito;
 
