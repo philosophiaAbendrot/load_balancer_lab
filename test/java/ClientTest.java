@@ -1,4 +1,4 @@
-import loadbalancer.Client;
+import loadbalancer.client.Client;
 import loadbalancer.factory.HttpClientFactory;
 import loadbalancer.util.Logger;
 import org.apache.http.client.methods.CloseableHttpResponse;

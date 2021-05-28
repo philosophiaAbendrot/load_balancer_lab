@@ -11,6 +11,7 @@ import loadbalancer.services.ConstantDemandFunctionImpl;
 import loadbalancer.vendor.Graph;
 import loadbalancer.util.Logger;
 import loadbalancer.factory.CacheServerFactoryImpl;
+import loadbalancer.client.Client;
 
 public class Executor {
     final static int NUM_CLIENTS = 50;

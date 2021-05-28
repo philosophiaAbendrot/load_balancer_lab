@@ -1,4 +1,4 @@
-package loadbalancer;
+package loadbalancer.client;
 
 import loadbalancer.factory.HttpClientFactory;
 import loadbalancer.services.DemandFunction;
