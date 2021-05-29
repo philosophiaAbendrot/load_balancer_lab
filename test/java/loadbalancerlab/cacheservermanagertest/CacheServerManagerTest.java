@@ -1,3 +1,5 @@
+package loadbalancerlab.cacheservermanagertest;
+
 import loadbalancerlab.util.RequestDecoder;
 import loadbalancerlab.util.RequestDecoderImpl;
 import org.apache.commons.io.IOUtils;

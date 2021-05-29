@@ -35,6 +35,7 @@ public class ServerMonitorRunnable implements ServerMonitor, Runnable {
         this.serverInfoTable = new ConcurrentHashMap<>();
         this.clientFactory = httpClientFactory;
         this.serverCount = new TreeMap<>();
+        this.reqDecoder = reqDecoder;
         this.cacheServerManager = cacheServerManager;
     }
 
@@ -63,7 +64,7 @@ public class ServerMonitorRunnable implements ServerMonitor, Runnable {
         for (Map.Entry<Integer, ServerInfo> entry : this.serverInfoTable.entrySet()) {
             int port = entry.getKey();
             ServerInfo info = entry.getValue();
-            HttpGet req = new HttpGet("127.0.0.1:" + port + "/capacity-factor");
+            HttpGet req = new HttpGet("http://127.0.0.1:" + info.port + "/capacity-factor");
 
             try {
                 CloseableHttpResponse response = httpClient.execute(req);
