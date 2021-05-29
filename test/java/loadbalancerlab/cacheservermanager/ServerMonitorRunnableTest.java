@@ -107,7 +107,7 @@ public class ServerMonitorRunnableTest {
             for (int i = 0; i < numServers; i++)
                 serverMonitorRunnable.addServer(i, 10_000 + i);
 
-            serverMonitorRunnable.pingCacheServers(System.currentTimeMillis() / 1_000);
+            serverMonitorRunnable.pingCacheServers();
         }
 
         @Test
@@ -174,21 +174,19 @@ public class ServerMonitorRunnableTest {
     @DisplayName("Tests tick()")
     class TestRun {
         ServerMonitorRunnable spyServerMonitor;
-        int currentSecond;
         int numServers = 10;
 
         @BeforeEach
         public void setup() {
             when(mockCacheServerManager.numServers()).thenReturn(numServers);
             this.spyServerMonitor = Mockito.spy(new ServerMonitorRunnable(clientFactory, mockDecoder, mockCacheServerManager));
-            this.currentSecond = (int)(System.currentTimeMillis() / 1_000);
             this.spyServerMonitor.tick();
         }
 
         @Test
         @DisplayName("ServerMonitor should run updateServerCount method")
         public void shouldRunUpdateServerCount() {
-            verify(this.spyServerMonitor).updateServerCount(this.currentSecond, numServers);
+            verify(this.spyServerMonitor).updateServerCount(anyInt(), eq(numServers));
         }
     }
 }

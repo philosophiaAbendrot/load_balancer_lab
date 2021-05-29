@@ -22,9 +22,9 @@ public class ServerMonitorRunnable implements ServerMonitor, Runnable {
     boolean stopExecution;
 
     static class ServerInfo {
-        int id;
-        int port;
-        double capacityFactor;
+        public int id;
+        public int port;
+        public double capacityFactor;
 
         public ServerInfo( int id, int port ) {
             this.id = id;
@@ -41,6 +41,33 @@ public class ServerMonitorRunnable implements ServerMonitor, Runnable {
         this.stopExecution = false;
     }
 
+    // ServerMonitor Interface
+    // adds new cache server to record of servers
+    @Override
+    public void addServer( int id, int port ) {
+        if (this.serverInfoTable.containsKey(id)) {
+            throw new IllegalArgumentException("serverInfoTable already contains an entry for id " + id);
+        }
+        this.serverInfoTable.put(id, new ServerInfo(id, port));
+    }
+
+    // updates record of active number at a particular second in time
+    @Override
+    public void updateServerCount( int currentSecond, int numServers ) {
+        if (!this.serverCount.containsKey(currentSecond))
+            this.serverCount.put(currentSecond, numServers);
+    }
+
+    // outputs data about number of active servers vs. time
+    @Override
+    public SortedMap<Integer, Integer> deliverData() {
+        SortedMap<Integer, Integer> copyMap = new TreeMap<>();
+        copyMap.putAll(this.serverCount);
+        return copyMap;
+    }
+    // end of ServerMonitor interface
+
+    // Runnable Interface
     @Override
     public void run() {
         Logger.log("ServerMonitorRunnable | Starting ServerMonitor", Logger.LogType.THREAD_MANAGEMENT);
@@ -49,6 +76,7 @@ public class ServerMonitorRunnable implements ServerMonitor, Runnable {
             tick();
         }
     }
+    // end of Runnable Interface
 
     void tick() {
         try {
@@ -62,8 +90,7 @@ public class ServerMonitorRunnable implements ServerMonitor, Runnable {
         }
     }
 
-    @Override
-    public void pingCacheServers( long currentTime ){
+    void pingCacheServers(){
         CloseableHttpClient httpClient = this.clientFactory.buildApacheClient();
         List<Integer> ports = new ArrayList<>(this.serverInfoTable.keySet());
 
@@ -80,27 +107,5 @@ public class ServerMonitorRunnable implements ServerMonitor, Runnable {
                 e.printStackTrace();
             }
         }
-    }
-
-    // adds new cache server to record of servers
-    @Override
-    public void addServer( int id, int port ) {
-        if (this.serverInfoTable.containsKey(id)) {
-            throw new IllegalArgumentException("serverInfoTable already contains an entry for id " + id);
-        }
-        this.serverInfoTable.put(id, new ServerInfo(id, port));
-    }
-
-    @Override
-    public void updateServerCount( int currentSecond, int numServers ) {
-        if (!this.serverCount.containsKey(currentSecond))
-            this.serverCount.put(currentSecond, numServers);
-    }
-
-    @Override
-    public SortedMap<Integer, Integer> deliverData() {
-        SortedMap<Integer, Integer> copyMap = new TreeMap<>();
-        copyMap.putAll(this.serverCount);
-        return copyMap;
     }
 }

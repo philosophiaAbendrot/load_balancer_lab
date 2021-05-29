@@ -23,8 +23,6 @@ import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.TimeUnit;
 
-import loadbalancerlab.cacheservermanager.ServerMonitor;
-import loadbalancerlab.cacheservermanager.ServerMonitorRunnable;
 import loadbalancerlab.util.Logger;
 import loadbalancerlab.services.monitor.RequestMonitor;
 import org.json.JSONObject;
