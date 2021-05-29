@@ -31,8 +31,6 @@ import loadbalancerlab.cacheserver.CacheServer;
 public class CacheServerManager implements Runnable {
     public static final int DEFAULT_PORT = 8000;
     private int port;
-    private List<HttpRequestInterceptor> requestInterceptors = new ArrayList<HttpRequestInterceptor>();
-    private List<HttpResponseInterceptor> responseInterceptors = new ArrayList<HttpResponseInterceptor>();
     Map<Integer, Thread> portsToServerThreads = new ConcurrentHashMap<>();
     private HttpProcessor httpProcessor;
     private int[] selectablePorts = new int[100];
@@ -51,7 +49,7 @@ public class CacheServerManager implements Runnable {
         for (int i = 0; i < selectablePorts.length; i++)
             this.selectablePorts[i] = 37100 + i;
 
-        this.httpProcessor = new ImmutableHttpProcessor(this.requestInterceptors, this.responseInterceptors);
+        this.httpProcessor = new ImmutableHttpProcessor(new ArrayList<>(), new ArrayList<>());
         this.serverMonitor = new ServerMonitorRunnable(clientFactory, reqDecoder, this);
     }
 
@@ -59,7 +57,7 @@ public class CacheServerManager implements Runnable {
     public void run() {
         Logger.log("CacheServerManager | Started CacheServerManager thread", Logger.LogType.THREAD_MANAGEMENT);
         InetAddress hostAddress = null;
-        Thread serverMonitorThread = new Thread((Runnable) this.serverMonitor);
+        Thread serverMonitorThread = new Thread(this.serverMonitor);
         serverMonitorThread.start();
 
         try {
@@ -105,15 +103,15 @@ public class CacheServerManager implements Runnable {
 
         this.port = chosenPort;
 
-        try {
-            HttpServer finalServer = server;
-            Runtime.getRuntime().addShutdownHook(new Thread() {
-                @Override
-                public void run() {
-                    finalServer.shutdown(5, TimeUnit.SECONDS);
-                }
-            });
+        HttpServer finalServer = server;
+        Runtime.getRuntime().addShutdownHook(new Thread() {
+            @Override
+            public void run() {
+                finalServer.shutdown(5, TimeUnit.SECONDS);
+            }
+        });
 
+        try {
             server.awaitTermination(Long.MAX_VALUE, TimeUnit.SECONDS);
         } catch (InterruptedException e) {
             Logger.log("CacheServerManager | CacheServerManager thread interrupted", Logger.LogType.THREAD_MANAGEMENT);
@@ -146,6 +144,10 @@ public class CacheServerManager implements Runnable {
 
     int numServers() {
         return this.portsToServerThreads.size();
+    }
+
+    Map<Integer, ServerInfo> getServerInfo() {
+        return serverMonitor.getServerInfo();
     }
 
     private class ServerStartHandler implements HttpRequestHandler {

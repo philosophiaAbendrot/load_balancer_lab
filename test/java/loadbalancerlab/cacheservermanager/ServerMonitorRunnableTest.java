@@ -152,8 +152,8 @@ public class ServerMonitorRunnableTest {
             serverMonitorRunnable.addServer(2, 10_030);
             assertTrue(serverMonitorRunnable.serverInfoTable.containsKey(1));
             assertTrue(serverMonitorRunnable.serverInfoTable.containsKey(2));
-            ServerMonitorRunnable.ServerInfo info1 = serverMonitorRunnable.serverInfoTable.get(1);
-            ServerMonitorRunnable.ServerInfo info2 = serverMonitorRunnable.serverInfoTable.get(2);
+            ServerInfo info1 = serverMonitorRunnable.serverInfoTable.get(1);
+            ServerInfo info2 = serverMonitorRunnable.serverInfoTable.get(2);
             assertEquals(info1.id, 1);
             assertEquals(info2.id, 2);
             assertEquals(info1.port, 10_015);

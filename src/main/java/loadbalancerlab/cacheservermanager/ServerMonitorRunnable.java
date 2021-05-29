@@ -21,17 +21,6 @@ public class ServerMonitorRunnable implements ServerMonitor, Runnable {
     CacheServerManager cacheServerManager;
     boolean stopExecution;
 
-    static class ServerInfo {
-        public int id;
-        public int port;
-        public double capacityFactor;
-
-        public ServerInfo( int id, int port ) {
-            this.id = id;
-            this.port = port;
-        }
-    }
-
     public ServerMonitorRunnable( HttpClientFactory httpClientFactory, RequestDecoder reqDecoder, CacheServerManager cacheServerManager ) {
         this.serverInfoTable = new ConcurrentHashMap<>();
         this.clientFactory = httpClientFactory;
@@ -63,6 +52,14 @@ public class ServerMonitorRunnable implements ServerMonitor, Runnable {
     public SortedMap<Integer, Integer> deliverData() {
         SortedMap<Integer, Integer> copyMap = new TreeMap<>();
         copyMap.putAll(this.serverCount);
+        return copyMap;
+    }
+
+    // returns server info table
+    @Override
+    public Map<Integer, ServerInfo> getServerInfo() {
+        Map<Integer, ServerInfo> copyMap = new HashMap<>();
+        copyMap.putAll(serverInfoTable);
         return copyMap;
     }
     // end of ServerMonitor interface
