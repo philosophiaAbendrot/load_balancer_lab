@@ -1,4 +1,4 @@
-import loadbalancerlab.util.Logger;
+import loadbalancerlab.shared.Logger;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClients;

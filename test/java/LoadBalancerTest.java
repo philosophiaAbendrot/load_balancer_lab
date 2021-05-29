@@ -2,8 +2,8 @@ import loadbalancerlab.loadbalancer.LoadBalancer;
 import loadbalancerlab.factory.CapacityFactorMonitorFactory;
 import loadbalancerlab.factory.HttpClientFactory;
 import loadbalancerlab.factory.HttpClientFactoryImpl;
-import loadbalancerlab.util.Logger;
-import loadbalancerlab.util.RequestDecoder;
+import loadbalancerlab.shared.Logger;
+import loadbalancerlab.shared.RequestDecoder;
 import loadbalancerlab.services.monitor.CapacityFactorMonitor;
 
 import org.junit.jupiter.api.*;

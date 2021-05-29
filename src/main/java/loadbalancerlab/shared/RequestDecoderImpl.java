@@ -1,4 +1,4 @@
-package loadbalancerlab.util;
+package loadbalancerlab.shared;
 
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.text.StringEscapeUtils;

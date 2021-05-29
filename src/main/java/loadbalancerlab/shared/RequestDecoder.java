@@ -1,4 +1,4 @@
-package loadbalancerlab.util;
+package loadbalancerlab.shared;
 
 import org.apache.http.client.methods.CloseableHttpResponse;
 import org.json.JSONObject;

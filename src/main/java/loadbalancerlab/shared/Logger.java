@@ -1,4 +1,4 @@
-package loadbalancerlab.util;
+package loadbalancerlab.shared;
 
 import java.util.Arrays;
 import java.util.HashSet;

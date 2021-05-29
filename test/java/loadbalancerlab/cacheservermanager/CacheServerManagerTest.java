@@ -1,8 +1,8 @@
 package loadbalancerlab.cacheservermanager;
 
-import loadbalancerlab.util.Logger;
-import loadbalancerlab.util.RequestDecoder;
-import loadbalancerlab.util.RequestDecoderImpl;
+import loadbalancerlab.shared.Logger;
+import loadbalancerlab.shared.RequestDecoder;
+import loadbalancerlab.shared.RequestDecoderImpl;
 import org.apache.commons.io.IOUtils;
 import org.apache.http.HttpEntity;
 import org.apache.http.client.methods.CloseableHttpResponse;

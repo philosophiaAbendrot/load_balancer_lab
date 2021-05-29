@@ -1,6 +1,6 @@
 package loadbalancerlab.services;
 
-import loadbalancerlab.util.Logger;
+import loadbalancerlab.shared.Logger;
 
 public class ConstantDemandFunctionImpl implements DemandFunction {
     int restInterval;

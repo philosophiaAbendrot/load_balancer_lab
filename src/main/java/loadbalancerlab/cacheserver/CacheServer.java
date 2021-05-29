@@ -14,7 +14,7 @@ import java.util.*;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ThreadPoolExecutor;
 
-import loadbalancerlab.util.Logger;
+import loadbalancerlab.shared.Logger;
 
 public class CacheServer implements Runnable {
     final int TELEMETRY_CURATOR_RUNNING_TIME = 10_000;

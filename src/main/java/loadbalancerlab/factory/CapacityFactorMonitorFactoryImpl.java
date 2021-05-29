@@ -2,8 +2,8 @@ package loadbalancerlab.factory;
 
 import loadbalancerlab.services.monitor.CapacityFactorMonitor;
 import loadbalancerlab.services.monitor.CapacityFactorMonitorImpl;
-import loadbalancerlab.util.RequestDecoder;
-import loadbalancerlab.util.RequestDecoderImpl;
+import loadbalancerlab.shared.RequestDecoder;
+import loadbalancerlab.shared.RequestDecoderImpl;
 
 public class CapacityFactorMonitorFactoryImpl implements CapacityFactorMonitorFactory {
     @Override

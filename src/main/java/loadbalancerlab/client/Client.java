@@ -12,7 +12,7 @@ import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
 import java.util.*;
 
-import loadbalancerlab.util.Logger;
+import loadbalancerlab.shared.Logger;
 
 public class Client implements Runnable {
     long maxDemandTime;

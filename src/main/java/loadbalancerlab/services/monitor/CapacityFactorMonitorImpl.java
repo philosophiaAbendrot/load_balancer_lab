@@ -1,8 +1,8 @@
 package loadbalancerlab.services.monitor;
 
 import loadbalancerlab.factory.HttpClientFactory;
-import loadbalancerlab.util.RequestDecoder;
-import loadbalancerlab.util.Logger;
+import loadbalancerlab.shared.RequestDecoder;
+import loadbalancerlab.shared.Logger;
 import org.apache.http.client.ClientProtocolException;
 import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.HttpDelete;

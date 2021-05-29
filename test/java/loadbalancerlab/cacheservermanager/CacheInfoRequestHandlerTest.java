@@ -2,9 +2,9 @@ package loadbalancerlab.cacheservermanager;
 
 import loadbalancerlab.factory.HttpClientFactory;
 import loadbalancerlab.factory.HttpClientFactoryImpl;
-import loadbalancerlab.util.Logger;
-import loadbalancerlab.util.RequestDecoder;
-import loadbalancerlab.util.RequestDecoderImpl;
+import loadbalancerlab.shared.Logger;
+import loadbalancerlab.shared.RequestDecoder;
+import loadbalancerlab.shared.RequestDecoderImpl;
 import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.config.SocketConfig;
@@ -106,7 +106,7 @@ public class CacheInfoRequestHandlerTest {
                 try {
                     server.start();
                 } catch (IOException e) {
-                    serverPort;
+                    serverPort++;
                     continue;
                 }
 

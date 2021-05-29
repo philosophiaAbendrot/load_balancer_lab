@@ -2,7 +2,7 @@ package loadbalancerlab.cacheservermanager;
 
 import loadbalancerlab.factory.CacheServerFactory;
 import loadbalancerlab.factory.HttpClientFactory;
-import loadbalancerlab.util.RequestDecoder;
+import loadbalancerlab.shared.RequestDecoder;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.text.StringEscapeUtils;
 import org.apache.http.*;
@@ -23,7 +23,7 @@ import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.TimeUnit;
 
-import loadbalancerlab.util.Logger;
+import loadbalancerlab.shared.Logger;
 import loadbalancerlab.services.monitor.RequestMonitor;
 import org.json.JSONObject;
 import loadbalancerlab.cacheserver.CacheServer;

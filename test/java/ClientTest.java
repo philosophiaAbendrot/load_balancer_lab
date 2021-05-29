@@ -1,6 +1,6 @@
 import loadbalancerlab.client.Client;
 import loadbalancerlab.factory.HttpClientFactory;
-import loadbalancerlab.util.Logger;
+import loadbalancerlab.shared.Logger;
 import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.HttpUriRequest;
 import org.apache.http.impl.client.CloseableHttpClient;
