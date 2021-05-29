@@ -1,7 +1,9 @@
+import loadbalancerlab.util.Logger;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClients;
 import org.apache.http.client.methods.CloseableHttpResponse;
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import java.io.IOException;
@@ -14,6 +16,11 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 public class CacheServerTest {
     private CacheServer cacheServer;
     private Thread cacheServerThread;
+
+    @BeforeAll
+    public static void beforeAll() {
+        Logger.configure(new Logger.LogType[] { Logger.LogType.PRINT_NOTHING });
+    }
 
     @Test
     @DisplayName("Test that cache server is running and accepting requests")

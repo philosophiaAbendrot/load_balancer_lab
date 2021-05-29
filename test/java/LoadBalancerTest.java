@@ -2,6 +2,7 @@ import loadbalancerlab.loadbalancer.LoadBalancer;
 import loadbalancerlab.factory.CapacityFactorMonitorFactory;
 import loadbalancerlab.factory.HttpClientFactory;
 import loadbalancerlab.factory.HttpClientFactoryImpl;
+import loadbalancerlab.util.Logger;
 import loadbalancerlab.util.RequestDecoder;
 import loadbalancerlab.services.monitor.CapacityFactorMonitor;
 
@@ -22,6 +23,11 @@ public class LoadBalancerTest {
     int loadBalancerPort;
     Thread loadBalancerThread;
     LoadBalancer loadBalancer;
+
+    @BeforeAll
+    public static void beforeAll() {
+        Logger.configure(new Logger.LogType[] { Logger.LogType.PRINT_NOTHING });
+    }
 
     @BeforeEach
     public void setup() {

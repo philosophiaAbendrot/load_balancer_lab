@@ -28,10 +28,14 @@ public class ClientTest {
     Random rand;
     int resourceId;
 
+    @BeforeAll
+    public static void beforeAll() {
+        Logger.configure(new Logger.LogType[] { Logger.LogType.PRINT_NOTHING });
+    }
+
     @BeforeEach
     public void setup() {
         this.rand = new Random();
-        Logger.configure(new Logger.LogType[] { Logger.LogType.THREAD_MANAGEMENT, Logger.LogType.CLIENT_STARTUP });
         this.restInterval = 100;
         this.mockHttpClient = Mockito.mock(CloseableHttpClient.class);
         this.mockHttpClientFactory = Mockito.mock(HttpClientFactory.class);

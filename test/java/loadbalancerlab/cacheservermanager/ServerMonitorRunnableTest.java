@@ -27,9 +27,13 @@ public class ServerMonitorRunnableTest {
     CacheServerManager mockCacheServerManager;
     RequestDecoder mockDecoder;
 
+    @BeforeAll
+    public static void beforeAll() {
+        Logger.configure(new Logger.LogType[] { Logger.LogType.PRINT_NOTHING });
+    }
+
     @BeforeEach
     public void setup() {
-        Logger.configure(new Logger.LogType[] { Logger.LogType.CAPACITY_MODULATION });
         this.clientFactory = Mockito.mock(HttpClientFactory.class);
         this.mockClient = Mockito.mock(CloseableHttpClient.class);
         this.currentTime = System.currentTimeMillis();

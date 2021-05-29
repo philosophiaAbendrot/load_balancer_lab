@@ -55,7 +55,7 @@ public class CacheServerManager implements Runnable {
 
     @Override
     public void run() {
-        Logger.log("CacheServerManager | Started CacheServerManager thread", Logger.LogType.THREAD_MANAGEMENT);
+        Logger.log("CacheServerManager | Started CacheServerManager thread", Logger.LogType.PRINT_NOTHING);
         InetAddress hostAddress = null;
         Thread serverMonitorThread = new Thread(this.serverMonitor);
         serverMonitorThread.start();

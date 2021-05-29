@@ -38,7 +38,7 @@ public class CacheInfoRequestHandlerTest {
     static Map<Integer, ServerInfo> mockServerInfoTable;
 
     @BeforeAll
-    public static void beforeAllTests() {
+    public static void beforeAll() {
         dummyCacheServerManager = Mockito.mock(CacheServerManager.class);
         mockServerInfoTable = new HashMap<>();
 
@@ -63,7 +63,6 @@ public class CacheInfoRequestHandlerTest {
 
     @AfterAll
     public static void shutdownServer() {
-        System.out.println("interruption logic running");
         dummyServerThread.interrupt();
     }
 
@@ -95,9 +94,6 @@ public class CacheInfoRequestHandlerTest {
                     .setTcpNoDelay(true)
                     .build();
 
-            System.out.println("hostAddress = " + hostAddress);
-            System.out.println("dummyServerPort = " + DEFAULT_SERVER_PORT);
-
             while (true) {
                 server = ServerBootstrap.bootstrap()
                         .setLocalAddress(hostAddress)
@@ -110,11 +106,10 @@ public class CacheInfoRequestHandlerTest {
                 try {
                     server.start();
                 } catch (IOException e) {
-                    System.out.println("LoadBalancer | Failed to start server on port " + serverPort++);
+                    serverPort;
                     continue;
                 }
 
-                System.out.println("LoadBalancer | Started server on port " + serverPort);
                 break;
             }
 
@@ -139,7 +134,6 @@ public class CacheInfoRequestHandlerTest {
     @DisplayName("When a request is sent for server info, information is returned in JSON format")
     public void requestServerInfoReturnsJSONResponse() throws IOException {
         // send request to server, see what happens
-        System.out.println("sending a test request");
         CloseableHttpClient client = clientFactory.buildApacheClient();
         HttpGet req = new HttpGet("http://127.0.0.1:" + serverPort + "/cache-servers");
         CloseableHttpResponse response = client.execute(req);

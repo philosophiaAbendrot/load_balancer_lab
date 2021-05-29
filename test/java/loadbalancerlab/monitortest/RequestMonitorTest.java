@@ -1,5 +1,7 @@
 package loadbalancerlab.monitortest;
 
+import loadbalancerlab.util.Logger;
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -16,6 +18,11 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 public class RequestMonitorTest {
     private RequestMonitor reqMonitor;
     private List<List<Long>> reqData;
+
+    @BeforeAll
+    public static void beforeAll() {
+        Logger.configure(new Logger.LogType[] { Logger.LogType.PRINT_NOTHING });
+    }
 
     @BeforeEach
     public void setupTest() {

@@ -1,5 +1,6 @@
 package loadbalancerlab.cacheservermanager;
 
+import loadbalancerlab.util.Logger;
 import loadbalancerlab.util.RequestDecoder;
 import loadbalancerlab.util.RequestDecoderImpl;
 import org.apache.commons.io.IOUtils;
@@ -10,10 +11,7 @@ import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.methods.HttpPost;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.json.JSONObject;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.DisplayName;
-import org.junit.jupiter.api.Nested;
-import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.*;
 import org.apache.http.impl.client.HttpClients;
 import org.mockito.Mockito;
 
@@ -33,6 +31,11 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 
 public class CacheServerManagerTest {
+    @BeforeAll
+    public static void beforeAll() {
+        Logger.configure(new Logger.LogType[] { Logger.LogType.PRINT_NOTHING });
+    }
+
     @Nested
     @DisplayName("Testing with a mock cache server")
     public class MockCacheServerTests {
