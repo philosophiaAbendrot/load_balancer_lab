@@ -31,6 +31,9 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 
 public class CacheServerManagerTest {
+    CacheServerManager cacheServerManager;
+    Thread cacheServerMonitorThread;
+
     @BeforeAll
     public static void beforeAll() {
         Logger.configure(new Logger.LogType[] { Logger.LogType.PRINT_NOTHING });
@@ -42,50 +45,80 @@ public class CacheServerManagerTest {
         CacheServerFactory mockFactory;
         CacheServer mockCacheServer;
         Thread mockCacheServerThread;
-        CacheServerManager cacheServerManager;
-        Thread cacheServerMonitorThread;
         int cacheServerMonitorPort;
 
         @BeforeEach
         public void setup() {
-            this.mockFactory = Mockito.mock(CacheServerFactoryImpl.class);
-            this.mockCacheServer = Mockito.mock(CacheServer.class);
-            this.mockCacheServer.port = 37_100;
-            this.mockCacheServerThread = Mockito.mock(Thread.class);
+            mockFactory = Mockito.mock(CacheServerFactoryImpl.class);
+            mockCacheServer = Mockito.mock(CacheServer.class);
+            mockCacheServer.port = 37_100;
+            mockCacheServerThread = Mockito.mock(Thread.class);
 
-            when(this.mockFactory.produceCacheServer(any(RequestMonitor.class))).thenReturn(mockCacheServer);
-            when(this.mockFactory.produceCacheServerThread(any(CacheServer.class))).thenReturn(this.mockCacheServerThread);
+            when(mockFactory.produceCacheServer(any(RequestMonitor.class))).thenReturn(mockCacheServer);
+            when(mockFactory.produceCacheServerThread(any(CacheServer.class))).thenReturn(mockCacheServerThread);
 
-            this.cacheServerManager = new CacheServerManager(this.mockFactory, new HttpClientFactoryImpl(), new RequestDecoderImpl());
-            this.cacheServerMonitorThread = new Thread(this.cacheServerManager);
-            this.cacheServerMonitorThread.start();
-            this.cacheServerMonitorPort = CacheServerManagerTest.waitUntilServerReady(this.cacheServerManager);
+            cacheServerManager = new CacheServerManager(mockFactory, new HttpClientFactoryImpl(), new RequestDecoderImpl());
+            cacheServerMonitorThread = new Thread(cacheServerManager);
+            cacheServerMonitorThread.start();
+            cacheServerMonitorPort = CacheServerManagerTest.waitUntilServerReady(cacheServerManager);
         }
 
-        @Test
-        @DisplayName("CacheServerMonitor should start up a CacheServer instance when sent a request telling it to do so")
-        public void CacheServerMonitorShouldStartCacheServerInstance() {
-            CloseableHttpClient client = HttpClients.createDefault();
-            HttpPost req = new HttpPost("http://127.0.0.1:" + this.cacheServerMonitorPort + "/cache-servers");
-
-            try {
-                CloseableHttpResponse response = client.execute(req);
-                client.close();
-            } catch (IOException e) {
-                e.printStackTrace();
+        @Nested
+        @DisplayName("Testing startupCacheServer()")
+        public class TestingStartupCacheServer {
+            @Test
+            @DisplayName("should startup cache servers")
+            public void shouldStartCacheServerInstances() {
+                int num = 5;
+                cacheServerManager.startupCacheServer(num);
+                verify(mockFactory, times(num)).produceCacheServer(any(RequestMonitor.class));
             }
 
-            this.cacheServerMonitorThread.interrupt();
+            @Test
+            @DisplayName("should startup cache server threads")
+            public void shouldStartCacheServerThreads() {
+                int num = 5;
+                cacheServerManager.startupCacheServer(num);
+                verify(mockFactory, times(num)).produceCacheServerThread(any(CacheServer.class));
+            }
 
-            verify(this.mockFactory, times(1)).produceCacheServer(any(RequestMonitor.class));
-            verify(this.mockFactory, times(1)).produceCacheServerThread(any(CacheServer.class));
+            @Test
+            @DisplayName("should notify ServerMonitorRunnable that there is a new server")
+            public void shouldNotifyServerMonitorRunnable() {
+
+            }
+        }
+
+        @Nested
+        @DisplayName("Testing shutdownCacheServer()")
+        public class TestingShutdownCacheServer {
+            @Test
+            @DisplayName("should shutdown cache server threads")
+            public void shouldShutDownCacheServerInstance() {
+                int num = 5;
+
+                cacheServerManager.startupCacheServer(num);
+                cacheServerManager.shutdownCacheServer(num);
+            }
+
+            @Test
+            @DisplayName("should remove shutdown cache servers from serverThreadTable")
+            public void shouldRemoveShutdownCacheServers() {
+
+            }
+
+            @Test
+            @DisplayName("should notify ServerMonitorRunnable that a server has been removed")
+            public void shouldNotifyServerMonitorRunnable() {
+
+            }
         }
 
         @Test
         @DisplayName("When CacheServerMonitor thread is interrupted, it interrupts all cache servers that it has spawned")
-        public void CacheServerMonitorThreadInterruptedInterruptsAllCacheServers() {
+        public void cacheServerMonitorThreadInterruptedInterruptsAllCacheServers() {
             CloseableHttpClient client = HttpClients.createDefault();
-            HttpPost req = new HttpPost("http://127.0.0.1:" + this.cacheServerMonitorPort + "/cache-servers");
+            HttpPost req = new HttpPost("http://127.0.0.1:" + cacheServerMonitorPort + "/cache-servers");
 
             // send request to server and wait for it to be received
             try {
@@ -99,7 +132,7 @@ public class CacheServerManagerTest {
             }
 
             // interrupt cacheServerMonitor thread
-            this.cacheServerMonitorThread.interrupt();
+            cacheServerMonitorThread.interrupt();
 
             // wait for CacheServerMonitor to run interruption callbacks
             try {
@@ -109,7 +142,7 @@ public class CacheServerManagerTest {
             }
 
             // verify that CacheServerThread has been interrupted
-            verify(this.mockCacheServerThread, times(1)).interrupt();
+            verify(mockCacheServerThread, times(1)).interrupt();
         }
     }
 
@@ -117,25 +150,23 @@ public class CacheServerManagerTest {
     @DisplayName("Testing with a live cache server")
     public class LiveCacheServerTests {
         CacheServerFactory factory;
-        CacheServerManager cacheServerManager;
-        Thread cacheServerMonitorThread;
         int cacheServerMonitorPort;
         int cacheServerPort;
 
         @BeforeEach
         public void setup() {
-            this.factory = new CacheServerFactoryImpl();
-            this.cacheServerManager = new CacheServerManager(this.factory, new HttpClientFactoryImpl(), new RequestDecoderImpl());
-            this.cacheServerMonitorThread = new Thread(this.cacheServerManager);
-            this.cacheServerMonitorThread.start();
-            this.cacheServerMonitorPort = CacheServerManagerTest.waitUntilServerReady(this.cacheServerManager);
+            factory = new CacheServerFactoryImpl();
+            cacheServerManager = new CacheServerManager(factory, new HttpClientFactoryImpl(), new RequestDecoderImpl());
+            cacheServerMonitorThread = new Thread(cacheServerManager);
+            cacheServerMonitorThread.start();
+            cacheServerMonitorPort = CacheServerManagerTest.waitUntilServerReady(cacheServerManager);
             startServerAndGetPort();
         }
 
         private void startServerAndGetPort() {
             CloseableHttpClient client = HttpClients.createDefault();
-            HttpPost req = new HttpPost("http://127.0.0.1:" + this.cacheServerMonitorPort + "/cache-servers");
-            this.cacheServerPort = -1;
+            HttpPost req = new HttpPost("http://127.0.0.1:" + cacheServerMonitorPort + "/cache-servers");
+            cacheServerPort = -1;
 
             try {
                 CloseableHttpResponse response = client.execute(req);
@@ -147,53 +178,32 @@ public class CacheServerManagerTest {
                 String responseString = IOUtils.toString(responseStream, StandardCharsets.UTF_8.name());
                 response.close();
                 responseStream.close();
-                this.cacheServerPort = portInt;
+                cacheServerPort = portInt;
                 client.close();
             } catch (IOException e) {
                 e.printStackTrace();
             }
         }
 
-        @Test
-        @DisplayName("When a new cache server is started, it should return the port that the new cache server is running on")
-        public void cacheServerStartedReturnPort() {
-            // send request to port returned by the request to see if the server is active
-            CloseableHttpClient client = HttpClients.createDefault();
-            int status = -1;
-
-            if (this.cacheServerPort != -1) {
-                try {
-                    HttpGet getRequest = new HttpGet("http://127.0.0.1:" + this.cacheServerPort);
-                    CloseableHttpResponse response = client.execute(getRequest);
-                    status = response.getStatusLine().getStatusCode();
-                } catch (IOException e) { e.printStackTrace(); }
-            }
-
-            this.cacheServerMonitorThread.interrupt();
-
-            assertEquals(status, 200);
-        }
-
-        @Test
-        @DisplayName("When a request is sent to shut down a certain server, that server should be shut down")
-        public void shutDownSpecificServer() {
-            CloseableHttpClient client = HttpClients.createDefault();
-            HttpDelete req = new HttpDelete("http://127.0.0.1:" + this.cacheServerMonitorPort + "/cache-server/" + this.cacheServerPort);
-
-            try {
-                CloseableHttpResponse response = client.execute(req);
-                client.close();
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
-
-            HttpGet getReq = new HttpGet("http://127.0.0.1:" + this.cacheServerPort);
-            final CloseableHttpClient client2 = HttpClients.createDefault();
-
-            Exception exception = assertThrows(IOException.class, () -> {
-               CloseableHttpResponse response = client2.execute(getReq);
-            });
-        }
+//        @Test
+//        @DisplayName("When a new cache server is started, it should return the port that the new cache server is running on")
+//        public void cacheServerStartedReturnPort() {
+//            // send request to port returned by the request to see if the server is active
+//            CloseableHttpClient client = HttpClients.createDefault();
+//            int status = -1;
+//
+//            if (cacheServerPort != -1) {
+//                try {
+//                    HttpGet getRequest = new HttpGet("http://127.0.0.1:" + cacheServerPort);
+//                    CloseableHttpResponse response = client.execute(getRequest);
+//                    status = response.getStatusLine().getStatusCode();
+//                } catch (IOException e) { e.printStackTrace(); }
+//            }
+//
+//            cacheServerMonitorThread.interrupt();
+//
+//            assertEquals(status, 200);
+//        }
     }
 
     // waits until a server has started up

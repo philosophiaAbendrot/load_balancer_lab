@@ -86,8 +86,7 @@ public class CacheServerManager implements Runnable {
                         .setListenerPort(chosenPort)
                         .setHttpProcessor(httpProcessor)
                         .setSocketConfig(config)
-                        .registerHandler("/cache-servers", new ServerStartHandler())
-                        .registerHandler("/cache-server/*", new ServerUpdateHandler())
+                        .registerHandler("/cache-servers", new CacheInfoRequestHandler(this))
                         .create();
 
                 server.start();
@@ -144,6 +143,14 @@ public class CacheServerManager implements Runnable {
         return this.serverMonitor.deliverData();
     }
 
+    public void startupCacheServer(int num) {
+        return;
+    }
+
+    public void shutdownCacheServer(int num) {
+        return;
+    }
+
     int numServers() {
         return this.portsToServerThreads.size();
     }
@@ -152,53 +159,36 @@ public class CacheServerManager implements Runnable {
         return serverMonitor.getServerInfo();
     }
 
-    private class ServerStartHandler implements HttpRequestHandler {
-        @Override
-        public void handle(HttpRequest httpRequest, HttpResponse httpResponse, HttpContext httpContext) throws IOException {
-            Logger.log("CacheServerManager | received cache server initiate request", Logger.LogType.CAPACITY_MODULATION);
-            CacheServer cacheServer = CacheServerManager.this.cacheServerFactory.produceCacheServer(new RequestMonitor("CacheServer"));
-            Thread cacheServerThread = CacheServerManager.this.cacheServerFactory.produceCacheServerThread(cacheServer);
-            Logger.log("CacheServerManager | started cache server thread", Logger.LogType.CAPACITY_MODULATION);
-            cacheServerThread.start();
-
-            // wait for port to be selected by cache server
-            while (cacheServer.port == 0) {
-                // check periodically for the cache server port
-                try {
-                    Thread.sleep(20);
-                } catch(InterruptedException e) {
-                    Logger.log("CacheServerManager | initiateRequestHandler thread interrupted", Logger.LogType.THREAD_MANAGEMENT);
-                }
-            }
-
-            CacheServerManager.this.portsToServerThreads.put(cacheServer.port, cacheServerThread);
-            Logger.log("chosen cache server port = " + cacheServer.port, Logger.LogType.CAPACITY_MODULATION);
-
-            JSONObject outputJsonObj = new JSONObject();
-            outputJsonObj.put("port", cacheServer.port);
-            String htmlResponse = StringEscapeUtils.escapeJson(outputJsonObj.toString());
-            BasicHttpEntity responseEntity = new BasicHttpEntity();
-            InputStream responseStream = IOUtils.toInputStream(String.valueOf(htmlResponse), StandardCharsets.UTF_8.name());
-            responseEntity.setContent(responseStream);
-            responseStream.close();
-            httpResponse.setEntity(responseEntity);
-        }
-    }
-
-    private class ServerUpdateHandler implements HttpRequestHandler {
-        @Override
-        public void handle(HttpRequest httpRequest, HttpResponse httpResponse, HttpContext httpContext) {
-            String method = httpRequest.getRequestLine().getMethod();
-            String uri = httpRequest.getRequestLine().getUri();
-            String[] parsedUri = uri.split("/");
-            int port = Integer.valueOf(parsedUri[parsedUri.length - 1]);
-            Logger.log("CacheServerManager | received request to shutdown cache server on port " + port, Logger.LogType.CAPACITY_MODULATION);
-
-            if (method.equals("DELETE")) {
-                CacheServerManager.this.portsToServerThreads.get(port).interrupt();
-                CacheServerManager.this.portsToServerThreads.remove(port);
-                Logger.log("CacheServerManager | Shut down cache server running on port " + port, Logger.LogType.CAPACITY_MODULATION);
-            }
-        }
-    }
+//    private class ServerStartHandler implements HttpRequestHandler {
+//        @Override
+//        public void handle(HttpRequest httpRequest, HttpResponse httpResponse, HttpContext httpContext) throws IOException {
+//            Logger.log("CacheServerManager | received cache server initiate request", Logger.LogType.CAPACITY_MODULATION);
+//            CacheServer cacheServer = CacheServerManager.this.cacheServerFactory.produceCacheServer(new RequestMonitor("CacheServer"));
+//            Thread cacheServerThread = CacheServerManager.this.cacheServerFactory.produceCacheServerThread(cacheServer);
+//            Logger.log("CacheServerManager | started cache server thread", Logger.LogType.CAPACITY_MODULATION);
+//            cacheServerThread.start();
+//
+//            // wait for port to be selected by cache server
+//            while (cacheServer.port == 0) {
+//                // check periodically for the cache server port
+//                try {
+//                    Thread.sleep(20);
+//                } catch(InterruptedException e) {
+//                    Logger.log("CacheServerManager | initiateRequestHandler thread interrupted", Logger.LogType.THREAD_MANAGEMENT);
+//                }
+//            }
+//
+//            CacheServerManager.this.portsToServerThreads.put(cacheServer.port, cacheServerThread);
+//            Logger.log("chosen cache server port = " + cacheServer.port, Logger.LogType.CAPACITY_MODULATION);
+//
+//            JSONObject outputJsonObj = new JSONObject();
+//            outputJsonObj.put("port", cacheServer.port);
+//            String htmlResponse = StringEscapeUtils.escapeJson(outputJsonObj.toString());
+//            BasicHttpEntity responseEntity = new BasicHttpEntity();
+//            InputStream responseStream = IOUtils.toInputStream(String.valueOf(htmlResponse), StandardCharsets.UTF_8.name());
+//            responseEntity.setContent(responseStream);
+//            responseStream.close();
+//            httpResponse.setEntity(responseEntity);
+//        }
+//    }
 }
