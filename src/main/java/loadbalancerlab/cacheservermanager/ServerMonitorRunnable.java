@@ -3,6 +3,8 @@ package loadbalancerlab.cacheservermanager;
 import loadbalancerlab.factory.HttpClientFactory;
 import loadbalancerlab.shared.RequestDecoder;
 import loadbalancerlab.shared.Logger;
+import loadbalancerlab.shared.ServerInfo;
+
 import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.impl.client.CloseableHttpClient;

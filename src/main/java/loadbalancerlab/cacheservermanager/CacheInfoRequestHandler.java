@@ -11,6 +11,8 @@ import org.json.JSONObject;
 import java.io.IOException;
 import java.util.Map;
 
+import loadbalancerlab.shared.ServerInfo;
+
 public class CacheInfoRequestHandler implements HttpRequestHandler {
     CacheServerManager cacheServerManager;
     public CacheInfoRequestHandler(CacheServerManager _cacheServerManager) {

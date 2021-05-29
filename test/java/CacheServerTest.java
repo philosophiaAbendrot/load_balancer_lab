@@ -1,4 +1,7 @@
+import loadbalancerlab.services.monitor.RequestMonitor;
+import loadbalancerlab.cacheserver.CacheServer;
 import loadbalancerlab.shared.Logger;
+
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClients;
@@ -6,10 +9,8 @@ import org.apache.http.client.methods.CloseableHttpResponse;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
-import java.io.IOException;
 
-import loadbalancerlab.services.monitor.RequestMonitor;
-import loadbalancerlab.cacheserver.CacheServer;
+import java.io.IOException;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 

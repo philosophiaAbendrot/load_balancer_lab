@@ -5,6 +5,8 @@ import loadbalancerlab.factory.HttpClientFactoryImpl;
 import loadbalancerlab.shared.Logger;
 import loadbalancerlab.shared.RequestDecoder;
 import loadbalancerlab.shared.RequestDecoderImpl;
+import loadbalancerlab.shared.ServerInfo;
+
 import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.config.SocketConfig;

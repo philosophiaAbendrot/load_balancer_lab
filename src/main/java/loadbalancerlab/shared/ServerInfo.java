@@ -1,4 +1,4 @@
-package loadbalancerlab.cacheservermanager;
+package loadbalancerlab.shared;
 
 public class ServerInfo {
     public int id;

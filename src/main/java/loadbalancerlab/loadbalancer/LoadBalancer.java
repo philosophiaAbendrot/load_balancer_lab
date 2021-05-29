@@ -5,6 +5,8 @@ import loadbalancerlab.factory.HttpClientFactory;
 import loadbalancerlab.factory.HttpClientFactoryImpl;
 import loadbalancerlab.services.monitor.CapacityFactorMonitor;
 import loadbalancerlab.shared.RequestDecoderImpl;
+import loadbalancerlab.shared.Logger;
+
 import org.apache.commons.text.StringEscapeUtils;
 import org.apache.http.*;
 import org.apache.http.client.methods.CloseableHttpResponse;
@@ -21,8 +23,6 @@ import java.net.InetAddress;
 import java.net.UnknownHostException;
 import java.util.*;
 import java.util.concurrent.TimeUnit;
-
-import loadbalancerlab.shared.Logger;
 
 public class LoadBalancer implements Runnable {
     private final int HASH_RING_DENOMINATIONS = 6_000;

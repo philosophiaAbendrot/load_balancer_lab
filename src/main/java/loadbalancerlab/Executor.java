@@ -1,10 +1,5 @@
 package loadbalancerlab;
 
-import javax.swing.*;
-import java.awt.*;
-import java.util.*;
-import java.util.List;
-
 import loadbalancerlab.loadbalancer.LoadBalancer;
 import loadbalancerlab.factory.CapacityFactorMonitorFactoryImpl;
 import loadbalancerlab.factory.HttpClientFactoryImpl;
@@ -15,6 +10,11 @@ import loadbalancerlab.shared.Logger;
 import loadbalancerlab.factory.CacheServerFactoryImpl;
 import loadbalancerlab.client.Client;
 import loadbalancerlab.cacheservermanager.CacheServerManager;
+
+import javax.swing.*;
+import java.awt.*;
+import java.util.*;
+import java.util.List;
 
 public class Executor {
     final static int NUM_CLIENTS = 50;
