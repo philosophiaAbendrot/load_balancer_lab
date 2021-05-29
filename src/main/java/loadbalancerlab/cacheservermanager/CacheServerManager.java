@@ -146,6 +146,10 @@ public class CacheServerManager implements Runnable {
         return this.serverMonitor.deliverData();
     }
 
+    int numServers() {
+        return this.portsToServerThreads.size();
+    }
+
     private class ServerStartHandler implements HttpRequestHandler {
         @Override
         public void handle(HttpRequest httpRequest, HttpResponse httpResponse, HttpContext httpContext) throws IOException {

@@ -1,7 +1,5 @@
-package loadbalancerlab.cacheservermanagertest;
+package loadbalancerlab.cacheservermanager;
 
-import loadbalancerlab.cacheservermanager.CacheServerManager;
-import loadbalancerlab.cacheservermanager.ServerMonitorRunnable;
 import loadbalancerlab.factory.HttpClientFactory;
 import loadbalancerlab.util.Logger;
 import loadbalancerlab.util.RequestDecoder;
@@ -10,18 +8,14 @@ import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.methods.HttpUriRequest;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.json.JSONObject;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.DisplayName;
-import org.junit.jupiter.api.Nested;
-import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.*;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mockito;
 
 import java.io.IOException;
 import java.util.SortedMap;
 
-import static org.junit.jupiter.api.Assertions.assertTrue;
-import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 
@@ -44,8 +38,8 @@ public class ServerMonitorRunnableTest {
     }
 
     @Nested
-    @DisplayName("Testing deliverData()")
-    public class TestDeliverData {
+    @DisplayName("Testing deliverData() and updateServerCount()")
+    public class TestAnalytics {
         @BeforeEach
         public void setup() {
             serverMonitorRunnable = new ServerMonitorRunnable(clientFactory, mockDecoder, ServerMonitorRunnableTest.this.mockCacheServerManager);
@@ -90,12 +84,11 @@ public class ServerMonitorRunnableTest {
         int cacheServerPort;
         JSONObject mockJsonResponse;
         CloseableHttpResponse mockResponse;
-        CacheServerManager mockCacheServerManager;
         int numServers = 3;
 
         @BeforeEach
         public void setup() throws IOException {
-            this.mockCacheServerManager = Mockito.mock(CacheServerManager.class);
+            mockCacheServerManager = Mockito.mock(CacheServerManager.class);
             this.argument = ArgumentCaptor.forClass(HttpGet.class);
 
             // set up canned response regarding the port of the server that the cache server was started up on which is returned when a request is made through the
@@ -147,18 +140,55 @@ public class ServerMonitorRunnableTest {
     @Nested
     @DisplayName("Tests addServer()")
     class AddServer {
+        @BeforeEach
+        public void setup() {
+            serverMonitorRunnable = new ServerMonitorRunnable(clientFactory, mockDecoder, mockCacheServerManager);
+        }
 
+        @Test
+        @DisplayName("Adding server should add a new entry to serverInfoTable")
+        public void shouldAddNewEntryToTable() {
+            serverMonitorRunnable.addServer(1, 10_015);
+            serverMonitorRunnable.addServer(2, 10_030);
+            assertTrue(serverMonitorRunnable.serverInfoTable.containsKey(1));
+            assertTrue(serverMonitorRunnable.serverInfoTable.containsKey(2));
+            ServerMonitorRunnable.ServerInfo info1 = serverMonitorRunnable.serverInfoTable.get(1);
+            ServerMonitorRunnable.ServerInfo info2 = serverMonitorRunnable.serverInfoTable.get(2);
+            assertEquals(info1.id, 1);
+            assertEquals(info2.id, 2);
+            assertEquals(info1.port, 10_015);
+            assertEquals(info2.port, 10_030);
+        }
+
+        @Test
+        @DisplayName("Adding server with an existing id should raise an error")
+        public void shouldRaiseErrorWhenAddingDuplicateEntry() {
+            serverMonitorRunnable.addServer(1, 10_015);
+            assertThrows(IllegalArgumentException.class, () -> {
+                serverMonitorRunnable.addServer(1, 13_581);
+            });
+        }
     }
 
     @Nested
-    @DisplayName("Tests updateServerCount()")
-    class UpdateServerCount {
+    @DisplayName("Tests tick()")
+    class TestRun {
+        ServerMonitorRunnable spyServerMonitor;
+        int currentSecond;
+        int numServers = 10;
 
-    }
+        @BeforeEach
+        public void setup() {
+            when(mockCacheServerManager.numServers()).thenReturn(numServers);
+            this.spyServerMonitor = Mockito.spy(new ServerMonitorRunnable(clientFactory, mockDecoder, mockCacheServerManager));
+            this.currentSecond = (int)(System.currentTimeMillis() / 1_000);
+            this.spyServerMonitor.tick();
+        }
 
-    @Nested
-    @DisplayName("Tests deliverData()")
-    class DeliverData {
-
+        @Test
+        @DisplayName("ServerMonitor should run updateServerCount method")
+        public void shouldRunUpdateServerCount() {
+            verify(this.spyServerMonitor).updateServerCount(this.currentSecond, numServers);
+        }
     }
 }

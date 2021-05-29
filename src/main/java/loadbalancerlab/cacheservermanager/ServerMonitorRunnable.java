@@ -19,8 +19,9 @@ public class ServerMonitorRunnable implements ServerMonitor, Runnable {
     RequestDecoder reqDecoder;
     SortedMap<Integer, Integer> serverCount;
     CacheServerManager cacheServerManager;
+    boolean stopExecution;
 
-    private static class ServerInfo {
+    static class ServerInfo {
         int id;
         int port;
         double capacityFactor;
@@ -37,22 +38,27 @@ public class ServerMonitorRunnable implements ServerMonitor, Runnable {
         this.serverCount = new TreeMap<>();
         this.reqDecoder = reqDecoder;
         this.cacheServerManager = cacheServerManager;
+        this.stopExecution = false;
     }
 
     @Override
     public void run() {
         Logger.log("ServerMonitorRunnable | Starting ServerMonitor", Logger.LogType.THREAD_MANAGEMENT);
 
-        while (true) {
-            try {
-                Thread.sleep(100);
-                int currentSecond = (int)(System.currentTimeMillis() / 1000);
-                updateServerCount(currentSecond, cacheServerManager.portsToServerThreads.size());
-            } catch (InterruptedException e) {
-                Logger.log("ServerMonitorRunnable | Shutting down ServerMonitorRunnable", Logger.LogType.THREAD_MANAGEMENT);
-                Thread.currentThread().interrupt();
-                break;
-            }
+        while (!this.stopExecution) {
+            tick();
+        }
+    }
+
+    void tick() {
+        try {
+            Thread.sleep(100);
+            int currentSecond = (int)(System.currentTimeMillis() / 1_000);
+            updateServerCount(currentSecond, cacheServerManager.numServers());
+        } catch (InterruptedException e) {
+            Logger.log("ServerMonitorRunnable | Shutting down ServerMonitorRunnable", Logger.LogType.THREAD_MANAGEMENT);
+            Thread.currentThread().interrupt();
+            this.stopExecution = true;
         }
     }
 
@@ -64,7 +70,7 @@ public class ServerMonitorRunnable implements ServerMonitor, Runnable {
         for (Map.Entry<Integer, ServerInfo> entry : this.serverInfoTable.entrySet()) {
             int port = entry.getKey();
             ServerInfo info = entry.getValue();
-            HttpGet req = new HttpGet("http://127.0.0.1:" + info.port + "/capacity-factor");
+            HttpGet req = new HttpGet("http://127.0.0.1:" + port + "/capacity-factor");
 
             try {
                 CloseableHttpResponse response = httpClient.execute(req);
@@ -80,6 +86,9 @@ public class ServerMonitorRunnable implements ServerMonitor, Runnable {
     // adds new cache server to record of servers
     @Override
     public void addServer( int id, int port ) {
+        if (this.serverInfoTable.containsKey(id)) {
+            throw new IllegalArgumentException("serverInfoTable already contains an entry for id " + id);
+        }
         this.serverInfoTable.put(id, new ServerInfo(id, port));
     }
 
