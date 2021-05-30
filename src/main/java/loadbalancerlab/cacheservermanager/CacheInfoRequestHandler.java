@@ -14,14 +14,14 @@ import java.util.Map;
 import loadbalancerlab.shared.ServerInfo;
 
 public class CacheInfoRequestHandler implements HttpRequestHandler {
-    CacheServerManager cacheServerManager;
-    public CacheInfoRequestHandler(CacheServerManager _cacheServerManager) {
-        cacheServerManager = _cacheServerManager;
+    ServerMonitor serverMonitor;
+    public CacheInfoRequestHandler(ServerMonitor _serverMonitor) {
+        serverMonitor = _serverMonitor;
     }
 
     @Override
     public void handle( HttpRequest httpRequest, HttpResponse httpResponse, HttpContext httpContext ) throws IOException {
-        Map<Integer, ServerInfo> serverInfo = cacheServerManager.getServerInfo();
+        Map<Integer, ServerInfo> serverInfo = serverMonitor.getServerInfo();
 
         // create output json object
         JSONObject outputJson = new JSONObject();

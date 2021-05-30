@@ -26,6 +26,7 @@ import java.net.UnknownHostException;
 import java.nio.charset.StandardCharsets;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.TimeUnit;
 
 import org.json.JSONObject;
@@ -33,7 +34,7 @@ import org.json.JSONObject;
 public class CacheServerManager implements Runnable {
     public static final int DEFAULT_PORT = 8000;
     private int port;
-    Map<Integer, Thread> portsToServerThreads = new ConcurrentHashMap<>();
+    ConcurrentMap<Integer, Thread> serverThreadTable = new ConcurrentHashMap<>();
     private HttpProcessor httpProcessor;
     private int[] selectablePorts = new int[100];
     private CacheServerFactory cacheServerFactory;
@@ -86,7 +87,7 @@ public class CacheServerManager implements Runnable {
                         .setListenerPort(chosenPort)
                         .setHttpProcessor(httpProcessor)
                         .setSocketConfig(config)
-                        .registerHandler("/cache-servers", new CacheInfoRequestHandler(this))
+                        .registerHandler("/cache-servers", new CacheInfoRequestHandler(serverMonitor))
                         .create();
 
                 server.start();
@@ -120,11 +121,9 @@ public class CacheServerManager implements Runnable {
             // shutdown server
             server.shutdown(5, TimeUnit.SECONDS);
             // shutdown all cache servers spawned by this server
-            for (Map.Entry<Integer, Thread> entry : this.portsToServerThreads.entrySet()) {
-                Thread serverThread = entry.getValue();
-                int threadId = (int)serverThread.getId();
-                serverThread.interrupt();
-                Logger.log("CacheServerManager | Terminating CacheServer thread " + threadId, Logger.LogType.THREAD_MANAGEMENT);
+            for (Map.Entry<Integer, Thread> entry : serverThreadTable.entrySet()) {
+                entry.getValue().interrupt();
+                Logger.log("CacheServerManager | Terminating server id = " + entry.getKey(), Logger.LogType.THREAD_MANAGEMENT);
             }
 
             // terminate server monitor thread
@@ -152,11 +151,7 @@ public class CacheServerManager implements Runnable {
     }
 
     int numServers() {
-        return this.portsToServerThreads.size();
-    }
-
-    Map<Integer, ServerInfo> getServerInfo() {
-        return serverMonitor.getServerInfo();
+        return this.serverThreadTable.size();
     }
 
 //    private class ServerStartHandler implements HttpRequestHandler {

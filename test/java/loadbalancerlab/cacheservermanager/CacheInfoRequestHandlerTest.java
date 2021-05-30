@@ -6,6 +6,7 @@ import loadbalancerlab.shared.Logger;
 import loadbalancerlab.shared.RequestDecoder;
 import loadbalancerlab.shared.RequestDecoderImpl;
 import loadbalancerlab.shared.ServerInfo;
+import loadbalancerlab.cacheservermanager.ServerMonitor;
 
 import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.HttpGet;
@@ -36,12 +37,12 @@ public class CacheInfoRequestHandlerTest {
     static int serverPort;
     static Thread dummyServerThread;
     static RequestDecoder reqDecoder;
-    static CacheServerManager dummyCacheServerManager;
+    static ServerMonitor serverMonitorRunnable;
     static Map<Integer, ServerInfo> mockServerInfoTable;
 
     @BeforeAll
     public static void beforeAll() {
-        dummyCacheServerManager = Mockito.mock(CacheServerManager.class);
+        serverMonitorRunnable = Mockito.mock(ServerMonitor.class);
         mockServerInfoTable = new HashMap<>();
 
         ServerInfo info1 = new ServerInfo(1, 10_105);
@@ -51,9 +52,9 @@ public class CacheInfoRequestHandlerTest {
         mockServerInfoTable.put(1, info1);
         mockServerInfoTable.put(2, info2);
 
-        when(dummyCacheServerManager.getServerInfo()).thenReturn(mockServerInfoTable);
+        when(serverMonitorRunnable.getServerInfo()).thenReturn(mockServerInfoTable);
         Logger.configure(new Logger.LogType[] { Logger.LogType.PRINT_NOTHING });
-        dummyServerThread = new Thread(new DummyServer(dummyCacheServerManager));
+        dummyServerThread = new Thread(new DummyServer(serverMonitorRunnable));
         dummyServerThread.start();
         reqDecoder = new RequestDecoderImpl();
     }
@@ -70,10 +71,10 @@ public class CacheInfoRequestHandlerTest {
 
     private static class DummyServer implements Runnable {
         HttpServer server;
-        CacheServerManager cacheServerManager;
+        ServerMonitor serverMonitor;
 
-        public DummyServer(CacheServerManager _cacheServerManager) {
-            cacheServerManager = _cacheServerManager;
+        public DummyServer(ServerMonitor _serverMonitor) {
+            serverMonitor = _serverMonitor;
         }
 
         @Override
@@ -102,7 +103,7 @@ public class CacheInfoRequestHandlerTest {
                         .setListenerPort(serverPort)
                         .setHttpProcessor(httpProcessor)
                         .setSocketConfig(config)
-                        .registerHandler("/cache-servers", new CacheInfoRequestHandler(cacheServerManager))
+                        .registerHandler("/cache-servers", new CacheInfoRequestHandler(serverMonitor))
                         .create();
 
                 try {
