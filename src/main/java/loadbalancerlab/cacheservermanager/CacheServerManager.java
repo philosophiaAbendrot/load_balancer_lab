@@ -161,17 +161,17 @@ public class CacheServerManager implements Runnable {
     public void shutdownCacheServer(int num) {
         List<Integer> serverIds = new ArrayList<>(serverThreadTable.keySet());
         Random rand = new Random();
+        num = Math.min(serverThreadTable.size(), num);
 
         for (int i = 0; i < num; i++) {
-            int selectedId = serverIds.get(rand.nextInt(serverIds.size()));
+            int randIdx = rand.nextInt(serverIds.size());
+            int selectedId = serverIds.get(randIdx);
             Thread selectedThread = serverThreadTable.get(selectedId);
             selectedThread.interrupt();
             serverThreadTable.remove(selectedId);
             serverMonitor.removeServer(selectedId);
-            serverIds.remove(selectedId);
+            serverIds.remove(randIdx);
         }
-
-        return;
     }
 
     int numServers() {

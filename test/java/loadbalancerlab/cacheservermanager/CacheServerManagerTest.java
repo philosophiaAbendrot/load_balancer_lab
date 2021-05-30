@@ -25,6 +25,8 @@ import org.mockito.Mockito;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -69,10 +71,11 @@ public class CacheServerManagerTest {
         @Nested
         @DisplayName("Testing startupCacheServer()")
         public class TestingStartupCacheServer {
+            int num = 5;
+
             @Test
             @DisplayName("should startup cache servers")
             public void shouldStartCacheServerInstances() {
-                int num = 5;
                 cacheServerManager.startupCacheServer(num);
                 verify(mockFactory, times(num)).produceCacheServer(any(RequestMonitor.class));
             }
@@ -80,15 +83,13 @@ public class CacheServerManagerTest {
             @Test
             @DisplayName("should startup cache server threads")
             public void shouldStartCacheServerThreads() {
-                int num = 5;
                 cacheServerManager.startupCacheServer(num);
                 verify(mockFactory, times(num)).produceCacheServerThread(any(CacheServer.class));
             }
 
             @Test
-            @DisplayName("should notify ServerMonitorRunnable that there is a new server")
+            @DisplayName("server monitor runnable should be updated")
             public void serverMonitorRunnableShouldBeUpdated() {
-                int num = 5;
                 cacheServerManager.startupCacheServer(num);
                 Map<Integer, ServerInfo> info = cacheServerManager.serverMonitor.getServerInfo();
                 assertEquals(num, info.size());
@@ -98,29 +99,99 @@ public class CacheServerManagerTest {
         @Nested
         @DisplayName("Testing shutdownCacheServer()")
         public class TestingShutdownCacheServer {
+            int num = 5;
+
             @BeforeEach
             public void setup() {
-                cacheServerManager.startupCacheServer(10);
+                cacheServerManager.startupCacheServer(num);
             }
 
             @Test
-            @DisplayName("should shutdown cache server threads")
-            public void shouldShutDownCacheServerInstance() {
-                int num = 5;
+            @DisplayName("should shutdown all cache server threads")
+            public void shouldShutDownAllCacheServerInstances() throws InterruptedException {
                 cacheServerManager.shutdownCacheServer(num);
 
+                for (Thread serverThread : new ArrayList<>(cacheServerManager.serverThreadTable.values())) {
+                    assertEquals(true, serverThread.isInterrupted());
+                }
             }
 
             @Test
             @DisplayName("should remove shutdown cache servers from serverThreadTable")
             public void shouldRemoveShutdownCacheServers() {
-
+                cacheServerManager.shutdownCacheServer(num);
+                assertEquals(0, cacheServerManager.serverThreadTable.size());
             }
 
             @Test
-            @DisplayName("should notify ServerMonitorRunnable that a server has been removed")
-            public void shouldNotifyServerMonitorRunnable() {
+            @DisplayName("should update server monitor runnable")
+            public void serverMonitorRunnableShouldBeUpdated() {
+                cacheServerManager.shutdownCacheServer(num);
+                assertEquals(0, cacheServerManager.serverMonitor.serverInfoTable.size());
+            }
 
+            @Nested
+            @DisplayName("When shutting donw more servers than exists")
+            public class WhenShuttingDownMoreServersThanExists {
+                int numShutdown = 8;
+
+                @Test
+                @DisplayName("should shutdown all cache server threads")
+                public void shouldShutDownAllCacheServerInstances() throws InterruptedException {
+                    cacheServerManager.shutdownCacheServer(numShutdown);
+
+                    for (Thread serverThread : new ArrayList<>(cacheServerManager.serverThreadTable.values())) {
+                        assertEquals(true, serverThread.isInterrupted());
+                    }
+                }
+
+                @Test
+                @DisplayName("should remove shutdown cache servers from serverThreadTable")
+                public void shouldRemoveShutdownCacheServers() {
+                    cacheServerManager.shutdownCacheServer(numShutdown);
+                    assertEquals(0, cacheServerManager.serverThreadTable.size());
+                }
+
+                @Test
+                @DisplayName("should update server monitor runnable")
+                public void serverMonitorRunnableShouldBeUpdated() {
+                    cacheServerManager.shutdownCacheServer(numShutdown);
+                    assertEquals(0, cacheServerManager.serverMonitor.serverInfoTable.size());
+                }
+            }
+
+            @Nested
+            @DisplayName("When shutting down less servers than exists")
+            public class WhenShuttingDownLessServersThanExists {
+                int numShutdown = 3;
+
+                @Test
+                @DisplayName("should shutdown the correct number of server threads")
+                public void shouldShutdownCorrectNumberOfServers() throws InterruptedException {
+                    cacheServerManager.shutdownCacheServer(numShutdown);
+
+                    int numLiveServers = 0;
+
+                    for (Thread serverThread : new ArrayList<>(cacheServerManager.serverThreadTable.values())) {
+                        if (!serverThread.isInterrupted())
+                            numLiveServers++;
+                    }
+                    assertEquals(num - numShutdown, numLiveServers);
+                }
+
+                @Test
+                @DisplayName("should remove correct number of cache servers from server thread table")
+                public void shouldRemoveCorrectNumberOfThreads() {
+                    cacheServerManager.shutdownCacheServer(numShutdown);
+                    assertEquals(num - numShutdown, cacheServerManager.serverThreadTable.size());
+                }
+
+                @Test
+                @DisplayName("should remove correct number of entries in ServerMonitor server info table")
+                public void serverMonitorRunnableShouldBeUpdated() {
+                    cacheServerManager.shutdownCacheServer(numShutdown);
+                    assertEquals(num - numShutdown, cacheServerManager.serverMonitor.serverInfoTable.size());
+                }
             }
         }
 
