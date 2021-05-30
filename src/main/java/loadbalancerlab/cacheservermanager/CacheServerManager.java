@@ -2,34 +2,23 @@ package loadbalancerlab.cacheservermanager;
 
 import loadbalancerlab.services.monitor.RequestMonitor;
 import loadbalancerlab.cacheserver.CacheServer;
-import loadbalancerlab.shared.ServerInfo;
 import loadbalancerlab.shared.Logger;
 import loadbalancerlab.factory.CacheServerFactory;
 import loadbalancerlab.factory.HttpClientFactory;
 import loadbalancerlab.shared.RequestDecoder;
 
-import org.apache.commons.io.IOUtils;
-import org.apache.commons.text.StringEscapeUtils;
-import org.apache.http.*;
 import org.apache.http.config.SocketConfig;
-import org.apache.http.entity.BasicHttpEntity;
 import org.apache.http.impl.bootstrap.HttpServer;
 import org.apache.http.impl.bootstrap.ServerBootstrap;
-import org.apache.http.protocol.HttpContext;
 import org.apache.http.protocol.HttpProcessor;
-import org.apache.http.protocol.HttpRequestHandler;
 import org.apache.http.protocol.ImmutableHttpProcessor;
 import java.io.IOException;
-import java.io.InputStream;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
-import java.nio.charset.StandardCharsets;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.TimeUnit;
-
-import org.json.JSONObject;
 
 public class CacheServerManager implements Runnable {
     public static final int DEFAULT_PORT = 8000;
@@ -40,7 +29,7 @@ public class CacheServerManager implements Runnable {
     private CacheServerFactory cacheServerFactory;
     private HttpClientFactory clientFactory;
     public RequestDecoder reqDecoder;
-    ServerMonitorRunnable serverMonitor;
+    private ServerMonitorRunnable serverMonitor;
     static int cacheServerIdCounter;
 
     static {

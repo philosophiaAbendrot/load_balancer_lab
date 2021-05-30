@@ -20,7 +20,7 @@ public class ServerMonitorRunnable implements ServerMonitor, Runnable {
     HttpClientFactory clientFactory;
     RequestDecoder reqDecoder;
     SortedMap<Integer, Integer> serverCount;
-    CacheServerManager cacheServerManager;
+    private CacheServerManager cacheServerManager;
     boolean stopExecution;
 
     public ServerMonitorRunnable( HttpClientFactory httpClientFactory, RequestDecoder reqDecoder, CacheServerManager cacheServerManager ) {

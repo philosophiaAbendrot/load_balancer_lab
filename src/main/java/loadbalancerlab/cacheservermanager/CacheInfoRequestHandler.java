@@ -14,7 +14,7 @@ import java.util.Map;
 import loadbalancerlab.shared.ServerInfo;
 
 public class CacheInfoRequestHandler implements HttpRequestHandler {
-    ServerMonitor serverMonitor;
+    private ServerMonitor serverMonitor;
     public CacheInfoRequestHandler(ServerMonitor _serverMonitor) {
         serverMonitor = _serverMonitor;
     }
