@@ -133,9 +133,8 @@ public class CacheServerManager implements Runnable {
 
             // terminate server monitor thread
             serverMonitorThread.interrupt();
-            Logger.log("CacheServerManager | Terminated server monitor thread", Logger.LogType.THREAD_MANAGEMENT);
-            Thread.currentThread().interrupt();
             Logger.log("CacheServerManager | Terminated CacheServerManager thread", Logger.LogType.THREAD_MANAGEMENT);
+            Thread.currentThread().interrupt();
         }
     }
 

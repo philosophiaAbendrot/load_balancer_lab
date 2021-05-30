@@ -171,9 +171,11 @@ public class CacheServer implements Runnable {
                 Thread.sleep(500);
             } catch (InterruptedException e) {
                 Logger.log("CacheServer | CacheServer thread interrupted", Logger.LogType.THREAD_MANAGEMENT);
-                Thread.currentThread().interrupt();
+                // shutdown associated telemetry curator thread
+                telemetryCuratorThread.interrupt();
                 server.stop(3);
                 threadPoolExecutor.shutdown();
+                Thread.currentThread().interrupt();
                 break;
             }
         }
