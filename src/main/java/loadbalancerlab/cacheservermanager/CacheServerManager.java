@@ -40,20 +40,25 @@ public class CacheServerManager implements Runnable {
     private CacheServerFactory cacheServerFactory;
     private HttpClientFactory clientFactory;
     public RequestDecoder reqDecoder;
-    private ServerMonitorRunnable serverMonitor;
+    ServerMonitorRunnable serverMonitor;
+    static int cacheServerIdCounter;
 
-    public CacheServerManager( CacheServerFactory cacheServerFactory, HttpClientFactory clientFactory, RequestDecoder reqDecoder) {
-        this.port = -1;
-        this.cacheServerFactory = cacheServerFactory;
-        this.clientFactory = clientFactory;
-        this.reqDecoder = reqDecoder;
+    static {
+        cacheServerIdCounter = 0;
+    }
+
+    public CacheServerManager( CacheServerFactory _cacheServerFactory, HttpClientFactory _clientFactory, RequestDecoder _reqDecoder ) {
+        port = -1;
+        cacheServerFactory = _cacheServerFactory;
+        clientFactory = _clientFactory;
+        reqDecoder = _reqDecoder;
 
         // reserve ports 37000 through 37099 as usable ports
         for (int i = 0; i < selectablePorts.length; i++)
-            this.selectablePorts[i] = 37100 + i;
+            selectablePorts[i] = 37100 + i;
 
-        this.httpProcessor = new ImmutableHttpProcessor(new ArrayList<>(), new ArrayList<>());
-        this.serverMonitor = new ServerMonitorRunnable(clientFactory, reqDecoder, this);
+        httpProcessor = new ImmutableHttpProcessor(new ArrayList<>(), new ArrayList<>());
+        serverMonitor = new ServerMonitorRunnable(clientFactory, reqDecoder, this);
     }
 
     @Override
@@ -143,10 +148,29 @@ public class CacheServerManager implements Runnable {
     }
 
     public void startupCacheServer(int num) {
-        return;
+        for (int i = 0; i < num; i++) {
+            CacheServer cacheServer = cacheServerFactory.produceCacheServer(new RequestMonitor("CacheServer"));
+            Thread cacheServerThread = cacheServerFactory.produceCacheServerThread(cacheServer);
+            cacheServerThread.start();
+            serverThreadTable.put(cacheServerIdCounter, cacheServerThread);
+            serverMonitor.addServer(cacheServerIdCounter, cacheServer.port);
+            cacheServerIdCounter++;
+        }
     }
 
     public void shutdownCacheServer(int num) {
+        List<Integer> serverIds = new ArrayList<>(serverThreadTable.keySet());
+        Random rand = new Random();
+
+        for (int i = 0; i < num; i++) {
+            int selectedId = serverIds.get(rand.nextInt(serverIds.size()));
+            Thread selectedThread = serverThreadTable.get(selectedId);
+            selectedThread.interrupt();
+            serverThreadTable.remove(selectedId);
+            serverMonitor.removeServer(selectedId);
+            serverIds.remove(selectedId);
+        }
+
         return;
     }
 

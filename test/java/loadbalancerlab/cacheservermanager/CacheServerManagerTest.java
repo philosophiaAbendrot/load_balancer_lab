@@ -9,6 +9,7 @@ import loadbalancerlab.shared.Logger;
 import loadbalancerlab.shared.RequestDecoder;
 import loadbalancerlab.shared.RequestDecoderImpl;
 
+import loadbalancerlab.shared.ServerInfo;
 import org.apache.commons.io.IOUtils;
 import org.apache.http.HttpEntity;
 import org.apache.http.client.methods.CloseableHttpResponse;
@@ -24,6 +25,7 @@ import org.mockito.Mockito;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
+import java.util.Map;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
@@ -33,6 +35,7 @@ import static org.mockito.Mockito.*;
 public class CacheServerManagerTest {
     CacheServerManager cacheServerManager;
     Thread cacheServerMonitorThread;
+    ServerMonitor serverMonitor;
 
     @BeforeAll
     public static void beforeAll() {
@@ -84,21 +87,28 @@ public class CacheServerManagerTest {
 
             @Test
             @DisplayName("should notify ServerMonitorRunnable that there is a new server")
-            public void shouldNotifyServerMonitorRunnable() {
-
+            public void serverMonitorRunnableShouldBeUpdated() {
+                int num = 5;
+                cacheServerManager.startupCacheServer(num);
+                Map<Integer, ServerInfo> info = cacheServerManager.serverMonitor.getServerInfo();
+                assertEquals(num, info.size());
             }
         }
 
         @Nested
         @DisplayName("Testing shutdownCacheServer()")
         public class TestingShutdownCacheServer {
+            @BeforeEach
+            public void setup() {
+                cacheServerManager.startupCacheServer(10);
+            }
+
             @Test
             @DisplayName("should shutdown cache server threads")
             public void shouldShutDownCacheServerInstance() {
                 int num = 5;
-
-                cacheServerManager.startupCacheServer(num);
                 cacheServerManager.shutdownCacheServer(num);
+
             }
 
             @Test

@@ -42,6 +42,13 @@ public class ServerMonitorRunnable implements ServerMonitor, Runnable {
         this.serverInfoTable.put(id, new ServerInfo(id, port));
     }
 
+    @Override
+    public void removeServer(int id) {
+        if (this.serverInfoTable.containsKey(id)) {
+            this.serverInfoTable.remove(id);
+        }
+    }
+
     // updates record of active number at a particular second in time
     @Override
     public void updateServerCount( int currentSecond, int numServers ) {
