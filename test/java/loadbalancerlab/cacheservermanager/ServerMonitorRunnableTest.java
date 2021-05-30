@@ -15,6 +15,8 @@ import org.mockito.ArgumentCaptor;
 import org.mockito.Mockito;
 
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.SortedMap;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -140,6 +142,13 @@ public class ServerMonitorRunnableTest {
             assertEquals("http://127.0.0.1:" + 10001 + "/capacity-factor", request2.getURI().toString());
             HttpUriRequest request3 = this.argument.getAllValues().get(2);
             assertEquals("http://127.0.0.1:" + 10002 + "/capacity-factor", request3.getURI().toString());
+        }
+
+        @Test
+        @DisplayName("Should update its server info based on received capacity factor information")
+        public void shouldUpdateInfo() throws IOException {
+            List<ServerInfo> infoList = new ArrayList<>(serverMonitorRunnable.serverInfoTable.values());
+            assertEquals(0.5, infoList.get(0).capacityFactor);
         }
     }
 
