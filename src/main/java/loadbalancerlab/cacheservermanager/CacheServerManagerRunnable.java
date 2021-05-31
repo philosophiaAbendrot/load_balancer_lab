@@ -44,6 +44,11 @@ public class CacheServerManagerRunnable implements Runnable {
         serverMonitorThread.interrupt();
         cacheInfoServerThread.interrupt();
 
+        // interrupt cache server threads
+        for (Thread serverThread : cacheServerManager.serverThreadTable.values()) {
+            serverThread.interrupt();
+        }
+
         Thread.currentThread().interrupt();
     }
 }

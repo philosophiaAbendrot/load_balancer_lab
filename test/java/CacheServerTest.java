@@ -37,7 +37,7 @@ public class CacheServerTest {
                 Thread.sleep(100);
             } catch (InterruptedException e) {  }
 
-            int port = cacheServer.port;
+            int port = cacheServer.getPort();
 
             // send a request to the cache server port
             CloseableHttpClient httpClient = HttpClients.createDefault();

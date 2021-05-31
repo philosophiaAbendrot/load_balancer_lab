@@ -25,7 +25,6 @@ public class CacheServerManagerTest {
     CacheServerFactory mockFactory;
     CacheServer mockCacheServer;
     Thread mockCacheServerThread;
-    int cacheServerMonitorPort;
 
     @BeforeAll
     public static void beforeAll() {
@@ -36,7 +35,7 @@ public class CacheServerManagerTest {
     public void setup() {
         mockFactory = Mockito.mock(CacheServerFactoryImpl.class);
         mockCacheServer = Mockito.mock(CacheServer.class);
-        mockCacheServer.port = 37_100;
+        mockCacheServer.setPort(37_100);
         mockCacheServerThread = Mockito.mock(Thread.class);
 
         when(mockFactory.produceCacheServer(any(RequestMonitor.class))).thenReturn(mockCacheServer);
@@ -45,7 +44,6 @@ public class CacheServerManagerTest {
         cacheServerManager = new CacheServerManager(mockFactory, new HttpClientFactoryImpl(), new RequestDecoderImpl());
         cacheServerManagerThread = new Thread(cacheServerManager);
         cacheServerManagerThread.start();
-        cacheServerMonitorPort = CacheServerManagerTest.waitUntilServerReady(cacheServerManager);
     }
 
     @AfterEach
@@ -178,36 +176,5 @@ public class CacheServerManagerTest {
                 assertEquals(num - numShutdown, cacheServerManager.serverMonitor.serverInfoTable.size());
             }
         }
-    }
-
-    @Test
-    @DisplayName("When CacheServerMonitor thread is interrupted, it interrupts all cache servers that it has spawned")
-    public void cacheServerMonitorThreadInterruptedInterruptsAllCacheServers() {
-        // interrupt cacheServerMonitor thread
-        cacheServerManager.startupCacheServer(1);
-        cacheServerManagerThread.interrupt();
-        // wait for CacheServerMonitor to run interruption callbacks
-        try {
-            Thread.sleep(3_000);
-        } catch(InterruptedException e) {
-            e.printStackTrace();
-        }
-
-        verify(mockCacheServerThread, times(1)).interrupt();
-    }
-
-    // waits until a server has started up
-    // returns port
-    private static int waitUntilServerReady(CacheServerManager cacheServerManager) {
-        int cacheServerMonitorPort = cacheServerManager.getPort();
-
-        while (cacheServerMonitorPort == -1) {
-            try {
-                Thread.sleep(20);
-                cacheServerMonitorPort = cacheServerManager.getPort();
-            } catch (InterruptedException e) { }
-        }
-
-        return cacheServerMonitorPort;
     }
 }

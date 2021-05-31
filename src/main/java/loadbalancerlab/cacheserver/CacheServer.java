@@ -116,7 +116,7 @@ public class CacheServer implements Runnable {
         }
     }
 
-    public volatile int port;
+    private volatile int port;
     int[] selectablePorts = new int[100];
 
     public CacheServer(RequestMonitor reqMonitor) {
@@ -129,6 +129,14 @@ public class CacheServer implements Runnable {
     private void initializeSelectablePorts() {
         for (int i = 0; i < selectablePorts.length; i++)
             selectablePorts[i] = 37100 + i;
+    }
+
+    public int getPort() {
+        return port;
+    }
+
+    public void setPort(int _port) {
+        port = _port;
     }
 
     @Override

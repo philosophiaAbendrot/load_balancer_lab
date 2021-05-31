@@ -94,7 +94,7 @@ public class CacheServerManager implements Runnable {
             Thread cacheServerThread = cacheServerFactory.produceCacheServerThread(cacheServer);
             cacheServerThread.start();
             serverThreadTable.put(cacheServerIdCounter, cacheServerThread);
-            serverMonitor.addServer(cacheServerIdCounter, cacheServer.port);
+            serverMonitor.addServer(cacheServerIdCounter, cacheServer.getPort());
             cacheServerIdCounter++;
         }
     }
