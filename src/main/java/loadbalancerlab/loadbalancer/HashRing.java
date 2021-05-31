@@ -6,4 +6,6 @@ public interface HashRing {
     void addAngle(int serverId, int numAngles);
 
     void removeAngle(int serverId, int numAngles);
+
+    void addServer(int serverId);
 }
