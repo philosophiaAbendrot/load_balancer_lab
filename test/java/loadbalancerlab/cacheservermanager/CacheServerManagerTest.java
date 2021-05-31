@@ -112,7 +112,7 @@ public class CacheServerManagerTest {
         @DisplayName("should update server monitor runnable")
         public void serverMonitorRunnableShouldBeUpdated() {
             cacheServerManager.shutdownCacheServer(num);
-            assertEquals(0, cacheServerManager.serverMonitor.serverInfoTable.size());
+            assertEquals(0, cacheServerManager.serverMonitor    .serverInfoTable.size());
         }
 
         @Nested

@@ -15,4 +15,6 @@ interface ServerMonitor {
     SortedMap<Integer, Integer> deliverData();
 
     Map<Integer, ServerInfo> getServerInfo();
+
+    void pingCacheServers();
 }
