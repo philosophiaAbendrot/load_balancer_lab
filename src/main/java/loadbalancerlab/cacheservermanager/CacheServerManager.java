@@ -23,7 +23,7 @@ public class CacheServerManager implements Runnable {
     ServerMonitorImpl serverMonitor;
     static int cacheServerIdCounter;
     CacheInfoRequestHandler cacheInfoRequestHandler;
-    CacheInfoServer cacheInfoServer;
+    CacheInfoServerRunnable cacheInfoServer;
     Runnable serverMonitorRunnable;
     Thread serverMonitorThread;
     Thread cacheInfoServerThread;
@@ -47,7 +47,7 @@ public class CacheServerManager implements Runnable {
 
     @Override
     public void run() {
-        cacheInfoServer = new CacheInfoServer(DEFAULT_PORT, cacheInfoRequestHandler);
+        cacheInfoServer = new CacheInfoServerRunnable(DEFAULT_PORT, cacheInfoRequestHandler);
         serverMonitorRunnable = new ServerMonitorRunnable(serverMonitor, this);
         serverMonitorThread = new Thread(serverMonitorRunnable);
         cacheInfoServerThread = new Thread(cacheInfoServer);
@@ -97,6 +97,10 @@ public class CacheServerManager implements Runnable {
             serverMonitor.addServer(cacheServerIdCounter, cacheServer.port);
             cacheServerIdCounter++;
         }
+    }
+
+    public void modulateCapacity() {
+
     }
 
     public void shutdownCacheServer(int num) {

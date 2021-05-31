@@ -13,13 +13,13 @@ import java.net.UnknownHostException;
 import java.util.ArrayList;
 import java.util.concurrent.TimeUnit;
 
-public class CacheInfoServer implements Runnable {
+public class CacheInfoServerRunnable implements Runnable {
     int defaultPort;
     int port;
     CacheInfoRequestHandler cacheInfoRequestHandler;
     private HttpProcessor httpProcessor;
 
-    public CacheInfoServer(int _defaultPort, CacheInfoRequestHandler _cacheInfoRequestHandler) {
+    public CacheInfoServerRunnable( int _defaultPort, CacheInfoRequestHandler _cacheInfoRequestHandler) {
         defaultPort = _defaultPort;
         cacheInfoRequestHandler = _cacheInfoRequestHandler;
         httpProcessor = new ImmutableHttpProcessor(new ArrayList<>(), new ArrayList<>());
