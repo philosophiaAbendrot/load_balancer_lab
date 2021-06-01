@@ -43,7 +43,7 @@ public class HashRingImplTest {
         @Test
         @DisplayName("should initialize a list of angles of the correct length for that server id")
         public void initializeAngleListCorrectLength() {
-            assertEquals(DEFAULT_ANGLES_PER_SERVER, hashRing.anglesByServerId.get(baseServerId));
+            assertEquals(DEFAULT_ANGLES_PER_SERVER, hashRing.anglesByServerId.get(baseServerId).size());
         }
 
         @Test
@@ -65,7 +65,7 @@ public class HashRingImplTest {
             @Test
             @DisplayName("should initialize a list of angles of the correct length for the new server id")
             public void initializeAngleListCorrectLength() {
-                assertEquals(DEFAULT_ANGLES_PER_SERVER, hashRing.anglesByServerId.get(newServerId));
+                assertEquals(DEFAULT_ANGLES_PER_SERVER, hashRing.anglesByServerId.get(newServerId).size());
             }
 
             @Test

@@ -1,6 +1,6 @@
 package loadbalancerlab.loadbalancer;
 
-public class HashRingAngleImpl implements HashRingAngle, Comparable {
+public class HashRingAngleImpl implements HashRingAngle {
     int serverId;
     int angle;
 
@@ -17,11 +17,5 @@ public class HashRingAngleImpl implements HashRingAngle, Comparable {
     @Override
     public int getAngle() {
         return angle;
-    }
-
-    @Override
-    public int compareTo( Object o ) {
-        HashRingAngle casted = (HashRingAngle)o;
-        return angle - casted.getAngle();
     }
 }
