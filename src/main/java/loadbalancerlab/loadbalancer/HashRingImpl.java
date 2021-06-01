@@ -45,13 +45,6 @@ public class HashRingImpl implements HashRing {
 
             int angle;
 
-            Comparator<HashRingAngle> comparator = new Comparator<HashRingAngle>() {
-                @Override
-                public int compare( HashRingAngle a1, HashRingAngle a2 ) {
-                    return a1.getAngle() - a2.getAngle();
-                }
-            };
-
             while (true) {
                 angle = rand.nextInt(ringSize);
 
@@ -68,7 +61,23 @@ public class HashRingImpl implements HashRing {
 
     @Override
     public void removeAngle( int serverId, int numAngles ) {
+        Random rand = new Random();
 
+        if (!anglesByServerId.containsKey(serverId))
+            throw new IllegalArgumentException("entry for server id " + serverId + " does not exist");
+
+        for (int i = 0; i < numAngles; i++) {
+            if (anglesByServerId.get(serverId).size() <= minAnglesPerServer)
+                break;
+
+            List<HashRingAngle> angleList = anglesByServerId.get(serverId);
+
+            int randIdx = rand.nextInt(angleList.size());
+            int selectedAngle = angleList.get(randIdx).getAngle();
+
+            angleList.remove(randIdx);
+            angles.remove(selectedAngle);
+        }
     }
 
     @Override
@@ -82,6 +91,14 @@ public class HashRingImpl implements HashRing {
 
     @Override
     public void removeServer( int serverId ) {
+        if (!anglesByServerId.containsKey(serverId))
+            throw new IllegalArgumentException("Server with id = " + serverId + " is not recorded in HashRingImpl");
 
+        List<HashRingAngle> angleList = anglesByServerId.get(serverId);
+
+        for (HashRingAngle angle : angleList)
+            angles.remove(angle.getAngle());
+
+        anglesByServerId.remove(serverId);
     }
 }

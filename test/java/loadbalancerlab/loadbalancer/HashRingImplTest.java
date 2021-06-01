@@ -223,7 +223,7 @@ public class HashRingImplTest {
         @DisplayName("number of angles for that server should be reduced for that server by the correct amount")
         public void anglesShouldBeReducedInAnglesByServerId() {
             hashRing.removeAngle(serverId, numAngles);
-            assertEquals(DEFAULT_ANGLES_PER_SERVER - numAngles, hashRing.anglesByServerId.size());
+            assertEquals(DEFAULT_ANGLES_PER_SERVER - numAngles, hashRing.anglesByServerId.get(serverId).size());
         }
 
         @Test
@@ -242,7 +242,7 @@ public class HashRingImplTest {
             @DisplayName("should set number of angles to the minimum value in anglesByServerId")
             public void shouldSetAnglesToMinimumValueInAnglesByServerId() {
                 hashRing.removeAngle(serverId, numAngles);
-                assertEquals(MIN_ANGLES_PER_SERVER, hashRing.anglesByServerId.size());
+                assertEquals(MIN_ANGLES_PER_SERVER, hashRing.anglesByServerId.get(serverId).size());
             }
 
             @Test
