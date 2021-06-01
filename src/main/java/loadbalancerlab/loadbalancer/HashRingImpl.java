@@ -11,6 +11,7 @@ public class HashRingImpl implements HashRing {
     static int minAnglesPerServer;
     static int defaultAnglesPerServer;
     static int ringSize;
+    static HashFunction hashFunction;
 
     ConcurrentMap<Integer, HashRingAngle> angles;
     ConcurrentMap<Integer, List<HashRingAngle>> anglesByServerId;
@@ -20,6 +21,7 @@ public class HashRingImpl implements HashRing {
         minAnglesPerServer = config.getMinAnglesPerServer();
         defaultAnglesPerServer = config.getDefaultAnglesPerServer();
         ringSize = config.getRingSize();
+        hashFunction = config.getHashFunction();
     }
 
     public HashRingImpl() {
@@ -29,7 +31,34 @@ public class HashRingImpl implements HashRing {
 
     @Override
     public int findServerId( String resourceName ) {
-        return 0;
+        int resourcePosition = hashFunction.hash(resourceName) % ringSize;
+
+        int lowestAngle = Integer.MAX_VALUE;
+        int idLowestAngle = -1;
+
+        int lowestAngleHigherThanPos = Integer.MAX_VALUE;
+        int idLowestAngleHigherThanPos = -1;
+
+        for (Map.Entry<Integer, HashRingAngle> entry : angles.entrySet()) {
+            int angle = entry.getKey();
+            int serverId = entry.getValue().getServerId();
+
+            if (angle < lowestAngle) {
+                lowestAngle = angle;
+                idLowestAngle = serverId;
+            }
+
+            if (angle > resourcePosition && angle < lowestAngleHigherThanPos) {
+                lowestAngleHigherThanPos = angle;
+                idLowestAngleHigherThanPos = serverId;
+            }
+        }
+
+        if (idLowestAngleHigherThanPos == -1) {
+            return idLowestAngle;
+        } else {
+            return idLowestAngleHigherThanPos;
+        }
     }
 
     @Override
@@ -53,7 +82,7 @@ public class HashRingImpl implements HashRing {
                 }
             }
 
-            HashRingAngle newAngle = new HashRingAngleImpl(serverId, angle);
+            HashRingAngle newAngle = new HashRingAngleImpl(serverId, angle, hashFunction);
             anglesByServerId.get(serverId).add(newAngle);
             angles.put(angle, newAngle);
         }

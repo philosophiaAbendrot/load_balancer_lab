@@ -2,6 +2,7 @@ package loadbalancerlab.loadbalancer;
 
 import loadbalancerlab.shared.Config;
 import loadbalancerlab.shared.ConfigImpl;
+
 import org.junit.jupiter.api.*;
 
 import java.util.*;
@@ -14,6 +15,7 @@ public class HashRingImplTest {
     static final int MAX_ANGLES_PER_SERVER = 20;
     static final int MIN_ANGLES_PER_SERVER = 10;
     static final int RING_SIZE = 10_000;
+    int serverId = 5;
 
     @BeforeAll
     public static void config() {
@@ -22,6 +24,7 @@ public class HashRingImplTest {
         config.setDefaultAnglesPerServer(DEFAULT_ANGLES_PER_SERVER);
         config.setMinAnglesPerServer(MIN_ANGLES_PER_SERVER);
         config.setRingSize(RING_SIZE);
+        config.setHashFunction(new MurmurHashFunctionImpl());
         HashRingImpl.configure(config);
     }
 
@@ -128,7 +131,6 @@ public class HashRingImplTest {
     @Nested
     @DisplayName("Test addAngle()")
     class TestAddAngle {
-        int serverId = 5;
         int numAngles = 3;
 
         @BeforeEach()
@@ -211,7 +213,6 @@ public class HashRingImplTest {
     @Nested
     @DisplayName("Test removeAngle()")
     class TestRemoveAngle {
-        int serverId = 5;
         int numAngles = 3;
 
         @BeforeEach
@@ -269,7 +270,6 @@ public class HashRingImplTest {
     @Nested
     @DisplayName("Test removeServer()")
     class TestRemoveServer {
-        int serverId = 5;
 
         @BeforeEach
         public void setup() {
@@ -299,6 +299,48 @@ public class HashRingImplTest {
     @Nested
     @DisplayName("Test findServerId()")
     class TestFindServerId {
-        // I'll write these tests after I implement hashing algorithm
+        int serverId1 = 5;
+        int serverId2 = 8;
+        int serverId3 = 14;
+        int serverId4 = 2;
+        int serverId5 = 6;
+
+        String resourceName = "Chooder_Bunny.jpg";
+        HashFunction hashFunction = new MurmurHashFunctionImpl();
+
+        @BeforeEach
+        public void setup() {
+            hashFunction = new MurmurHashFunctionImpl();
+            hashRing.addServer(serverId1);
+            hashRing.addServer(serverId2);
+            hashRing.addServer(serverId3);
+            hashRing.addServer(serverId4);
+            hashRing.addServer(serverId5);
+        }
+
+        @Test
+        @DisplayName("Should find server id with the next highest angle for the resource name")
+        public void shouldFindServerWithNextHighestAngle() {
+            int position = hashFunction.hash(resourceName) % RING_SIZE;
+            System.out.println("position = " + position);
+            List<HashRingAngle> angles = new ArrayList<>(hashRing.angles.values());
+
+            Collections.sort(angles, (HashRingAngle a, HashRingAngle b) -> a.getAngle() - b.getAngle());
+
+            HashRingAngle expectedNextAngle = null;
+
+            if (position > angles.get(angles.size() - 1).getAngle()) {
+                expectedNextAngle = angles.get(0);
+            } else {
+                for (int i = 0; i < angles.size() - 1; i++) {
+                    if (angles.get(i).getAngle() > position) {
+                        expectedNextAngle = angles.get(i);
+                        break;
+                    }
+                }
+            }
+
+            assertEquals(expectedNextAngle.getServerId(), hashRing.findServerId(resourceName));
+        }
     }
 }
