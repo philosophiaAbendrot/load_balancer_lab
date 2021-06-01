@@ -8,4 +8,6 @@ public interface HashRing {
     void removeAngle(int serverId, int numAngles);
 
     void addServer(int serverId);
+
+    void removeServer(int serverId);
 }

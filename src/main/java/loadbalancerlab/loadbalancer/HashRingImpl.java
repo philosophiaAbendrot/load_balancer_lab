@@ -47,4 +47,9 @@ public class HashRingImpl implements HashRing {
     public void addServer( int serverId ) {
 
     }
+
+    @Override
+    public void removeServer( int serverId ) {
+
+    }
 }
