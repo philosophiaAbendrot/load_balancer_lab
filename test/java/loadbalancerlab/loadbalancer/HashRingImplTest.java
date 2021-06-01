@@ -73,21 +73,6 @@ public class HashRingImplTest {
             public void shouldAddNewAnglesToAnglesList() {
                 assertEquals(DEFAULT_ANGLES_PER_SERVER * 2, hashRing.angles.size());
             }
-
-            @Test
-            @DisplayName("angles list should be sorted in order from lowest to highest")
-            public void anglesListShouldBeSorted() {
-                boolean inOrder = true;
-
-                for (int i = 0; i < hashRing.angles.size() - 1; i++) {
-                    if (hashRing.angles.get(i + 1).getAngle() < hashRing.angles.get(i).getAngle()) {
-                        inOrder = false;
-                        break;
-                    }
-                }
-
-                assertTrue(inOrder);
-            }
         }
 
         @Nested
@@ -124,12 +109,12 @@ public class HashRingImplTest {
             @Test
             @DisplayName("should not change total list of angles")
             public void shouldNotChangeTotalListOfAngles() {
-                oldAngleSet = new HashSet<>(hashRing.angles);
+                oldAngleSet = new HashSet<>(hashRing.angles.values());
                 try {
                     hashRing.addServer(baseServerId);
                 } catch (IllegalArgumentException e) { }
 
-                newAngleSet = new HashSet<>(hashRing.angles);
+                newAngleSet = new HashSet<>(hashRing.angles.values());
 
                 assertEquals(oldAngleSet.size(), newAngleSet.size());
 
@@ -182,7 +167,7 @@ public class HashRingImplTest {
         public void shouldUpdateAnglesWithCorrectId() {
             hashRing.addAngle(serverId, numAngles);
 
-            for (HashRingAngle angle : hashRing.angles) {
+            for (HashRingAngle angle : hashRing.angles.values()) {
                 assertEquals(serverId, angle.getServerId());
             }
         }

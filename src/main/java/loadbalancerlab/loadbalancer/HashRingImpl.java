@@ -12,7 +12,7 @@ public class HashRingImpl implements HashRing {
     static int defaultAnglesPerServer;
     static int ringSize;
 
-    List<HashRingAngle> angles;
+    ConcurrentMap<Integer, HashRingAngle> angles;
     ConcurrentMap<Integer, List<HashRingAngle>> anglesByServerId;
 
     public static void configure( Config config) {
@@ -23,7 +23,7 @@ public class HashRingImpl implements HashRing {
     }
 
     public HashRingImpl() {
-        angles = new ArrayList<>();
+        angles = new ConcurrentHashMap<>();
         anglesByServerId = new ConcurrentHashMap<>();
     }
 
@@ -44,8 +44,6 @@ public class HashRingImpl implements HashRing {
                 break;
 
             int angle;
-            int position;
-            HashRingAngle newAngle;
 
             Comparator<HashRingAngle> comparator = new Comparator<HashRingAngle>() {
                 @Override
@@ -56,19 +54,15 @@ public class HashRingImpl implements HashRing {
 
             while (true) {
                 angle = rand.nextInt(ringSize);
-                newAngle = new HashRingAngleImpl(serverId, angle);
-                position = Collections.binarySearch(angles, newAngle, comparator);
 
-                if (position < 0) {
-                    // if server angle is not currently being used
+                if (!angles.containsKey(angle)) {
                     break;
                 }
             }
 
-            position = -(position + 1);
-
+            HashRingAngle newAngle = new HashRingAngleImpl(serverId, angle);
             anglesByServerId.get(serverId).add(newAngle);
-            angles.add(position, newAngle);
+            angles.put(angle, newAngle);
         }
     }
 
