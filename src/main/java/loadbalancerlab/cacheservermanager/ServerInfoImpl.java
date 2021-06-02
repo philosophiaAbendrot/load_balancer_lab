@@ -7,7 +7,7 @@ public class ServerInfoImpl implements ServerInfo {
     private int serverId;
     private int port;
     private SortedMap<Integer, Double> capFactorRecord;
-    int cfRecordSize = 10;
+    static int cfRecordSize = 10;
 
     public ServerInfoImpl( int _serverId, int _port ) {
         this.serverId = _serverId;
