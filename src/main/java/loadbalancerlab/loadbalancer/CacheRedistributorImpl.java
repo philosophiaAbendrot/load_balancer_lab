@@ -2,7 +2,6 @@ package loadbalancerlab.loadbalancer;
 
 import loadbalancerlab.shared.Config;
 import loadbalancerlab.shared.RequestDecoder;
-import loadbalancerlab.shared.ServerInfo;
 
 import java.util.HashMap;
 import java.util.Map;

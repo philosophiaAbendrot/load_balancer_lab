@@ -2,7 +2,6 @@ package loadbalancerlab.cacheservermanager;
 
 import loadbalancerlab.factory.HttpClientFactory;
 import loadbalancerlab.shared.RequestDecoder;
-import loadbalancerlab.shared.ServerInfo;
 import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.impl.client.CloseableHttpClient;
@@ -37,7 +36,7 @@ public class ServerMonitorImpl implements ServerMonitor {
         if (serverInfoTable.containsKey(id)) {
             throw new IllegalArgumentException("serverInfoTable already contains an entry for id " + id);
         }
-        serverInfoTable.put(id, new ServerInfo(id, port));
+        serverInfoTable.put(id, new ServerInfoImpl(id, port));
     }
 
     @Override
@@ -77,12 +76,12 @@ public class ServerMonitorImpl implements ServerMonitor {
 
         for (Map.Entry<Integer, ServerInfo> entry : this.serverInfoTable.entrySet()) {
             ServerInfo info = entry.getValue();
-            HttpGet req = new HttpGet("http://127.0.0.1:" + info.port + "/capacity-factor");
+            HttpGet req = new HttpGet("http://127.0.0.1:" + info.getPort() + "/capacity-factor");
 
             try {
                 CloseableHttpResponse response = httpClient.execute(req);
                 JSONObject responseJson = this.reqDecoder.extractJsonApacheResponse(response);
-                info.capacityFactor = responseJson.getDouble("capacity_factor");
+                info.updateCapacityFactor((int) (System.currentTimeMillis() / 1_000), responseJson.getDouble("capacity_factor"));
             } catch (IOException e) {
                 System.out.println("IOException thrown in ServerMonitorImpl#pingCacheServer");
                 e.printStackTrace();

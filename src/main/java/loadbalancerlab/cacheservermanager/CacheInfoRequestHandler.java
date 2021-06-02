@@ -11,8 +11,6 @@ import org.json.JSONObject;
 import java.io.IOException;
 import java.util.Map;
 
-import loadbalancerlab.shared.ServerInfo;
-
 public class CacheInfoRequestHandler implements HttpRequestHandler {
     private ServerMonitor serverMonitor;
     public CacheInfoRequestHandler(ServerMonitor _serverMonitor) {
@@ -29,9 +27,9 @@ public class CacheInfoRequestHandler implements HttpRequestHandler {
         for (Map.Entry<Integer, ServerInfo> entry : serverInfo.entrySet()) {
             ServerInfo info = entry.getValue();
             JSONObject jsonElement = new JSONObject();
-            jsonElement.put("port", info.port);
-            jsonElement.put("capacityFactor", info.capacityFactor);
-            outputJson.put(String.valueOf(info.id), jsonElement);
+            jsonElement.put("port", info.getPort());
+            jsonElement.put("capacityFactor", info.getAverageCapacityFactor());
+            outputJson.put(String.valueOf(info.getServerId()), jsonElement);
         }
 
         // send out json in response

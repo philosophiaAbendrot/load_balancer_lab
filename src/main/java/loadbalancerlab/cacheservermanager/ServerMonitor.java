@@ -1,7 +1,5 @@
 package loadbalancerlab.cacheservermanager;
 
-import loadbalancerlab.shared.ServerInfo;
-
 import java.util.Map;
 import java.util.SortedMap;
 

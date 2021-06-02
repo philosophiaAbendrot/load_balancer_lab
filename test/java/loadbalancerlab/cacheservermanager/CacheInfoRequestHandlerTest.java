@@ -5,7 +5,6 @@ import loadbalancerlab.factory.HttpClientFactoryImpl;
 import loadbalancerlab.shared.Logger;
 import loadbalancerlab.shared.RequestDecoder;
 import loadbalancerlab.shared.RequestDecoderImpl;
-import loadbalancerlab.shared.ServerInfo;
 
 import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.HttpGet;
@@ -43,13 +42,14 @@ public class CacheInfoRequestHandlerTest {
     public static void beforeAll() {
         serverMonitorRunnable = Mockito.mock(ServerMonitor.class);
         mockServerInfoTable = new HashMap<>();
-
-        ServerInfo info1 = new ServerInfo(1, 10_105);
-        info1.capacityFactor = 0.55;
-        ServerInfo info2 = new ServerInfo(2, 10_106);
-        info2.capacityFactor = 0.19;
-        mockServerInfoTable.put(1, info1);
-        mockServerInfoTable.put(2, info2);
+        ServerInfo mockServerInfo1 = Mockito.mock(ServerInfo.class);
+        ServerInfo mockServerInfo2 = Mockito.mock(ServerInfo.class);
+        when(mockServerInfo1.getAverageCapacityFactor()).thenReturn(0.55);
+        when(mockServerInfo2.getAverageCapacityFactor()).thenReturn(2.0);
+        when(mockServerInfo1.getPort()).thenReturn(10_105);
+        when(mockServerInfo2.getPort()).thenReturn(10_106);
+        mockServerInfoTable.put(1, mockServerInfo1);
+        mockServerInfoTable.put(2, mockServerInfo2);
 
         when(serverMonitorRunnable.getServerInfo()).thenReturn(mockServerInfoTable);
         Logger.configure(new Logger.LogType[] { Logger.LogType.PRINT_NOTHING });

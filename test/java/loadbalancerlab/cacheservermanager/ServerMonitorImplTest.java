@@ -3,7 +3,6 @@ package loadbalancerlab.cacheservermanager;
 import loadbalancerlab.factory.HttpClientFactory;
 import loadbalancerlab.shared.Logger;
 import loadbalancerlab.shared.RequestDecoder;
-import loadbalancerlab.shared.ServerInfo;
 import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.methods.HttpUriRequest;
@@ -147,7 +146,7 @@ public class ServerMonitorImplTest {
         @DisplayName("Should update its server info based on received capacity factor information")
         public void shouldUpdateInfo() throws IOException {
             List<ServerInfo> infoList = new ArrayList<>(serverMonitor.serverInfoTable.values());
-            assertEquals(0.5, infoList.get(0).capacityFactor);
+            assertEquals(0.5, infoList.get(0).getAverageCapacityFactor());
         }
     }
 
@@ -168,10 +167,10 @@ public class ServerMonitorImplTest {
             assertTrue(serverMonitor.serverInfoTable.containsKey(2));
             ServerInfo info1 = serverMonitor.serverInfoTable.get(1);
             ServerInfo info2 = serverMonitor.serverInfoTable.get(2);
-            assertEquals(info1.id, 1);
-            assertEquals(info2.id, 2);
-            assertEquals(info1.port, 10_015);
-            assertEquals(info2.port, 10_030);
+            assertEquals(info1.getServerId(), 1);
+            assertEquals(info2.getServerId(), 2);
+            assertEquals(info1.getPort(), 10_015);
+            assertEquals(info2.getPort(), 10_030);
         }
 
         @Test
