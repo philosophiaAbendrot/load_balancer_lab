@@ -4,10 +4,13 @@ import loadbalancerlab.shared.Config;
 import loadbalancerlab.shared.ConfigImpl;
 
 import org.junit.jupiter.api.*;
+import org.mockito.Mockito;
 
 import java.util.*;
 
 import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.Mockito.when;
 
 public class HashRingImplTest {
     HashRingImpl hashRing;
@@ -16,20 +19,17 @@ public class HashRingImplTest {
     static final int MIN_ANGLES_PER_SERVER = 10;
     static final int RING_SIZE = 10_000;
     int serverId = 5;
+    Config config;
 
-    @BeforeAll
-    public static void config() {
-        Config config = new ConfigImpl();
+    @BeforeEach()
+    public void setup() {
+        config = new ConfigImpl();
         config.setMaxAnglesPerServer(MAX_ANGLES_PER_SERVER);
         config.setDefaultAnglesPerServer(DEFAULT_ANGLES_PER_SERVER);
         config.setMinAnglesPerServer(MIN_ANGLES_PER_SERVER);
         config.setRingSize(RING_SIZE);
         config.setHashFunction(new MurmurHashFunctionImpl());
         HashRingImpl.configure(config);
-    }
-
-    @BeforeEach()
-    public void setup() {
         hashRing = new HashRingImpl();
     }
 
@@ -341,6 +341,62 @@ public class HashRingImplTest {
             }
 
             assertEquals(expectedNextAngle.getServerId(), hashRing.findServerId(resourceName));
+        }
+
+        @Nested
+        @DisplayName("When the position of the resource name is higher than any angle")
+        class WhenPositionOfResourceNameIsHigherThanAnyAngle {
+            HashFunction mockHashFunction = Mockito.mock(HashFunction.class);
+            int serverId1 = 5;
+            int serverId2 = 8;
+            int serverId3 = 14;
+            int serverId4 = 2;
+            int serverId5 = 6;
+            int lowestAngle = Integer.MAX_VALUE;
+            int lowestAngleServerId = -1;
+
+            @BeforeEach
+            public void setup() {
+                config.setHashFunction(mockHashFunction);
+                HashRingImpl.configure(config);
+                hashRing = new HashRingImpl();
+                hashRing.addServer(serverId1);
+                hashRing.addServer(serverId2);
+                hashRing.addServer(serverId3);
+                hashRing.addServer(serverId4);
+                hashRing.addServer(serverId5);
+
+                boolean containsHighest = false;
+                int serverWithHighest = -1;
+                int highestAnglePos = 9_999;
+                HashRingAngle highestAngle = null;
+
+                for (HashRingAngle angle : hashRing.angles.values()) {
+                    if (angle.getAngle() < lowestAngle) {
+                        lowestAngle = angle.getAngle();
+                        lowestAngleServerId = angle.getServerId();
+                    }
+
+                    if (angle.getAngle() == highestAnglePos) {
+                        containsHighest = true;
+                        serverWithHighest = angle.getServerId();
+                        highestAngle = angle;
+                        break;
+                    }
+                }
+
+                if (containsHighest) {
+                    hashRing.anglesByServerId.get(serverWithHighest).remove(highestAngle);
+                    hashRing.angles.remove(highestAnglePos);
+                }
+            }
+
+            @Test
+            @DisplayName("It should return the lowest angle")
+            public void shouldReturnLowestAngle() {
+                when(mockHashFunction.hash(anyString())).thenReturn(9_999);
+                assertEquals(lowestAngleServerId, hashRing.findServerId(resourceName));
+            }
         }
     }
 }
