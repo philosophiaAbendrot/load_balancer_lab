@@ -6,7 +6,6 @@ import loadbalancerlab.shared.Logger;
 import loadbalancerlab.shared.RequestDecoder;
 import loadbalancerlab.shared.RequestDecoderImpl;
 import loadbalancerlab.shared.ServerInfo;
-import loadbalancerlab.cacheservermanager.ServerMonitor;
 
 import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.HttpGet;

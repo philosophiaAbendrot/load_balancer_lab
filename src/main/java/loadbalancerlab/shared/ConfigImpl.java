@@ -9,6 +9,8 @@ public class ConfigImpl implements Config {
     private int defaultAnglesPerServer;
     private int ringSize;
     private HashFunction hashFunction;
+    private double targetCapacityFactor;
+    private RequestDecoder reqDecoder;
 
     @Override
     public int getMaxAnglesPerServer() {
@@ -36,6 +38,16 @@ public class ConfigImpl implements Config {
     }
 
     @Override
+    public double getTargetCapacityFactor() {
+        return targetCapacityFactor;
+    }
+
+    @Override
+    public RequestDecoder getRequestDecoder() {
+        return reqDecoder;
+    }
+
+    @Override
     public void setMaxAnglesPerServer( int _maxAnglesPerServer ) {
         maxAnglesPerServer = _maxAnglesPerServer;
     }
@@ -58,5 +70,15 @@ public class ConfigImpl implements Config {
     @Override
     public void setHashFunction(HashFunction _hashFunction) {
         hashFunction = _hashFunction;
+    }
+
+    @Override
+    public void setTargetCapacityFactor( double _targetCapacityFactor ) {
+        targetCapacityFactor = _targetCapacityFactor;
+    }
+
+    @Override
+    public void setRequestDecoder( RequestDecoder _reqDecoder ) {
+        reqDecoder = _reqDecoder;
     }
 }
