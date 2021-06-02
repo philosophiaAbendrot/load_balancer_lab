@@ -35,25 +35,33 @@ public class CacheInfoRequestHandlerTest {
     static int serverPort;
     static Thread dummyServerThread;
     static RequestDecoder reqDecoder;
-    static ServerMonitor serverMonitorRunnable;
+    static ServerMonitor mockServerMonitor;
     static Map<Integer, ServerInfo> mockServerInfoTable;
+    static double cf1 = 0.55;
+    static double cf2 = 0.85;
+    static int port1 = 10_105;
+    static int port2 = 10_106;
+    static int serverId1 = 1;
+    static int serverId2 = 2;
 
     @BeforeAll
     public static void beforeAll() {
-        serverMonitorRunnable = Mockito.mock(ServerMonitor.class);
+        mockServerMonitor = Mockito.mock(ServerMonitorImpl.class);
         mockServerInfoTable = new HashMap<>();
         ServerInfo mockServerInfo1 = Mockito.mock(ServerInfo.class);
         ServerInfo mockServerInfo2 = Mockito.mock(ServerInfo.class);
-        when(mockServerInfo1.getAverageCapacityFactor()).thenReturn(0.55);
-        when(mockServerInfo2.getAverageCapacityFactor()).thenReturn(2.0);
-        when(mockServerInfo1.getPort()).thenReturn(10_105);
-        when(mockServerInfo2.getPort()).thenReturn(10_106);
-        mockServerInfoTable.put(1, mockServerInfo1);
-        mockServerInfoTable.put(2, mockServerInfo2);
+        when(mockServerInfo1.getAverageCapacityFactor()).thenReturn(cf1);
+        when(mockServerInfo2.getAverageCapacityFactor()).thenReturn(cf2);
+        when(mockServerInfo1.getPort()).thenReturn(port1);
+        when(mockServerInfo2.getPort()).thenReturn(port2);
+        when(mockServerInfo1.getServerId()).thenReturn(serverId1);
+        when(mockServerInfo2.getServerId()).thenReturn(serverId2);
+        mockServerInfoTable.put(serverId1, mockServerInfo1);
+        mockServerInfoTable.put(serverId2, mockServerInfo2);
 
-        when(serverMonitorRunnable.getServerInfo()).thenReturn(mockServerInfoTable);
+        when(mockServerMonitor.getServerInfo()).thenReturn(mockServerInfoTable);
         Logger.configure(new Logger.LogType[] { Logger.LogType.PRINT_NOTHING });
-        dummyServerThread = new Thread(new DummyServer(serverMonitorRunnable));
+        dummyServerThread = new Thread(new DummyServer(mockServerMonitor));
         dummyServerThread.start();
         reqDecoder = new RequestDecoderImpl();
     }
@@ -140,11 +148,16 @@ public class CacheInfoRequestHandlerTest {
         HttpGet req = new HttpGet("http://127.0.0.1:" + serverPort + "/cache-servers");
         CloseableHttpResponse response = client.execute(req);
         JSONObject responseJson = reqDecoder.extractJsonApacheResponse(response);
-        JSONObject serverInfo1 = responseJson.getJSONObject("1");
-        int port = serverInfo1.getInt("port");
-        double cf = serverInfo1.getDouble("capacityFactor");
+        JSONObject serverInfo1 = responseJson.getJSONObject(String.valueOf(serverId1));
+        int port1Actual = serverInfo1.getInt("port");
+        double cf1Actual = serverInfo1.getDouble("capacityFactor");
+        JSONObject serverInfo2 = responseJson.getJSONObject(String.valueOf(serverId2));
+        int port2Actual = serverInfo2.getInt("port");
+        double cf2Actual = serverInfo2.getDouble("capacityFactor");
 
-        assertEquals(port, 10_105);
-        assertEquals(cf, 0.55);
+        assertEquals(port1, port1Actual);
+        assertEquals(cf1, cf1Actual);
+        assertEquals(port2, port2Actual);
+        assertEquals(cf2, cf2Actual);
     }
 }
