@@ -1,7 +1,7 @@
 package loadbalancerlab.loadbalancer;
 
 public interface CacheRedistributor {
-    void requestServerInfo(long currentTime);
+    void requestServerInfo();
 
     int selectPort(String resourceName);
 

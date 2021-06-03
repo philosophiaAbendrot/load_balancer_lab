@@ -5,6 +5,7 @@ import loadbalancerlab.shared.Config;
 import loadbalancerlab.shared.ConfigImpl;
 import loadbalancerlab.shared.RequestDecoder;
 import org.apache.http.client.methods.CloseableHttpResponse;
+import org.apache.http.client.methods.HttpUriRequest;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.json.JSONObject;
 import org.junit.jupiter.api.BeforeEach;
@@ -15,9 +16,7 @@ import org.mockito.ArgumentCaptor;
 import org.mockito.Mockito;
 
 import java.io.IOException;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.ArgumentMatchers.any;
@@ -27,7 +26,7 @@ import static org.mockito.Mockito.*;
 public class CacheRedistributorImplTest {
     Config config;
     CacheRedistributorImpl cacheRedis;
-    int cacheServerManagerPort = 8080;
+    int cacheInfoServerPort = 8080;
 
     @Nested
     @DisplayName("Test RequestServerInfo()")
@@ -35,13 +34,12 @@ public class CacheRedistributorImplTest {
         // contacts cache server monitor and records data to serverInfoTable
         HttpClientFactory mockClientFactory = Mockito.mock(HttpClientFactory.class);
         CloseableHttpClient mockClient = Mockito.mock(CloseableHttpClient.class);
-        CloseableHttpResponse response = Mockito.mock(CloseableHttpResponse.class);
+        CloseableHttpResponse mockResponse = Mockito.mock(CloseableHttpResponse.class);
         RequestDecoder mockDecoder = Mockito.mock(RequestDecoder.class);
         JSONObject mockJsonResponse = Mockito.mock(JSONObject.class);
         JSONObject mockNestedJson3 = Mockito.mock(JSONObject.class);
         JSONObject mockNestedJson4 = Mockito.mock(JSONObject.class);
 
-        int currentTime;
         double targetCapacityFactor = 0.5;
         double cf3 = 0.48;
         double cf4 = 0.56;
@@ -53,6 +51,7 @@ public class CacheRedistributorImplTest {
             // setup config
             config.setRequestDecoder(mockDecoder);
             config.setTargetCapacityFactor(targetCapacityFactor);
+            config.setClientFactory(mockClientFactory);
             CacheRedistributorImpl.configure(config);
 
             // setting up mocks
@@ -60,10 +59,16 @@ public class CacheRedistributorImplTest {
             when(mockNestedJson4.getDouble("capacityFactor")).thenReturn(cf4);
             when(mockJsonResponse.getJSONObject("3")).thenReturn(mockNestedJson3);
             when(mockJsonResponse.getJSONObject("4")).thenReturn(mockNestedJson4);
+            Set<String> mockKeySet = new HashSet<>();
+            mockKeySet.add("3");
+            mockKeySet.add("4");
+            when(mockJsonResponse.keySet()).thenReturn(mockKeySet);
+            when(mockDecoder.extractJsonApacheResponse(any(CloseableHttpResponse.class))).thenReturn(mockJsonResponse);
+            when(mockClientFactory.buildApacheClient()).thenReturn(mockClient);
+            when(mockClient.execute(any(HttpUriRequest.class))).thenReturn(mockResponse);
             when(mockDecoder.extractJsonApacheResponse(any(CloseableHttpResponse.class))).thenReturn(mockJsonResponse);
 
-            cacheRedis = new CacheRedistributorImpl(cacheServerManagerPort, new HashRingImpl());
-            currentTime = (int)(System.currentTimeMillis() / 1_000);
+            cacheRedis = new CacheRedistributorImpl(cacheInfoServerPort, new HashRingImpl());
         }
 
         @Nested
@@ -71,7 +76,7 @@ public class CacheRedistributorImplTest {
         class WhenInfoDoesNotExistInRecord {
             @BeforeEach
             public void setup() {
-                cacheRedis.requestServerInfo(currentTime);
+                cacheRedis.requestServerInfo();
             }
 
             @Test
@@ -98,7 +103,7 @@ public class CacheRedistributorImplTest {
                 serverInfo4 = new ServerInfoImpl(4, serverPort4, cf4Initial);
                 cacheRedis.serverInfoTable.put(3, serverInfo3);
                 cacheRedis.serverInfoTable.put(4, serverInfo4);
-                cacheRedis.requestServerInfo(currentTime);
+                cacheRedis.requestServerInfo();
             }
 
             @Test
@@ -133,7 +138,7 @@ public class CacheRedistributorImplTest {
             when(mockHashRing.findServerId(anyString())).thenReturn(selectedServerId);
 
             // initialization
-            cacheRedis = new CacheRedistributorImpl(cacheServerManagerPort, mockHashRing);
+            cacheRedis = new CacheRedistributorImpl(cacheInfoServerPort, mockHashRing);
             cacheRedis.serverInfoTable = new HashMap<>();
             cacheRedis.serverInfoTable.put(1, new ServerInfoImpl(1, port1, cf1));
             cacheRedis.serverInfoTable.put(2, new ServerInfoImpl(2, port2, cf2));
@@ -164,7 +169,7 @@ public class CacheRedistributorImplTest {
 
             // initialization
             mockHashRing = Mockito.mock(HashRing.class);
-            cacheRedis = new CacheRedistributorImpl(cacheServerManagerPort, mockHashRing);
+            cacheRedis = new CacheRedistributorImpl(cacheInfoServerPort, mockHashRing);
             cacheRedis.serverInfoTable = new HashMap<>();
             cacheRedis.serverInfoTable.put(1, new ServerInfoImpl(1, port1, cf1));
             cacheRedis.serverInfoTable.put(2, new ServerInfoImpl(2, port2, cf2));

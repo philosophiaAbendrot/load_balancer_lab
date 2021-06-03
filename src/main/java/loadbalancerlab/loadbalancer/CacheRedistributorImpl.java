@@ -2,9 +2,15 @@ package loadbalancerlab.loadbalancer;
 
 import loadbalancerlab.factory.HttpClientFactory;
 import loadbalancerlab.shared.Config;
+import loadbalancerlab.shared.Logger;
 import loadbalancerlab.shared.RequestDecoder;
+import org.apache.http.HttpEntity;
+import org.apache.http.client.methods.CloseableHttpResponse;
+import org.apache.http.client.methods.HttpGet;
+import org.apache.http.impl.client.CloseableHttpClient;
+import org.json.JSONObject;
 
-import java.net.http.HttpClient;
+import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -14,7 +20,7 @@ public class CacheRedistributorImpl implements CacheRedistributor {
 
     static double targetCapacityFactor;
     private static RequestDecoder reqDecoder;
-    private int cacheServerManagerPort;
+    private int cacheInfoServerPort;
     private static HttpClientFactory clientFactory;
 
     public static void configure( Config config ) {
@@ -25,16 +31,40 @@ public class CacheRedistributorImpl implements CacheRedistributor {
 
     public CacheRedistributorImpl(int _cacheServerManagerPort, HashRing _hashRing) {
         serverInfoTable = new HashMap<>();
-        cacheServerManagerPort = _cacheServerManagerPort;
+        cacheInfoServerPort = _cacheServerManagerPort;
         hashRing = _hashRing;
     }
 
-    // sends request to cache server manager for an update on cache servers
+    // sends request to cache server manager for an update on which cache servers are running on which ports and
+    // their capacity factors
     // updates the serverInfoTable field using the results
-    // params: currentTime - the current time in seconds since Jan 1 1970
     @Override
-    public void requestServerInfo( long currentTime ) {
+    public void requestServerInfo() {
+        CloseableHttpClient client = clientFactory.buildApacheClient();
+        HttpGet getReq = new HttpGet("http://127.0.0.1:" + cacheInfoServerPort + "/cache-servers");
 
+        try {
+            CloseableHttpResponse res = client.execute(getReq);
+            JSONObject resJson = reqDecoder.extractJsonApacheResponse(res);
+            for (String serverId : resJson.keySet()) {
+                int serverIdInt = Integer.valueOf(serverId);
+                JSONObject entry = resJson.getJSONObject(serverId);
+                double cf = entry.getDouble("capacityFactor");
+
+                if (serverInfoTable.containsKey(serverIdInt)) {
+                    // if serverInfoTable contains entry for this server
+                    // update cf
+                    serverInfoTable.get(serverIdInt).setCapacityFactor(cf);
+                } else {
+                    // otherwise, create new entry
+                    int port = entry.getInt("port");
+                    ServerInfo newInfo = new ServerInfoImpl(serverIdInt, port, cf);
+                    serverInfoTable.put(serverIdInt, newInfo);
+                }
+            }
+        } catch (IOException e) {
+            Logger.log("CacheRedistributorImpl | Failed to send request to cache info server", Logger.LogType.REQUEST_PASSING);
+        }
     }
 
     @Override
