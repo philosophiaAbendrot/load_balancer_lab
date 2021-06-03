@@ -4,7 +4,6 @@ import loadbalancerlab.factory.HttpClientFactory;
 import loadbalancerlab.shared.Config;
 import loadbalancerlab.shared.Logger;
 import loadbalancerlab.shared.RequestDecoder;
-import org.apache.http.HttpEntity;
 import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.impl.client.CloseableHttpClient;
@@ -22,11 +21,13 @@ public class CacheRedistributorImpl implements CacheRedistributor {
     private static RequestDecoder reqDecoder;
     private int cacheInfoServerPort;
     private static HttpClientFactory clientFactory;
+    private static double[] serverLoadCutoffs;
 
     public static void configure( Config config ) {
         targetCapacityFactor = config.getTargetCapacityFactor();
         reqDecoder = config.getRequestDecoder();
         clientFactory = config.getClientFactory();
+        serverLoadCutoffs = config.getServerLoadCutoffs();
     }
 
     public CacheRedistributorImpl(int _cacheServerManagerPort, HashRing _hashRing) {
@@ -67,13 +68,42 @@ public class CacheRedistributorImpl implements CacheRedistributor {
         }
     }
 
+    // returns the port of the cache server which is responsible for the resource
+    // params:
+    // resourceName: the name of the resource
+
     @Override
-    public int selectPort( String resourceName ) {
-        return 0;
+    public int selectPort( String resourceName ) throws IllegalStateException {
+        int serverId = hashRing.findServerId(resourceName);
+
+        if (!serverInfoTable.containsKey(serverId))
+            throw new IllegalStateException("There is no corresponding server for this resource name");
+
+        return serverInfoTable.get(serverId).getPort();
     }
 
+    // remaps caching responsibility based on the load on each server
     @Override
     public void remapCacheKeys() {
+        for (Map.Entry<Integer, ServerInfo> entry : serverInfoTable.entrySet()) {
+            int serverId = entry.getKey();
+            ServerInfo info = entry.getValue();
 
+            if (info.getCapacityFactor() < serverLoadCutoffs[1]) {
+                // cf is lower than target range
+                if (info.getCapacityFactor() < serverLoadCutoffs[0]) {
+                    hashRing.addAngle(serverId, 3);
+                } else {
+                    hashRing.addAngle(serverId, 1);
+                }
+            } else if (info.getCapacityFactor() > serverLoadCutoffs[2]) {
+                // cf is higher than target range
+                if (info.getCapacityFactor() > serverLoadCutoffs[3]) {
+                    hashRing.removeAngle(serverId, 3);
+                } else {
+                    hashRing.removeAngle(serverId, 1);
+                }
+            }
+        }
     }
 }

@@ -181,9 +181,12 @@ public class CacheRedistributorImplTest {
         @Test
         @DisplayName("Should modulate number of angles in hash ring by adding angles")
         public void shouldAddAnglesWhereRequired() {
+            cacheRedis.remapCacheKeys();
+
+            // checking arguments
             ArgumentCaptor<Integer> args1 = ArgumentCaptor.forClass(Integer.class);
             ArgumentCaptor<Integer> args2 = ArgumentCaptor.forClass(Integer.class);
-            // setting up mocks
+
             verify(mockHashRing, times(2)).addAngle(args1.capture(), args2.capture());
 
             List<Integer> values1 = args1.getAllValues();
@@ -195,17 +198,21 @@ public class CacheRedistributorImplTest {
                 argsHash.put(values1.get(i), values2.get(i));
             }
 
-            assertEquals(argsHash.get(1), 2);
+            assertEquals(argsHash.get(1), 3);
             assertEquals(argsHash.get(2), 1);
         }
 
         @Test
         @DisplayName("Should modulate number of angles in hash ring by removing angles")
         public void shouldRemoveAnglesWhereRequired() {
+            cacheRedis.remapCacheKeys();
+
+            // checking arguments
             ArgumentCaptor<Integer> args1 = ArgumentCaptor.forClass(Integer.class);
             ArgumentCaptor<Integer> args2 = ArgumentCaptor.forClass(Integer.class);
             // setting up mocks
-            verify(mockHashRing).removeAngle(args1.capture(), args2.capture());
+            verify(mockHashRing, times(2)).removeAngle(args1.capture(), args2.capture());
+
 
             List<Integer> values1 = args1.getAllValues();
             List<Integer> values2 = args2.getAllValues();
@@ -217,7 +224,7 @@ public class CacheRedistributorImplTest {
             }
 
             assertEquals(argsHash.get(4), 1);
-            assertEquals(argsHash.get(5), 2);
+            assertEquals(argsHash.get(5), 3);
         }
     }
 }
