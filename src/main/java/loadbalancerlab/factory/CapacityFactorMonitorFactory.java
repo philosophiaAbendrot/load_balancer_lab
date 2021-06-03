@@ -1,6 +1,5 @@
 package loadbalancerlab.factory;
 
-import loadbalancerlab.services.monitor.CapacityFactorMonitor;
 import loadbalancerlab.shared.RequestDecoder;
 
 public interface CapacityFactorMonitorFactory {

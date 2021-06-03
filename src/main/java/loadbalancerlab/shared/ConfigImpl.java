@@ -17,6 +17,7 @@ public class ConfigImpl implements Config {
     private double[] serverLoadCutoffs;
     private int cacheRedisPingInterval;
     private int cacheRedisRemapInterval;
+    private int clientServerHandlerDefaultPort;
 
     public ConfigImpl() {
         // default configurations
@@ -31,6 +32,7 @@ public class ConfigImpl implements Config {
         serverLoadCutoffs = new double[] { 0.15, 0.35, 0.65, 0.85 };
         cacheRedisPingInterval = 1;
         cacheRedisRemapInterval = 3;
+        clientServerHandlerDefaultPort = 3_000;
     }
 
     @Override
@@ -89,6 +91,11 @@ public class ConfigImpl implements Config {
     }
 
     @Override
+    public int getClientHandlerServerDefaultPort() {
+        return clientServerHandlerDefaultPort;
+    }
+
+    @Override
     public void setMaxAnglesPerServer( int _maxAnglesPerServer ) {
         maxAnglesPerServer = _maxAnglesPerServer;
     }
@@ -141,5 +148,10 @@ public class ConfigImpl implements Config {
     @Override
     public void setCacheRedisRemapInterval( int remapInterval ) {
         cacheRedisRemapInterval = remapInterval;
+    }
+
+    @Override
+    public void setClientHandlerServerDefaultPort( int defaultPort ) {
+        clientServerHandlerDefaultPort = defaultPort;
     }
 }

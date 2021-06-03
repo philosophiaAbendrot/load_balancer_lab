@@ -16,6 +16,7 @@ public interface Config {
     double[] getServerLoadCutoffs();
     int getCacheRedisPingInterval();
     int getCacheRedisRemapInterval();
+    int getClientHandlerServerDefaultPort();
 
     void setMaxAnglesPerServer(int _maxAnglesPerServer);
     void setMinAnglesPerServer(int _minAnglesPerServer);
@@ -28,4 +29,5 @@ public interface Config {
     void setServerLoadCutoffs(double[] cutoffs);
     void setCacheRedisPingInterval(int pingInterval);
     void setCacheRedisRemapInterval(int remapInterval);
+    void setClientHandlerServerDefaultPort(int defaultPort);
 }
