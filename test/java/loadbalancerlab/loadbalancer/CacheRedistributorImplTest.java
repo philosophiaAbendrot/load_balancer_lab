@@ -14,17 +14,22 @@ import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 
 import java.io.IOException;
+import java.util.HashMap;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.when;
 
 public class CacheRedistributorImplTest {
+    Config config;
+    CacheRedistributorImpl cacheRedis;
+    int cacheServerManagerPort = 8080;
+
     @Nested
     @DisplayName("Test RequestServerInfo()")
     class TestRequestServerInfo {
         // contacts cache server monitor and records data to serverInfoTable
-        CacheRedistributorImpl cacheRedis;
         HttpClientFactory mockClientFactory = Mockito.mock(HttpClientFactory.class);
         CloseableHttpClient mockClient = Mockito.mock(CloseableHttpClient.class);
         CloseableHttpResponse response = Mockito.mock(CloseableHttpResponse.class);
@@ -32,7 +37,7 @@ public class CacheRedistributorImplTest {
         JSONObject mockJsonResponse = Mockito.mock(JSONObject.class);
         JSONObject mockNestedJson3 = Mockito.mock(JSONObject.class);
         JSONObject mockNestedJson4 = Mockito.mock(JSONObject.class);
-        int cacheServerManagerPort = 8080;
+
         int currentTime;
         double targetCapacityFactor = 0.5;
         double cf3 = 0.48;
@@ -41,7 +46,7 @@ public class CacheRedistributorImplTest {
         @BeforeEach
         public void setup() throws IOException {
             // configuration logic
-            Config config = new ConfigImpl();
+            config = new ConfigImpl();
             // setup config
             config.setRequestDecoder(mockDecoder);
             config.setTargetCapacityFactor(targetCapacityFactor);
@@ -99,6 +104,46 @@ public class CacheRedistributorImplTest {
                 assertEquals(cf3, cacheRedis.serverInfoTable.get(3).getCapacityFactor());
                 assertEquals(cf4, cacheRedis.serverInfoTable.get(4).getCapacityFactor());
             }
+        }
+    }
+
+    @Nested
+    @DisplayName("Test selectPort()")
+    class TestSelectPort {
+        HashRing mockHashRing;
+        String resourceName = "Chooder_Bunny";
+        int selectedPort;
+        int port1 = 10_105;
+        double cf1 = 0.44;
+        int port2 = 6_820;
+        double cf2 = 0.81;
+        int selectedServerId = 1;
+
+        @BeforeEach
+        public void setup() {
+            // configuration
+            config = new ConfigImpl();
+            CacheRedistributorImpl.configure(config);
+
+            // setting up mocks
+            mockHashRing = Mockito.mock(HashRingImpl.class);
+            when(mockHashRing.findServerId(anyString())).thenReturn(selectedServerId);
+
+            // initialization
+            cacheRedis = new CacheRedistributorImpl(cacheServerManagerPort);
+            cacheRedis.hashRing = mockHashRing;
+            cacheRedis.serverInfoTable = new HashMap<>();
+            cacheRedis.serverInfoTable.put(1, new ServerInfoImpl(1, port1, cf1));
+            cacheRedis.serverInfoTable.put(2, new ServerInfoImpl(2, port2, cf2));
+
+            selectedPort = cacheRedis.selectPort(resourceName);
+        }
+
+        @Test
+        @DisplayName("should return correct server id")
+        public void testServer() {
+            int expectedPort = cacheRedis.serverInfoTable.get(selectedServerId).getPort();
+            assertEquals(expectedPort, selectedPort);
         }
     }
 }

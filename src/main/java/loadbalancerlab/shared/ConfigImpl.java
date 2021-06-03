@@ -1,7 +1,9 @@
 package loadbalancerlab.shared;
 
 import loadbalancerlab.factory.HttpClientFactory;
+import loadbalancerlab.factory.HttpClientFactoryImpl;
 import loadbalancerlab.loadbalancer.HashFunction;
+import loadbalancerlab.loadbalancer.MurmurHashFunctionImpl;
 
 public class ConfigImpl implements Config {
     private int maxAnglesPerServer;
@@ -12,6 +14,18 @@ public class ConfigImpl implements Config {
     private double targetCapacityFactor;
     private RequestDecoder reqDecoder;
     private HttpClientFactory clientFactory;
+
+    public ConfigImpl() {
+        // default configurations
+        maxAnglesPerServer = 40;
+        minAnglesPerServer = 10;
+        defaultAnglesPerServer = 20;
+        ringSize = 10_000;
+        hashFunction = new MurmurHashFunctionImpl();
+        targetCapacityFactor = 0.5;
+        reqDecoder = new RequestDecoderImpl();
+        clientFactory = new HttpClientFactoryImpl();
+    }
 
     @Override
     public int getMaxAnglesPerServer() {
