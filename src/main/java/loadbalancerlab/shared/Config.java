@@ -1,5 +1,6 @@
 package loadbalancerlab.shared;
 
+import loadbalancerlab.factory.HttpClientFactory;
 import loadbalancerlab.loadbalancer.HashFunction;
 
 public interface Config {
@@ -11,6 +12,7 @@ public interface Config {
     HashFunction getHashFunction();
     double getTargetCapacityFactor();
     RequestDecoder getRequestDecoder();
+    HttpClientFactory getClientFactory();
 
     void setMaxAnglesPerServer(int _maxAnglesPerServer);
     void setMinAnglesPerServer(int _minAnglesPerServer);
@@ -19,4 +21,5 @@ public interface Config {
     void setHashFunction(HashFunction hashFunction);
     void setTargetCapacityFactor(double _targetCapacityFactor);
     void setRequestDecoder(RequestDecoder _reqDecoder);
+    void setClientFactory(HttpClientFactory _clientFactory);
 }

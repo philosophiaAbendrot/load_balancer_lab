@@ -1,9 +1,9 @@
 package loadbalancerlab.shared;
 
+import loadbalancerlab.factory.HttpClientFactory;
 import loadbalancerlab.loadbalancer.HashFunction;
 
 public class ConfigImpl implements Config {
-    // hash ring configuration
     private int maxAnglesPerServer;
     private int minAnglesPerServer;
     private int defaultAnglesPerServer;
@@ -11,6 +11,7 @@ public class ConfigImpl implements Config {
     private HashFunction hashFunction;
     private double targetCapacityFactor;
     private RequestDecoder reqDecoder;
+    private HttpClientFactory clientFactory;
 
     @Override
     public int getMaxAnglesPerServer() {
@@ -48,6 +49,11 @@ public class ConfigImpl implements Config {
     }
 
     @Override
+    public HttpClientFactory getClientFactory() {
+        return clientFactory;
+    }
+
+    @Override
     public void setMaxAnglesPerServer( int _maxAnglesPerServer ) {
         maxAnglesPerServer = _maxAnglesPerServer;
     }
@@ -80,5 +86,10 @@ public class ConfigImpl implements Config {
     @Override
     public void setRequestDecoder( RequestDecoder _reqDecoder ) {
         reqDecoder = _reqDecoder;
+    }
+
+    @Override
+    public void setClientFactory( HttpClientFactory _clientFactory ) {
+        clientFactory = _clientFactory;
     }
 }
