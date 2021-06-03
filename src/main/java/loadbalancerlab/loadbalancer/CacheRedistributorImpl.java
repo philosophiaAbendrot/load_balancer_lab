@@ -23,9 +23,10 @@ public class CacheRedistributorImpl implements CacheRedistributor {
         clientFactory = config.getClientFactory();
     }
 
-    public CacheRedistributorImpl(int _cacheServerManagerPort) {
+    public CacheRedistributorImpl(int _cacheServerManagerPort, HashRing _hashRing) {
         serverInfoTable = new HashMap<>();
         cacheServerManagerPort = _cacheServerManagerPort;
+        hashRing = _hashRing;
     }
 
     // sends request to cache server manager for an update on cache servers

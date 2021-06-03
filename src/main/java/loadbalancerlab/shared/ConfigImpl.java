@@ -14,6 +14,7 @@ public class ConfigImpl implements Config {
     private double targetCapacityFactor;
     private RequestDecoder reqDecoder;
     private HttpClientFactory clientFactory;
+    private double[] serverLoadCutoffs;
 
     public ConfigImpl() {
         // default configurations
@@ -25,6 +26,7 @@ public class ConfigImpl implements Config {
         targetCapacityFactor = 0.5;
         reqDecoder = new RequestDecoderImpl();
         clientFactory = new HttpClientFactoryImpl();
+        serverLoadCutoffs = new double[] { 0.15, 0.35, 0.65, 0.85 };
     }
 
     @Override
@@ -68,6 +70,11 @@ public class ConfigImpl implements Config {
     }
 
     @Override
+    public double[] getServerLoadCutoffs() {
+        return serverLoadCutoffs;
+    }
+
+    @Override
     public void setMaxAnglesPerServer( int _maxAnglesPerServer ) {
         maxAnglesPerServer = _maxAnglesPerServer;
     }
@@ -105,5 +112,10 @@ public class ConfigImpl implements Config {
     @Override
     public void setClientFactory( HttpClientFactory _clientFactory ) {
         clientFactory = _clientFactory;
+    }
+
+    @Override
+    public void setServerLoadCutoffs( double[] cutoffs ) {
+        serverLoadCutoffs = cutoffs;
     }
 }

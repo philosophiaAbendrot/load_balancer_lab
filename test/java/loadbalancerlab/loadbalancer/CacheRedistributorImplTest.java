@@ -11,15 +11,18 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
+import org.mockito.ArgumentCaptor;
 import org.mockito.Mockito;
 
 import java.io.IOException;
 import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
-import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.*;
 
 public class CacheRedistributorImplTest {
     Config config;
@@ -59,7 +62,7 @@ public class CacheRedistributorImplTest {
             when(mockJsonResponse.getJSONObject("4")).thenReturn(mockNestedJson4);
             when(mockDecoder.extractJsonApacheResponse(any(CloseableHttpResponse.class))).thenReturn(mockJsonResponse);
 
-            cacheRedis = new CacheRedistributorImpl(cacheServerManagerPort);
+            cacheRedis = new CacheRedistributorImpl(cacheServerManagerPort, new HashRingImpl());
             currentTime = (int)(System.currentTimeMillis() / 1_000);
         }
 
@@ -130,8 +133,7 @@ public class CacheRedistributorImplTest {
             when(mockHashRing.findServerId(anyString())).thenReturn(selectedServerId);
 
             // initialization
-            cacheRedis = new CacheRedistributorImpl(cacheServerManagerPort);
-            cacheRedis.hashRing = mockHashRing;
+            cacheRedis = new CacheRedistributorImpl(cacheServerManagerPort, mockHashRing);
             cacheRedis.serverInfoTable = new HashMap<>();
             cacheRedis.serverInfoTable.put(1, new ServerInfoImpl(1, port1, cf1));
             cacheRedis.serverInfoTable.put(2, new ServerInfoImpl(2, port2, cf2));
@@ -144,6 +146,73 @@ public class CacheRedistributorImplTest {
         public void testServer() {
             int expectedPort = cacheRedis.serverInfoTable.get(selectedServerId).getPort();
             assertEquals(expectedPort, selectedPort);
+        }
+    }
+
+    @Nested
+    @DisplayName("Test remapCacheKeys()")
+    class TestRemapCacheKeys {
+        HashRing mockHashRing;
+        int port1 = 4_810, port2 = 5_848, port3 = 5198, port4 = 8931, port5 = 1185;
+        double cf1 = 0.1, cf2 = 0.2, cf3 = 0.4, cf4 = 0.75, cf5 = 0.9;
+
+        @BeforeEach
+        public void setup() {
+            // configuration
+            config = new ConfigImpl();
+            CacheRedistributorImpl.configure(config);
+
+            // initialization
+            mockHashRing = Mockito.mock(HashRing.class);
+            cacheRedis = new CacheRedistributorImpl(cacheServerManagerPort, mockHashRing);
+            cacheRedis.serverInfoTable = new HashMap<>();
+            cacheRedis.serverInfoTable.put(1, new ServerInfoImpl(1, port1, cf1));
+            cacheRedis.serverInfoTable.put(2, new ServerInfoImpl(2, port2, cf2));
+            cacheRedis.serverInfoTable.put(3, new ServerInfoImpl(3, port3, cf3));
+            cacheRedis.serverInfoTable.put(4, new ServerInfoImpl(4, port4, cf4));
+            cacheRedis.serverInfoTable.put(5, new ServerInfoImpl(5, port5, cf5));
+        }
+
+        @Test
+        @DisplayName("Should modulate number of angles in hash ring by adding angles")
+        public void shouldAddAnglesWhereRequired() {
+            ArgumentCaptor<Integer> args1 = ArgumentCaptor.forClass(Integer.class);
+            ArgumentCaptor<Integer> args2 = ArgumentCaptor.forClass(Integer.class);
+            // setting up mocks
+            verify(mockHashRing, times(2)).addAngle(args1.capture(), args2.capture());
+
+            List<Integer> values1 = args1.getAllValues();
+            List<Integer> values2 = args2.getAllValues();
+
+            Map<Integer, Integer> argsHash = new HashMap<>();
+
+            for (int i = 0; i < values1.size(); i++) {
+                argsHash.put(values1.get(i), values2.get(i));
+            }
+
+            assertEquals(argsHash.get(1), 2);
+            assertEquals(argsHash.get(2), 1);
+        }
+
+        @Test
+        @DisplayName("Should modulate number of angles in hash ring by removing angles")
+        public void shouldRemoveAnglesWhereRequired() {
+            ArgumentCaptor<Integer> args1 = ArgumentCaptor.forClass(Integer.class);
+            ArgumentCaptor<Integer> args2 = ArgumentCaptor.forClass(Integer.class);
+            // setting up mocks
+            verify(mockHashRing).removeAngle(args1.capture(), args2.capture());
+
+            List<Integer> values1 = args1.getAllValues();
+            List<Integer> values2 = args2.getAllValues();
+
+            Map<Integer, Integer> argsHash = new HashMap<>();
+
+            for (int i = 0; i < values1.size(); i++) {
+                argsHash.put(values1.get(i), values2.get(i));
+            }
+
+            assertEquals(argsHash.get(4), 1);
+            assertEquals(argsHash.get(5), 2);
         }
     }
 }
