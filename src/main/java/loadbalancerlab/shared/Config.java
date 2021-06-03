@@ -14,6 +14,8 @@ public interface Config {
     RequestDecoder getRequestDecoder();
     HttpClientFactory getClientFactory();
     double[] getServerLoadCutoffs();
+    int getCacheRedisPingInterval();
+    int getCacheRedisRemapInterval();
 
     void setMaxAnglesPerServer(int _maxAnglesPerServer);
     void setMinAnglesPerServer(int _minAnglesPerServer);
@@ -24,4 +26,6 @@ public interface Config {
     void setRequestDecoder(RequestDecoder _reqDecoder);
     void setClientFactory(HttpClientFactory _clientFactory);
     void setServerLoadCutoffs(double[] cutoffs);
+    void setCacheRedisPingInterval(int pingInterval);
+    void setCacheRedisRemapInterval(int remapInterval);
 }

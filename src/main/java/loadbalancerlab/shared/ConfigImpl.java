@@ -15,6 +15,8 @@ public class ConfigImpl implements Config {
     private RequestDecoder reqDecoder;
     private HttpClientFactory clientFactory;
     private double[] serverLoadCutoffs;
+    private int cacheRedisPingInterval;
+    private int cacheRedisRemapInterval;
 
     public ConfigImpl() {
         // default configurations
@@ -27,6 +29,8 @@ public class ConfigImpl implements Config {
         reqDecoder = new RequestDecoderImpl();
         clientFactory = new HttpClientFactoryImpl();
         serverLoadCutoffs = new double[] { 0.15, 0.35, 0.65, 0.85 };
+        cacheRedisPingInterval = 1;
+        cacheRedisRemapInterval = 3;
     }
 
     @Override
@@ -75,6 +79,16 @@ public class ConfigImpl implements Config {
     }
 
     @Override
+    public int getCacheRedisPingInterval() {
+        return cacheRedisPingInterval;
+    }
+
+    @Override
+    public int getCacheRedisRemapInterval() {
+        return cacheRedisRemapInterval;
+    }
+
+    @Override
     public void setMaxAnglesPerServer( int _maxAnglesPerServer ) {
         maxAnglesPerServer = _maxAnglesPerServer;
     }
@@ -117,5 +131,15 @@ public class ConfigImpl implements Config {
     @Override
     public void setServerLoadCutoffs( double[] cutoffs ) {
         serverLoadCutoffs = cutoffs;
+    }
+
+    @Override
+    public void setCacheRedisPingInterval( int pingInterval ) {
+        cacheRedisPingInterval = pingInterval;
+    }
+
+    @Override
+    public void setCacheRedisRemapInterval( int remapInterval ) {
+        cacheRedisRemapInterval = remapInterval;
     }
 }
