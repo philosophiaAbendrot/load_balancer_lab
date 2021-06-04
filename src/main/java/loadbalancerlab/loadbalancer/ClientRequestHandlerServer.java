@@ -15,7 +15,7 @@ import java.util.concurrent.TimeUnit;
 
 public class ClientRequestHandlerServer implements Runnable {
     private static int defaultPort = 3_000;
-    private int port;
+    volatile private int port;
     ClientRequestHandler clientRequestHandler;
 
     private static void configure( Config config ) {

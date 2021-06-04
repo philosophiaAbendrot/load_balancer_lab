@@ -3,7 +3,6 @@ package loadbalancerlab.loadbalancer;
 import loadbalancerlab.factory.HttpClientFactory;
 import loadbalancerlab.shared.Config;
 import loadbalancerlab.shared.Logger;
-import org.apache.commons.io.IOUtils;
 import org.apache.commons.text.StringEscapeUtils;
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpRequest;
@@ -45,7 +44,6 @@ public class ClientRequestHandler implements HttpRequestHandler {
         String[] uriArr = uri.split("/", 0);
         String resourceName = uriArr[uriArr.length - 1];
         int cacheServerPort = cacheRedis.selectPort(resourceName);
-        System.out.println("path a");
 
         Logger.log(String.format("ClientRequestHandler | relaying message to cache server at port %d", cacheServerPort), Logger.LogType.REQUEST_PASSING);
 
@@ -53,12 +51,10 @@ public class ClientRequestHandler implements HttpRequestHandler {
         incomingRequestTimestamps.add((int)(System.currentTimeMillis() / 1000));
 
         HttpGet getReq = new HttpGet("http://127.0.0.1:" + cacheServerPort);
-        System.out.println("path b");
 
         try {
             CloseableHttpResponse res = httpClient.execute(getReq);
             HttpEntity resBody = res.getEntity();
-//            System.out.println("entity string = " + IOUtils.toString(resBody.getContent(), StandardCharsets.UTF_8.name()));
             httpResponse.setEntity(resBody);
             EntityUtils.consume(resBody);
             httpResponse.setStatusCode(200);
