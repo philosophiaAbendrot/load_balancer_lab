@@ -2,14 +2,8 @@ import loadbalancerlab.loadbalancer.LoadBalancer;
 import loadbalancerlab.factory.HttpClientFactory;
 import loadbalancerlab.factory.HttpClientFactoryImpl;
 import loadbalancerlab.shared.Logger;
-import loadbalancerlab.shared.RequestDecoder;
 
 import org.junit.jupiter.api.*;
-import org.mockito.Mockito;
-
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyInt;
-import static org.mockito.Mockito.*;
 
 @TestInstance(TestInstance.Lifecycle.PER_METHOD)
 public class LoadBalancerTest {
