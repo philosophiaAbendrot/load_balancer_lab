@@ -57,7 +57,7 @@ public class ClientRequestHandlerServer implements Runnable {
                     .setListenerPort(temporaryPort)
                     .setHttpProcessor(new ImmutableHttpProcessor(new ArrayList<>(), new ArrayList<>()))
                     .setSocketConfig(config)
-                    .registerHandler("/api/*", clientRequestHandler)
+                    .registerHandler("/resource/*", clientRequestHandler)
                     .create();
 
             try {
