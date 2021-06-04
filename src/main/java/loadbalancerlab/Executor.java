@@ -1,7 +1,6 @@
 package loadbalancerlab;
 
 import loadbalancerlab.loadbalancer.LoadBalancer;
-import loadbalancerlab.factory.CapacityFactorMonitorFactoryImpl;
 import loadbalancerlab.factory.HttpClientFactoryImpl;
 import loadbalancerlab.services.ConstantDemandFunctionImpl;
 import loadbalancerlab.shared.RequestDecoderImpl;
@@ -52,7 +51,7 @@ public class Executor {
         System.out.println("CacheServerManager running on port " + cacheServerManagerPort);
 
         // start load balancer thread
-        LoadBalancer loadBalancer = new LoadBalancer(STARTUP_SERVER_COUNT, cacheServerManagerPort, new CapacityFactorMonitorFactoryImpl(), new HttpClientFactoryImpl());
+        LoadBalancer loadBalancer = new LoadBalancer(STARTUP_SERVER_COUNT, cacheServerManagerPort, new HttpClientFactoryImpl());
         Thread loadBalancerThread = new Thread(loadBalancer);
         loadBalancerThread.start();
         int loadBalancerPort;

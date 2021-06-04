@@ -1,10 +1,13 @@
 package loadbalancerlab.loadbalancer;
 
+import loadbalancerlab.factory.HttpClientFactory;
+import loadbalancerlab.shared.Config;
 import loadbalancerlab.shared.Logger;
 import org.apache.commons.text.StringEscapeUtils;
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpRequest;
 import org.apache.http.HttpResponse;
+import org.apache.http.client.HttpClient;
 import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.entity.BasicHttpEntity;
@@ -22,20 +25,25 @@ import java.util.List;
 
 public class ClientRequestHandler implements HttpRequestHandler {
     private List<Integer> incomingRequestTimestamps;
-    private CacheRedistributorImpl cacheRedisImpl;
+    private CacheRedistributor cacheRedis;
+    private static HttpClientFactory clientFactory;
 
-    public ClientRequestHandler(CacheRedistributorImpl _cacheRedisImpl) {
+    public static void configure( Config config ) {
+        clientFactory = config.getClientFactory();
+    }
+
+    public ClientRequestHandler(CacheRedistributor _cacheRedis) {
         incomingRequestTimestamps = Collections.synchronizedList(new LinkedList<>());
-        cacheRedisImpl = _cacheRedisImpl;
+        cacheRedis = _cacheRedis;
     }
 
     @Override
     public void handle( HttpRequest httpRequest, HttpResponse httpResponse, HttpContext httpContext) {
-        CloseableHttpClient httpClient = LoadBalancer.this.clientFactory.buildApacheClient();
+        CloseableHttpClient httpClient = clientFactory.buildApacheClient();
         String uri = httpRequest.getRequestLine().getUri();
         String[] uriArr = uri.split("/", 0);
         int resourceId = Integer.parseInt(uriArr[uriArr.length - 1]);
-        int cacheServerPort = cacheRedisImpl.selectPort("Chooder_Bunny");
+        int cacheServerPort = cacheRedis.selectPort("Chooder_Bunny");
 
         Logger.log(String.format("LoadBalancer | resourceId = %d", resourceId), Logger.LogType.REQUEST_PASSING);
         Logger.log(String.format("LoadBalancer | relaying message to cache server at port %d", cacheServerPort), Logger.LogType.REQUEST_PASSING);

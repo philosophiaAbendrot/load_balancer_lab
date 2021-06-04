@@ -1,5 +1,4 @@
 import loadbalancerlab.loadbalancer.LoadBalancer;
-import loadbalancerlab.factory.CapacityFactorMonitorFactory;
 import loadbalancerlab.factory.HttpClientFactory;
 import loadbalancerlab.factory.HttpClientFactoryImpl;
 import loadbalancerlab.shared.Logger;
@@ -17,8 +16,6 @@ public class LoadBalancerTest {
     static final int DEFAULT_CACHE_SERVER_PORT = 5050;
     int startUpServerCount;
     int cacheServerManagerPort;
-    CapacityFactorMonitorFactory capacityFactorMonitorFactoryMock;
-    CapacityFactorMonitor capacityFactorMonitorMock;
     int loadBalancerPort;
     Thread loadBalancerThread;
     LoadBalancer loadBalancer;
@@ -30,12 +27,8 @@ public class LoadBalancerTest {
 
     @BeforeEach
     public void setup() {
-        this.capacityFactorMonitorFactoryMock = Mockito.mock(CapacityFactorMonitorFactory.class);
         this.startUpServerCount = 10;
         this.cacheServerManagerPort = 8080;
-        this.capacityFactorMonitorMock = Mockito.mock(CapacityFactorMonitor.class);
-        when(this.capacityFactorMonitorMock.startupCacheServer(anyInt())).thenReturn(DEFAULT_CACHE_SERVER_PORT);
-        when(this.capacityFactorMonitorFactoryMock.produceCapacityFactorMonitor(any(HttpClientFactory.class), anyInt(), any(RequestDecoder.class))).thenReturn(this.capacityFactorMonitorMock);
     }
 
     @AfterEach
@@ -52,7 +45,7 @@ public class LoadBalancerTest {
         @BeforeEach
         public void setup() {
             this.clientFactoryMock = new HttpClientFactoryImpl();
-            LoadBalancerTest.this.loadBalancer = new LoadBalancer(LoadBalancerTest.this.startUpServerCount, LoadBalancerTest.this.cacheServerManagerPort, LoadBalancerTest.this.capacityFactorMonitorFactoryMock, this.clientFactoryMock);
+            LoadBalancerTest.this.loadBalancer = new LoadBalancer(LoadBalancerTest.this.startUpServerCount, LoadBalancerTest.this.cacheServerManagerPort, this.clientFactoryMock);
             LoadBalancerTest.this.loadBalancerThread = new Thread(LoadBalancerTest.this.loadBalancer);
 
             LoadBalancerTest.this.loadBalancerThread.start();
@@ -69,18 +62,6 @@ public class LoadBalancerTest {
             }
 
             LoadBalancerTest.this.loadBalancerPort = port;
-        }
-
-        @Test
-        @DisplayName("load balancer should initialize a CapacityFactorImpl instance")
-        public void loadBalancerShouldInitializeCapacityFactorImpl() {
-            verify(LoadBalancerTest.this.capacityFactorMonitorFactoryMock, times(1)).produceCapacityFactorMonitor(any(HttpClientFactory.class), anyInt(), any(RequestDecoder.class));
-        }
-
-        @Test
-        @DisplayName("load balancer should send requests to start up x cache server threads immediately following startup")
-        public void loadBalancerShouldSpawnCacheServerThreads() {
-            verify(LoadBalancerTest.this.capacityFactorMonitorMock, times(LoadBalancerTest.this.startUpServerCount)).startupCacheServer(anyInt());
         }
     }
 }

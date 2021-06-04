@@ -1,8 +1,6 @@
 package loadbalancerlab.loadbalancer;
 
-import loadbalancerlab.factory.CapacityFactorMonitorFactory;
 import loadbalancerlab.factory.HttpClientFactory;
-import loadbalancerlab.shared.Logger;
 
 import org.apache.http.*;
 import org.apache.http.protocol.*;
@@ -19,7 +17,6 @@ public class LoadBalancer implements Runnable {
     private List<HttpResponseInterceptor> responseInterceptors = new ArrayList<>();
     private HttpProcessor httpProcessor;
     // maps the port that cache server server is operating on to its capacity factor
-    private CapacityFactorMonitorFactory capacityFactorMonitorFactory;
     private Thread capacityFactorMonitorThread = null;
     private int startupServerCount;
     long initiationTime;
@@ -30,7 +27,7 @@ public class LoadBalancer implements Runnable {
     private HashRing hashRing;
     private ClientRequestHandler clientRequestHandler;
 
-    public LoadBalancer( int _startupServerCount, int _cacheServerManagerPort, CapacityFactorMonitorFactory capFactMonitorFact, HttpClientFactory _clientFactory ) {
+    public LoadBalancer( int _startupServerCount, int _cacheServerManagerPort, HttpClientFactory _clientFactory ) {
         // dummy port to indicate that the port has not been set
         cacheServerManagerPort = _cacheServerManagerPort;
         port = -1;
@@ -42,7 +39,6 @@ public class LoadBalancer implements Runnable {
         clientRequestHandler = new ClientRequestHandler(cacheRedisImpl);
         clientRequestHandlerServer = new ClientRequestHandlerServer(clientRequestHandler);
         httpProcessor = new ImmutableHttpProcessor(requestInterceptors, responseInterceptors);
-        capacityFactorMonitorFactory = capFactMonitorFact;
         clientFactory = _clientFactory;
     }
 
