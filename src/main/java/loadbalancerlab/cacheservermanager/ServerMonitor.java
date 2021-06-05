@@ -1,7 +1,7 @@
 package loadbalancerlab.cacheservermanager;
 
 import loadbalancerlab.factory.HttpClientFactory;
-import loadbalancerlab.shared.RequestDecoder;
+import loadbalancerlab.shared.RequestDecoderImpl;
 import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.impl.client.CloseableHttpClient;
@@ -15,12 +15,12 @@ import java.util.concurrent.ConcurrentMap;
 public class ServerMonitor {
     ConcurrentMap<Integer, ServerInfo> serverInfoTable;
     HttpClientFactory clientFactory;
-    RequestDecoder reqDecoder;
+    RequestDecoderImpl reqDecoder;
     SortedMap<Integer, Integer> serverCount;
     CacheServerManager cacheServerManager;
     boolean stopExecution;
 
-    public ServerMonitor( HttpClientFactory _clientFactory, RequestDecoder _reqDecoder, CacheServerManager _cacheServerManager ) {
+    public ServerMonitor( HttpClientFactory _clientFactory, RequestDecoderImpl _reqDecoder, CacheServerManager _cacheServerManager ) {
         serverInfoTable = new ConcurrentHashMap<>();
         clientFactory = _clientFactory;
         serverCount = new TreeMap<>();

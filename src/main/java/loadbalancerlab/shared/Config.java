@@ -11,7 +11,7 @@ public class Config {
     private int ringSize;
     private HashFunction hashFunction;
     private double targetCapacityFactor;
-    private RequestDecoder reqDecoder;
+    private RequestDecoderImpl reqDecoder;
     private HttpClientFactory clientFactory;
     private double[] serverLoadCutoffs;
     private int cacheRedisPingInterval;
@@ -59,7 +59,7 @@ public class Config {
         return targetCapacityFactor;
     }
 
-    public RequestDecoder getRequestDecoder() {
+    public RequestDecoderImpl getRequestDecoder() {
         return reqDecoder;
     }
 
@@ -107,7 +107,7 @@ public class Config {
         targetCapacityFactor = _targetCapacityFactor;
     }
 
-    public void setRequestDecoder( RequestDecoder _reqDecoder ) {
+    public void setRequestDecoder( RequestDecoderImpl _reqDecoder ) {
         reqDecoder = _reqDecoder;
     }
 

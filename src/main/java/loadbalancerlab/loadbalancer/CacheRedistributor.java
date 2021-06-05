@@ -3,7 +3,7 @@ package loadbalancerlab.loadbalancer;
 import loadbalancerlab.factory.HttpClientFactory;
 import loadbalancerlab.shared.Config;
 import loadbalancerlab.shared.Logger;
-import loadbalancerlab.shared.RequestDecoder;
+import loadbalancerlab.shared.RequestDecoderImpl;
 import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.impl.client.CloseableHttpClient;
@@ -17,7 +17,7 @@ public class CacheRedistributor {
     Map<Integer, ServerInfo> serverInfoTable;
     HashRing hashRing;
 
-    private static RequestDecoder reqDecoder;
+    private static RequestDecoderImpl reqDecoder;
     private int cacheServerManagerPort;
     private static HttpClientFactory clientFactory;
     private static double[] serverLoadCutoffs;
