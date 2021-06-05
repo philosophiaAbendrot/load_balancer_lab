@@ -1,9 +1,9 @@
 package loadbalancerlab.cacheservermanager;
 
+import loadbalancerlab.factory.CacheServerFactoryImpl;
 import loadbalancerlab.services.monitor.RequestMonitor;
 import loadbalancerlab.cacheserver.CacheServer;
 import loadbalancerlab.shared.Logger;
-import loadbalancerlab.factory.CacheServerFactory;
 import loadbalancerlab.factory.HttpClientFactory;
 import loadbalancerlab.shared.RequestDecoder;
 
@@ -17,7 +17,7 @@ public class CacheServerManager implements Runnable {
     private int port;
     ConcurrentMap<Integer, Thread> serverThreadTable = new ConcurrentHashMap<>();
     private int[] selectablePorts = new int[100];
-    private CacheServerFactory cacheServerFactory;
+    private CacheServerFactoryImpl cacheServerFactory;
     private HttpClientFactory clientFactory;
     public RequestDecoder reqDecoder;
     ServerMonitor serverMonitor;
@@ -32,7 +32,7 @@ public class CacheServerManager implements Runnable {
         cacheServerIdCounter = 0;
     }
 
-    public CacheServerManager( CacheServerFactory _cacheServerFactory, HttpClientFactory _clientFactory, RequestDecoder _reqDecoder ) {
+    public CacheServerManager( CacheServerFactoryImpl _cacheServerFactory, HttpClientFactory _clientFactory, RequestDecoder _reqDecoder ) {
         port = -1;
         cacheServerFactory = _cacheServerFactory;
         clientFactory = _clientFactory;

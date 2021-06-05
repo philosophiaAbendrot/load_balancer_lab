@@ -1,7 +1,6 @@
 package loadbalancerlab.cacheservermanager;
 
 import loadbalancerlab.factory.CacheServerFactoryImpl;
-import loadbalancerlab.factory.CacheServerFactory;
 import loadbalancerlab.services.monitor.RequestMonitor;
 import loadbalancerlab.cacheserver.CacheServer;
 import loadbalancerlab.factory.HttpClientFactoryImpl;
@@ -21,7 +20,7 @@ import static org.mockito.Mockito.*;
 public class CacheServerManagerTest {
     CacheServerManager cacheServerManager;
     Thread cacheServerManagerThread;
-    CacheServerFactory mockFactory;
+    CacheServerFactoryImpl mockFactory;
     CacheServer mockCacheServer;
     Thread mockCacheServerThread;
 
