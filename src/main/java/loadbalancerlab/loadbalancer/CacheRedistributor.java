@@ -17,14 +17,12 @@ public class CacheRedistributor {
     Map<Integer, ServerInfo> serverInfoTable;
     HashRing hashRing;
 
-    static double targetCapacityFactor;
     private static RequestDecoder reqDecoder;
     private int cacheInfoServerPort;
     private static HttpClientFactory clientFactory;
     private static double[] serverLoadCutoffs;
 
     public static void configure( Config config ) {
-        targetCapacityFactor = config.getTargetCapacityFactor();
         reqDecoder = config.getRequestDecoder();
         clientFactory = config.getClientFactory();
         serverLoadCutoffs = config.getServerLoadCutoffs();
