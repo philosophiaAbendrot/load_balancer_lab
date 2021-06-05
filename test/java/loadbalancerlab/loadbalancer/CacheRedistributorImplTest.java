@@ -90,8 +90,8 @@ public class CacheRedistributorImplTest {
         @Nested
         @DisplayName("For servers that are recorded in server info table")
         class WhenInfoDoesExistInRecord {
-            ServerInfo serverInfo3;
-            ServerInfo serverInfo4;
+            ServerInfoImpl serverInfo3;
+            ServerInfoImpl serverInfo4;
             int serverPort3 = 3681;
             int serverPort4 = 4959;
             double cf3Initial = 0.589;

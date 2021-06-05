@@ -1,6 +1,6 @@
 package loadbalancerlab.loadbalancer;
 
-public class ServerInfoImpl implements ServerInfo {
+public class ServerInfoImpl {
     int serverId;
     int port;
     double cf;
@@ -11,22 +11,18 @@ public class ServerInfoImpl implements ServerInfo {
         cf = _cf;
     }
 
-    @Override
     public int getServerId() {
         return serverId;
     }
 
-    @Override
     public int getPort() {
         return port;
     }
 
-    @Override
     public double getCapacityFactor() {
         return cf;
     }
-
-    @Override
+    
     public void setCapacityFactor( double _cf ) {
         cf = _cf;
     }
