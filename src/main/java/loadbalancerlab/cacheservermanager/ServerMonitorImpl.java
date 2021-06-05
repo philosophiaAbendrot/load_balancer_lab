@@ -12,7 +12,7 @@ import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 
-public class ServerMonitorImpl implements ServerMonitor {
+public class ServerMonitorImpl {
     ConcurrentMap<Integer, ServerInfo> serverInfoTable;
     HttpClientFactory clientFactory;
     RequestDecoder reqDecoder;
@@ -31,7 +31,6 @@ public class ServerMonitorImpl implements ServerMonitor {
 
     // ServerMonitor Interface
     // adds new cache server to record of servers
-    @Override
     public void addServer( int id, int port ) {
         if (serverInfoTable.containsKey(id)) {
             throw new IllegalArgumentException("serverInfoTable already contains an entry for id " + id);
@@ -39,7 +38,6 @@ public class ServerMonitorImpl implements ServerMonitor {
         serverInfoTable.put(id, new ServerInfo(id, port));
     }
 
-    @Override
     public void removeServer(int id) {
         if (serverInfoTable.containsKey(id)) {
             serverInfoTable.remove(id);
@@ -47,14 +45,12 @@ public class ServerMonitorImpl implements ServerMonitor {
     }
 
     // updates record of active number at a particular second in time
-    @Override
     public void updateServerCount( int currentSecond, int numServers ) {
         if (!serverCount.containsKey(currentSecond))
             serverCount.put(currentSecond, numServers);
     }
 
     // outputs data about number of active servers vs. time
-    @Override
     public SortedMap<Integer, Integer> deliverData() {
         SortedMap<Integer, Integer> copyMap = new TreeMap<>();
         copyMap.putAll(serverCount);
@@ -62,14 +58,12 @@ public class ServerMonitorImpl implements ServerMonitor {
     }
 
     // returns server info table
-    @Override
     public Map<Integer, ServerInfo> getServerInfo() {
         Map<Integer, ServerInfo> copyMap = new HashMap<>();
         copyMap.putAll(serverInfoTable);
         return copyMap;
     }
 
-    @Override
     public void pingCacheServers() {
         CloseableHttpClient httpClient = this.clientFactory.buildApacheClient();
         List<Integer> ports = new ArrayList<>(this.serverInfoTable.keySet());

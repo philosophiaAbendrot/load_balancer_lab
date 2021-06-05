@@ -35,7 +35,7 @@ public class CacheInfoRequestHandlerTest {
     static int serverPort;
     static Thread dummyServerThread;
     static RequestDecoder reqDecoder;
-    static ServerMonitor mockServerMonitor;
+    static ServerMonitorImpl mockServerMonitor;
     static Map<Integer, ServerInfo> mockServerInfoTable;
     static double cf1 = 0.55;
     static double cf2 = 0.85;
@@ -78,9 +78,9 @@ public class CacheInfoRequestHandlerTest {
 
     private static class DummyServer implements Runnable {
         HttpServer server;
-        ServerMonitor serverMonitor;
+        ServerMonitorImpl serverMonitor;
 
-        public DummyServer(ServerMonitor _serverMonitor) {
+        public DummyServer(ServerMonitorImpl _serverMonitor) {
             serverMonitor = _serverMonitor;
         }
 

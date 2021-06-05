@@ -12,8 +12,8 @@ import java.io.IOException;
 import java.util.Map;
 
 public class CacheInfoRequestHandler implements HttpRequestHandler {
-    private ServerMonitor serverMonitor;
-    public CacheInfoRequestHandler(ServerMonitor _serverMonitor) {
+    private ServerMonitorImpl serverMonitor;
+    public CacheInfoRequestHandler(ServerMonitorImpl _serverMonitor) {
         serverMonitor = _serverMonitor;
     }
 
