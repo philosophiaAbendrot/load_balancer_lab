@@ -46,7 +46,6 @@ public class ClientRequestHandler implements HttpRequestHandler {
         int cacheServerPort = cacheRedis.selectPort(resourceName);
 
         Logger.log(String.format("ClientRequestHandler | relaying message to cache server at port %d", cacheServerPort), Logger.LogType.REQUEST_PASSING);
-
         // record request incoming timestamp
         incomingRequestTimestamps.add((int)(System.currentTimeMillis() / 1000));
 

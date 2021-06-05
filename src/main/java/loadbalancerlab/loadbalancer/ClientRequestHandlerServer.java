@@ -14,17 +14,16 @@ import java.util.ArrayList;
 import java.util.concurrent.TimeUnit;
 
 public class ClientRequestHandlerServer implements Runnable {
-    private static int defaultPort;
-    volatile private int port;
+    volatile private static int defaultPort;
+    volatile private int port = -1;
     ClientRequestHandler clientRequestHandler;
 
-    private static void configure( Config config ) {
+    public static void configure( Config config ) {
         defaultPort = config.getClientHandlerServerDefaultPort();
     }
 
     public ClientRequestHandlerServer(ClientRequestHandler _clientRequestHandler) {
         clientRequestHandler = _clientRequestHandler;
-        port = defaultPort;
     }
 
     public int getPort() {
@@ -33,7 +32,7 @@ public class ClientRequestHandlerServer implements Runnable {
 
     @Override
     public void run() {
-        Logger.log("LoadBalancer | LoadBalancer thread started", Logger.LogType.THREAD_MANAGEMENT);
+        Logger.log("ClientRequestHandlerServer | ClientRequestHandlerServer thread started", Logger.LogType.THREAD_MANAGEMENT);
         InetAddress hostAddress = null;
 
         try {

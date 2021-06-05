@@ -56,7 +56,6 @@ public class ClientRequestHandlerServerIntegrationTest {
         mockClientReqHandler = new ClientRequestHandler(mockCacheRedis);
         clientRequestHandlerServer = new ClientRequestHandlerServer(mockClientReqHandler);
         clientRequestHandlerServerThread = new Thread(clientRequestHandlerServer);
-        clientRequestHandlerServerThread.start();
 
         mockClient = Mockito.mock(CloseableHttpClient.class);
         mockResponse = Mockito.mock(CloseableHttpResponse.class);
@@ -72,7 +71,11 @@ public class ClientRequestHandlerServerIntegrationTest {
         // passing config to ClientRequestHandler
         config = new ConfigImpl();
         config.setClientFactory(mockClientFactory);
+
         ClientRequestHandler.configure(config);
+        ClientRequestHandlerServer.configure(config);
+
+        clientRequestHandlerServerThread.start();
 
         while (clientRequestHandlerServer.getPort() == -1) {
             try {

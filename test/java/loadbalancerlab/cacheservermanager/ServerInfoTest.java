@@ -17,7 +17,7 @@ public class ServerInfoTest {
 
         @BeforeEach
         public void setup() {
-            serverInfo = new ServerInfoImpl(serverId, port);
+            serverInfo = new ServerInfo(serverId, port);
         }
 
         @Nested
@@ -73,7 +73,7 @@ public class ServerInfoTest {
         @Nested
         @DisplayName("When server info is currently holding the maximum allowed number of cf records and we add a new record")
         class WhenCfRecordsFull {
-            int maxRecords = ServerInfoImpl.cfRecordSize;
+            int maxRecords = ServerInfo.cfRecordSize;
             int currentTime;
             double[] capFactors;
             double lastCfEntry = 0.81;

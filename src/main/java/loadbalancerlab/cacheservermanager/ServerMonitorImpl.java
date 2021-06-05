@@ -36,7 +36,7 @@ public class ServerMonitorImpl implements ServerMonitor {
         if (serverInfoTable.containsKey(id)) {
             throw new IllegalArgumentException("serverInfoTable already contains an entry for id " + id);
         }
-        serverInfoTable.put(id, new ServerInfoImpl(id, port));
+        serverInfoTable.put(id, new ServerInfo(id, port));
     }
 
     @Override

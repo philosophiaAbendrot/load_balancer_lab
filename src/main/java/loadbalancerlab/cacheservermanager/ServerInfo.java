@@ -1,14 +1,64 @@
 package loadbalancerlab.cacheservermanager;
 
 import java.util.SortedMap;
+import java.util.TreeMap;
 
-public interface ServerInfo {
-    SortedMap<Integer, Double> getCapacityFactorRecord();
-    double getAverageCapacityFactor();
-    int getServerId();
-    int getPort();
+public class ServerInfo {
+    private int serverId;
+    private int port;
+    private SortedMap<Integer, Double> capFactorRecord;
+    static int cfRecordSize = 10;
 
-    void setPort(int id);
-    void setServerId(int id);
-    void updateCapacityFactor(int timestamp, double cf);
+    public ServerInfo( int _serverId, int _port ) {
+        this.serverId = _serverId;
+        this.port = _port;
+        capFactorRecord = new TreeMap<>();
+    }
+
+    public SortedMap<Integer, Double> getCapacityFactorRecord() {
+        SortedMap<Integer, Double> copyMap = (SortedMap<Integer, Double>) ((TreeMap<Integer, Double>)capFactorRecord).clone();
+        return copyMap;
+    }
+
+    public double getAverageCapacityFactor() {
+        double totalCf = 0;
+
+        for (Double cf : capFactorRecord.values()) {
+            totalCf += cf;
+        }
+
+        return totalCf / capFactorRecord.size();
+    }
+
+    public int getServerId() {
+        return serverId;
+    }
+
+    public int getPort() {
+        return port;
+    }
+
+    public void setPort( int _port ) {
+        port = _port;
+    }
+
+    public void setServerId( int _serverId ) {
+        serverId = _serverId;
+    }
+
+    public void updateCapacityFactor( int timestamp, double cf ) {
+        if (capFactorRecord.containsKey(timestamp)) {
+            // do nothing if an entry already exists for this timestamp
+            return;
+        }
+
+        // prevent cap factor record size from increasing past cfRecordSize
+        if (capFactorRecord.size() >= cfRecordSize) {
+            int lowestKey = capFactorRecord.firstKey();
+            capFactorRecord.remove(lowestKey);
+        }
+
+        // add new entry
+        capFactorRecord.put(timestamp, cf);
+    }
 }
