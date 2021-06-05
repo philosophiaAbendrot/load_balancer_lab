@@ -6,7 +6,7 @@ import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 
-public class HashRingImpl implements HashRing {
+public class HashRingImpl {
     static int maxAnglesPerServer;
     static int minAnglesPerServer;
     static int defaultAnglesPerServer;
@@ -29,7 +29,6 @@ public class HashRingImpl implements HashRing {
         anglesByServerId = new ConcurrentHashMap<>();
     }
 
-    @Override
     public int findServerId( String resourceName ) {
         int resourcePosition = hashFunction.hash(resourceName) % ringSize;
 
@@ -61,7 +60,6 @@ public class HashRingImpl implements HashRing {
         }
     }
 
-    @Override
     public void addAngle( int serverId, int numAngles ) {
         Random rand = new Random();
 
@@ -88,7 +86,6 @@ public class HashRingImpl implements HashRing {
         }
     }
 
-    @Override
     public void removeAngle( int serverId, int numAngles ) {
         Random rand = new Random();
 
@@ -109,7 +106,6 @@ public class HashRingImpl implements HashRing {
         }
     }
 
-    @Override
     public void addServer( int serverId ) {
         if (anglesByServerId.containsKey(serverId))
             throw new IllegalArgumentException("Server with id = " + serverId + " is already recorded in HashRingImpl");
@@ -118,7 +114,6 @@ public class HashRingImpl implements HashRing {
         addAngle(serverId, defaultAnglesPerServer);
     }
 
-    @Override
     public void removeServer( int serverId ) {
         if (!anglesByServerId.containsKey(serverId))
             throw new IllegalArgumentException("Server with id = " + serverId + " is not recorded in HashRingImpl");

@@ -10,7 +10,7 @@ public class LoadBalancerRunnable implements Runnable {
     private ClientRequestHandler clientReqHandler;
     private CacheRedistributorImpl cacheRedisImpl;
     private Thread cacheRedisThread;
-    private HashRing hashRing;
+    private HashRingImpl hashRing;
 
     public LoadBalancerRunnable(int _cacheServerManagerPort) {
         cacheServerManagerPort = _cacheServerManagerPort;

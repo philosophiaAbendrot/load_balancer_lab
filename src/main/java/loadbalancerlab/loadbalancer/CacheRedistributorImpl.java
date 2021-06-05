@@ -15,7 +15,7 @@ import java.util.Map;
 
 public class CacheRedistributorImpl {
     Map<Integer, ServerInfo> serverInfoTable;
-    HashRing hashRing;
+    HashRingImpl hashRing;
 
     static double targetCapacityFactor;
     private static RequestDecoder reqDecoder;
@@ -30,7 +30,7 @@ public class CacheRedistributorImpl {
         serverLoadCutoffs = config.getServerLoadCutoffs();
     }
 
-    public CacheRedistributorImpl(int _cacheServerManagerPort, HashRing _hashRing) {
+    public CacheRedistributorImpl(int _cacheServerManagerPort, HashRingImpl _hashRing) {
         serverInfoTable = new HashMap<>();
         cacheInfoServerPort = _cacheServerManagerPort;
         hashRing = _hashRing;

@@ -118,7 +118,7 @@ public class CacheRedistributorImplTest {
     @Nested
     @DisplayName("Test selectPort()")
     class TestSelectPort {
-        HashRing mockHashRing;
+        HashRingImpl mockHashRing;
         String resourceName = "Chooder_Bunny";
         int selectedPort;
         int port1 = 10_105;
@@ -157,7 +157,7 @@ public class CacheRedistributorImplTest {
     @Nested
     @DisplayName("Test remapCacheKeys()")
     class TestRemapCacheKeys {
-        HashRing mockHashRing;
+        HashRingImpl mockHashRing;
         int port1 = 4_810, port2 = 5_848, port3 = 5198, port4 = 8931, port5 = 1185;
         double cf1 = 0.1, cf2 = 0.2, cf3 = 0.4, cf4 = 0.75, cf5 = 0.9;
 
@@ -168,7 +168,7 @@ public class CacheRedistributorImplTest {
             CacheRedistributorImpl.configure(config);
 
             // initialization
-            mockHashRing = Mockito.mock(HashRing.class);
+            mockHashRing = Mockito.mock(HashRingImpl.class);
             cacheRedis = new CacheRedistributorImpl(cacheInfoServerPort, mockHashRing);
             cacheRedis.serverInfoTable = new HashMap<>();
             cacheRedis.serverInfoTable.put(1, new ServerInfoImpl(1, port1, cf1));
