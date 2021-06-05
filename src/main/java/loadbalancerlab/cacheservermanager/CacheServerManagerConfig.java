@@ -9,7 +9,7 @@ import loadbalancerlab.factory.ServerMonitorFactoryImpl;
 // setup of instances necessary for CacheServerManagerRunnable
 public class CacheServerManagerConfig {
     public CacheServerManager cacheServerManager;
-    public ServerMonitorImpl serverMonitor;
+    public ServerMonitor serverMonitor;
     public ServerMonitorRunnable serverMonitorRunnable;
     public Thread serverMonitorThread;
     public CacheInfoRequestHandler cacheInfoRequestHandler;

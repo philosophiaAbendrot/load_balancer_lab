@@ -4,11 +4,11 @@ import loadbalancerlab.shared.Logger;
 
 
 public class ServerMonitorRunnable implements Runnable {
-    ServerMonitorImpl serverMonitor;
+    ServerMonitor serverMonitor;
     boolean stopExecution;
     CacheServerManager cacheServerManager;
 
-    public ServerMonitorRunnable(ServerMonitorImpl _serverMonitor, CacheServerManager _cacheServerManager) {
+    public ServerMonitorRunnable( ServerMonitor _serverMonitor, CacheServerManager _cacheServerManager) {
         serverMonitor = _serverMonitor;
         cacheServerManager = _cacheServerManager;
         stopExecution = false;

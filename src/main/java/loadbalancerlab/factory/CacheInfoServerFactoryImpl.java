@@ -2,11 +2,11 @@ package loadbalancerlab.factory;
 
 import loadbalancerlab.cacheservermanager.CacheInfoRequestHandler;
 import loadbalancerlab.cacheservermanager.CacheInfoServerRunnable;
-import loadbalancerlab.cacheservermanager.ServerMonitorImpl;
+import loadbalancerlab.cacheservermanager.ServerMonitor;
 
 public class CacheInfoServerFactoryImpl implements CacheInfoServerFactory {
     @Override
-    public CacheInfoRequestHandler produceCacheInfoRequestHandler( ServerMonitorImpl serverMonitor) {
+    public CacheInfoRequestHandler produceCacheInfoRequestHandler( ServerMonitor serverMonitor) {
         return new CacheInfoRequestHandler(serverMonitor);
     }
 

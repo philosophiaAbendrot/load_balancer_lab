@@ -2,10 +2,10 @@ package loadbalancerlab.factory;
 
 import loadbalancerlab.cacheservermanager.CacheInfoRequestHandler;
 import loadbalancerlab.cacheservermanager.CacheInfoServerRunnable;
-import loadbalancerlab.cacheservermanager.ServerMonitorImpl;
+import loadbalancerlab.cacheservermanager.ServerMonitor;
 
 public interface CacheInfoServerFactory {
-    CacheInfoRequestHandler produceCacheInfoRequestHandler( ServerMonitorImpl serverMonitor );
+    CacheInfoRequestHandler produceCacheInfoRequestHandler( ServerMonitor serverMonitor );
 
     CacheInfoServerRunnable produceCacheInfoServerRunnable( int defaultPort, CacheInfoRequestHandler cacheInfoRequestHandler );
 }

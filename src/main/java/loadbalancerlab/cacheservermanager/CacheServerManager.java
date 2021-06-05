@@ -20,7 +20,7 @@ public class CacheServerManager implements Runnable {
     private CacheServerFactory cacheServerFactory;
     private HttpClientFactory clientFactory;
     public RequestDecoder reqDecoder;
-    ServerMonitorImpl serverMonitor;
+    ServerMonitor serverMonitor;
     static int cacheServerIdCounter;
     CacheInfoRequestHandler cacheInfoRequestHandler;
     CacheInfoServerRunnable cacheInfoServer;
@@ -41,7 +41,7 @@ public class CacheServerManager implements Runnable {
         // reserve ports 37000 through 37099 as usable ports
         for (int i = 0; i < selectablePorts.length; i++)
             selectablePorts[i] = 37100 + i;
-        serverMonitor = new ServerMonitorImpl(clientFactory, reqDecoder, this);
+        serverMonitor = new ServerMonitor(clientFactory, reqDecoder, this);
         cacheInfoRequestHandler = new CacheInfoRequestHandler(serverMonitor);
     }
 

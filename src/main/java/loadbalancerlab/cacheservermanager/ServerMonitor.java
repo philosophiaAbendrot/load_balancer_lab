@@ -12,7 +12,7 @@ import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 
-public class ServerMonitorImpl {
+public class ServerMonitor {
     ConcurrentMap<Integer, ServerInfo> serverInfoTable;
     HttpClientFactory clientFactory;
     RequestDecoder reqDecoder;
@@ -20,7 +20,7 @@ public class ServerMonitorImpl {
     CacheServerManager cacheServerManager;
     boolean stopExecution;
 
-    public ServerMonitorImpl( HttpClientFactory _clientFactory, RequestDecoder _reqDecoder, CacheServerManager _cacheServerManager ) {
+    public ServerMonitor( HttpClientFactory _clientFactory, RequestDecoder _reqDecoder, CacheServerManager _cacheServerManager ) {
         serverInfoTable = new ConcurrentHashMap<>();
         clientFactory = _clientFactory;
         serverCount = new TreeMap<>();

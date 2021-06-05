@@ -2,7 +2,7 @@ package loadbalancerlab.cacheservermanager;
 
 public class CacheServerManagerRunnable implements Runnable {
     CacheServerManager cacheServerManager;
-    ServerMonitorImpl serverMonitor;
+    ServerMonitor serverMonitor;
     CacheInfoRequestHandler cacheInfoRequestHandler;
 
     CacheServerManagerRunnable cacheServerManagerRunnable;

@@ -35,7 +35,7 @@ public class CacheInfoRequestHandlerTest {
     static int serverPort;
     static Thread dummyServerThread;
     static RequestDecoder reqDecoder;
-    static ServerMonitorImpl mockServerMonitor;
+    static ServerMonitor mockServerMonitor;
     static Map<Integer, ServerInfo> mockServerInfoTable;
     static double cf1 = 0.55;
     static double cf2 = 0.85;
@@ -46,7 +46,7 @@ public class CacheInfoRequestHandlerTest {
 
     @BeforeAll
     public static void beforeAll() {
-        mockServerMonitor = Mockito.mock(ServerMonitorImpl.class);
+        mockServerMonitor = Mockito.mock(ServerMonitor.class);
         mockServerInfoTable = new HashMap<>();
         ServerInfo mockServerInfo1 = Mockito.mock(ServerInfo.class);
         ServerInfo mockServerInfo2 = Mockito.mock(ServerInfo.class);
@@ -78,9 +78,9 @@ public class CacheInfoRequestHandlerTest {
 
     private static class DummyServer implements Runnable {
         HttpServer server;
-        ServerMonitorImpl serverMonitor;
+        ServerMonitor serverMonitor;
 
-        public DummyServer(ServerMonitorImpl _serverMonitor) {
+        public DummyServer( ServerMonitor _serverMonitor) {
             serverMonitor = _serverMonitor;
         }
 

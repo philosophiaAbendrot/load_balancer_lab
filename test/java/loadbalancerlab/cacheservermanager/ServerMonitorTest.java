@@ -21,11 +21,11 @@ import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 
-public class ServerMonitorImplTest {
+public class ServerMonitorTest {
     HttpClientFactory clientFactory;
     CloseableHttpClient mockClient;
     long currentTime;
-    ServerMonitorImpl serverMonitor;
+    ServerMonitor serverMonitor;
     CacheServerManager mockCacheServerManager;
     RequestDecoder mockDecoder;
 
@@ -48,7 +48,7 @@ public class ServerMonitorImplTest {
     public class TestAnalytics {
         @BeforeEach
         public void setup() {
-            serverMonitor = new ServerMonitorImpl(clientFactory, mockDecoder, mockCacheServerManager);
+            serverMonitor = new ServerMonitor(clientFactory, mockDecoder, mockCacheServerManager);
         }
 
         @Test
@@ -107,7 +107,7 @@ public class ServerMonitorImplTest {
             this.mockResponse = Mockito.mock(CloseableHttpResponse.class);
             when(mockClient.execute(any(HttpUriRequest.class))).thenReturn(this.mockResponse);
             when(mockDecoder.extractJsonApacheResponse(any(CloseableHttpResponse.class))).thenReturn(this.mockJsonResponse);
-            serverMonitor = new ServerMonitorImpl(clientFactory, mockDecoder, mockCacheServerManager);
+            serverMonitor = new ServerMonitor(clientFactory, mockDecoder, mockCacheServerManager);
 
             // add server info instances to monitor
             for (int i = 0; i < numServers; i++)
@@ -155,7 +155,7 @@ public class ServerMonitorImplTest {
     class AddServer {
         @BeforeEach
         public void setup() {
-            serverMonitor = new ServerMonitorImpl(clientFactory, mockDecoder, mockCacheServerManager);
+            serverMonitor = new ServerMonitor(clientFactory, mockDecoder, mockCacheServerManager);
         }
 
         @Test
