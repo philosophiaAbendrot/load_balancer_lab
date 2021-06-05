@@ -1,6 +1,6 @@
 package loadbalancerlab.loadbalancer;
 
-public class HashRingAngleImpl implements HashRingAngle {
+public class HashRingAngleImpl {
     private int serverId;
     private int angle;
     private HashFunction hashFunction;
@@ -11,12 +11,10 @@ public class HashRingAngleImpl implements HashRingAngle {
         hashFunction = _hashFunction;
     }
 
-    @Override
     public int getServerId() {
         return serverId;
     }
 
-    @Override
     public int getAngle() {
         return angle;
     }
