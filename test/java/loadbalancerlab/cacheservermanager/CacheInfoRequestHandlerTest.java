@@ -2,7 +2,7 @@ package loadbalancerlab.cacheservermanager;
 
 import loadbalancerlab.factory.HttpClientFactory;
 import loadbalancerlab.shared.Logger;
-import loadbalancerlab.shared.RequestDecoderImpl;
+import loadbalancerlab.shared.RequestDecoder;
 
 import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.HttpGet;
@@ -32,7 +32,7 @@ public class CacheInfoRequestHandlerTest {
     static final int DEFAULT_SERVER_PORT = 8_080;
     static int serverPort;
     static Thread dummyServerThread;
-    static RequestDecoderImpl reqDecoder;
+    static RequestDecoder reqDecoder;
     static ServerMonitor mockServerMonitor;
     static Map<Integer, ServerInfo> mockServerInfoTable;
     static double cf1 = 0.55;
@@ -61,7 +61,7 @@ public class CacheInfoRequestHandlerTest {
         Logger.configure(new Logger.LogType[] { Logger.LogType.PRINT_NOTHING });
         dummyServerThread = new Thread(new DummyServer(mockServerMonitor));
         dummyServerThread.start();
-        reqDecoder = new RequestDecoderImpl();
+        reqDecoder = new RequestDecoder();
     }
 
     @BeforeEach

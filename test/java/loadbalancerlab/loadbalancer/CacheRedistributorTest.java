@@ -2,7 +2,7 @@ package loadbalancerlab.loadbalancer;
 
 import loadbalancerlab.factory.HttpClientFactory;
 import loadbalancerlab.shared.Config;
-import loadbalancerlab.shared.RequestDecoderImpl;
+import loadbalancerlab.shared.RequestDecoder;
 import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.HttpUriRequest;
 import org.apache.http.impl.client.CloseableHttpClient;
@@ -34,7 +34,7 @@ public class CacheRedistributorTest {
         HttpClientFactory mockClientFactory = Mockito.mock(HttpClientFactory.class);
         CloseableHttpClient mockClient = Mockito.mock(CloseableHttpClient.class);
         CloseableHttpResponse mockResponse = Mockito.mock(CloseableHttpResponse.class);
-        RequestDecoderImpl mockDecoder = Mockito.mock(RequestDecoderImpl.class);
+        RequestDecoder mockDecoder = Mockito.mock(RequestDecoder.class);
         JSONObject mockJsonResponse = Mockito.mock(JSONObject.class);
         JSONObject mockNestedJson3 = Mockito.mock(JSONObject.class);
         JSONObject mockNestedJson4 = Mockito.mock(JSONObject.class);

@@ -2,7 +2,7 @@ package loadbalancerlab.cacheservermanager;
 
 import loadbalancerlab.factory.HttpClientFactory;
 import loadbalancerlab.shared.Logger;
-import loadbalancerlab.shared.RequestDecoderImpl;
+import loadbalancerlab.shared.RequestDecoder;
 import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.methods.HttpUriRequest;
@@ -27,7 +27,7 @@ public class ServerMonitorTest {
     long currentTime;
     ServerMonitor serverMonitor;
     CacheServerManager mockCacheServerManager;
-    RequestDecoderImpl mockDecoder;
+    RequestDecoder mockDecoder;
 
     @BeforeAll
     public static void beforeAll() {
@@ -39,7 +39,7 @@ public class ServerMonitorTest {
         this.clientFactory = Mockito.mock(HttpClientFactory.class);
         this.mockClient = Mockito.mock(CloseableHttpClient.class);
         this.currentTime = System.currentTimeMillis();
-        this.mockDecoder = Mockito.mock(RequestDecoderImpl.class);
+        this.mockDecoder = Mockito.mock(RequestDecoder.class);
         this.mockCacheServerManager = Mockito.mock(CacheServerManager.class);
     }
 

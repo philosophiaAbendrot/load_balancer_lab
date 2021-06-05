@@ -10,7 +10,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
 
-public class RequestDecoderImpl {
+public class RequestDecoder {
     public JSONObject extractJsonApacheResponse(CloseableHttpResponse response) throws IOException {
         HttpEntity responseBody = response.getEntity();
         InputStream responseStream = null;

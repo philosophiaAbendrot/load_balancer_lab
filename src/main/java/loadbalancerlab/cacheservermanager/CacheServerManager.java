@@ -5,7 +5,7 @@ import loadbalancerlab.services.monitor.RequestMonitor;
 import loadbalancerlab.cacheserver.CacheServer;
 import loadbalancerlab.shared.Logger;
 import loadbalancerlab.factory.HttpClientFactory;
-import loadbalancerlab.shared.RequestDecoderImpl;
+import loadbalancerlab.shared.RequestDecoder;
 
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
@@ -19,7 +19,7 @@ public class CacheServerManager implements Runnable {
     private int[] selectablePorts = new int[100];
     private CacheServerFactory cacheServerFactory;
     private HttpClientFactory clientFactory;
-    public RequestDecoderImpl reqDecoder;
+    public RequestDecoder reqDecoder;
     ServerMonitor serverMonitor;
     static int cacheServerIdCounter;
     CacheInfoRequestHandler cacheInfoRequestHandler;
@@ -32,7 +32,7 @@ public class CacheServerManager implements Runnable {
         cacheServerIdCounter = 0;
     }
 
-    public CacheServerManager( CacheServerFactory _cacheServerFactory, HttpClientFactory _clientFactory, RequestDecoderImpl _reqDecoder ) {
+    public CacheServerManager( CacheServerFactory _cacheServerFactory, HttpClientFactory _clientFactory, RequestDecoder _reqDecoder ) {
         port = -1;
         cacheServerFactory = _cacheServerFactory;
         clientFactory = _clientFactory;

@@ -11,7 +11,7 @@ public class Config {
     private int ringSize;
     private HashFunction hashFunction;
     private double targetCapacityFactor;
-    private RequestDecoderImpl reqDecoder;
+    private RequestDecoder reqDecoder;
     private HttpClientFactory clientFactory;
     private double[] serverLoadCutoffs;
     private int cacheRedisPingInterval;
@@ -26,7 +26,7 @@ public class Config {
         ringSize = 10_000;
         hashFunction = new MurmurHashFunctionImpl();
         targetCapacityFactor = 0.5;
-        reqDecoder = new RequestDecoderImpl();
+        reqDecoder = new RequestDecoder();
         clientFactory = new HttpClientFactory();
         serverLoadCutoffs = new double[] { 0.15, 0.35, 0.65, 0.85 };
         cacheRedisPingInterval = 1;
@@ -59,7 +59,7 @@ public class Config {
         return targetCapacityFactor;
     }
 
-    public RequestDecoderImpl getRequestDecoder() {
+    public RequestDecoder getRequestDecoder() {
         return reqDecoder;
     }
 
@@ -107,7 +107,7 @@ public class Config {
         targetCapacityFactor = _targetCapacityFactor;
     }
 
-    public void setRequestDecoder( RequestDecoderImpl _reqDecoder ) {
+    public void setRequestDecoder( RequestDecoder _reqDecoder ) {
         reqDecoder = _reqDecoder;
     }
 
