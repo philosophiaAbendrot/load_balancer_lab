@@ -11,6 +11,7 @@ import org.apache.http.HttpVersion;
 import org.apache.http.StatusLine;
 import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.HttpGet;
+import org.apache.http.entity.StringEntity;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClients;
 import org.apache.http.message.BasicStatusLine;
@@ -27,27 +28,27 @@ import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.*;
 
 public class ClientRequestHandlerServerIntegrationTest {
-    ClientRequestHandler mockClientReqHandler;
-    ClientRequestHandlerServer clientRequestHandlerServer;
-    CacheRedistributor mockCacheRedis;
-    Thread clientRequestHandlerServerThread;
-    int selectedPort = 1;
-    int clientRequestHandlerServerPort;
-    CloseableHttpClient httpClient;
-    String resourceName;
-    HttpClientFactory mockClientFactory;
-    CloseableHttpClient mockClient;
-    CloseableHttpResponse mockResponse;
-    String mockEntityContent = "resource_content.jpg";
-    Config config;
+    static ClientRequestHandler mockClientReqHandler;
+    static ClientRequestHandlerServer clientRequestHandlerServer;
+    static CacheRedistributor mockCacheRedis;
+    static Thread clientRequestHandlerServerThread;
+    static int selectedPort = 1;
+    static int clientRequestHandlerServerPort;
+    static CloseableHttpClient httpClient;
+    static HttpClientFactory mockClientFactory;
+    static CloseableHttpClient mockClient;
+    static CloseableHttpResponse mockResponse;
+    static Config config;
+    static String resourceName = "Chooder_Bunny.jpg";
+    static String reqPath;
+    HttpGet getReq;
+    CloseableHttpResponse res;
+    static String expectedResponseContent = "resource content";
 
     @BeforeAll
-    public static void config() {
+    public static void config() throws IOException {
         Logger.configure(new Logger.LogType[] { Logger.LogType.THREAD_MANAGEMENT });
-    }
 
-    @BeforeEach
-    public void setup() throws IOException {
         // setting up mocks
         mockCacheRedis = Mockito.mock(CacheRedistributor.class);
         when(mockCacheRedis.selectPort(anyString())).thenReturn(selectedPort);
@@ -61,12 +62,9 @@ public class ClientRequestHandlerServerIntegrationTest {
         mockResponse = Mockito.mock(CloseableHttpResponse.class);
         StatusLine mockResponseStatus = new BasicStatusLine(HttpVersion.HTTP_1_1, HttpStatus.SC_OK, "OK");
         when(mockResponse.getStatusLine()).thenReturn(mockResponseStatus);
-        HttpEntity mockEntity = Mockito.mock(HttpEntity.class);
-        InputStream contentStream = IOUtils.toInputStream(mockEntityContent, StandardCharsets.UTF_8.name());
-        when(mockEntity.getContent()).thenReturn(contentStream);
-        contentStream.close();
+        HttpEntity resEntity = new StringEntity(expectedResponseContent);
 
-        when(mockResponse.getEntity()).thenReturn(mockEntity);
+        when(mockResponse.getEntity()).thenReturn(resEntity);
         when(mockClient.execute(any(HttpGet.class))).thenReturn(mockResponse);
         mockClientFactory = Mockito.mock(HttpClientFactory.class);
         when(mockClientFactory.buildApacheClient()).thenReturn(mockClient);
@@ -86,21 +84,35 @@ public class ClientRequestHandlerServerIntegrationTest {
 
         clientRequestHandlerServerPort = clientRequestHandlerServer.getPort();
         httpClient = HttpClients.createDefault();
+
+        reqPath = "http://127.0.0.1:" + clientRequestHandlerServerPort + "/resource/" + resourceName;
     }
 
-    @AfterEach
-    public void shutdown() {
+    @BeforeEach
+    public void setup() throws IOException {
+        getReq = new HttpGet(reqPath);
+        res = httpClient.execute(getReq);
+    }
+
+    @AfterAll
+    public static void shutdown() {
         clientRequestHandlerServerThread.interrupt();
     }
 
     @Test
     @DisplayName("Sending request to client request handler should call selectPort on cacheRedis with the provided resource name")
-    public void shouldCallCacheRedisSelectPort() throws IOException {
-        resourceName = "Chooder_Bunny.jpg";
-        HttpGet getReq = new HttpGet("http://127.0.0.1:" + clientRequestHandlerServerPort + "/resource/" + resourceName);
-        httpClient.execute(getReq);
+    public void shouldCallCacheRedisSelectPort() {
         ArgumentCaptor<String> resourceNameArg = ArgumentCaptor.forClass(String.class);
         Mockito.verify(mockCacheRedis, times(1)).selectPort(resourceNameArg.capture());
         assertEquals(resourceName, resourceNameArg.getValue());
+    }
+
+    @Test
+    @DisplayName("Sending request to client request handler should return the response from the cache server")
+    public void shouldReturnResponseFromCacheServer() throws IOException {
+        HttpEntity resEntity = res.getEntity();
+        InputStream contentStream = resEntity.getContent();
+        String contentString = IOUtils.toString(contentStream, StandardCharsets.UTF_8);
+        assertEquals(expectedResponseContent, contentString);
     }
 }

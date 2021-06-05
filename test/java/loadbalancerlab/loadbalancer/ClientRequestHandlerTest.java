@@ -13,6 +13,7 @@ import org.apache.http.StatusLine;
 import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.config.SocketConfig;
+import org.apache.http.entity.StringEntity;
 import org.apache.http.impl.bootstrap.HttpServer;
 import org.apache.http.impl.bootstrap.ServerBootstrap;
 import org.apache.http.impl.client.CloseableHttpClient;
@@ -52,7 +53,7 @@ public class ClientRequestHandlerTest {
 
     CloseableHttpClient mockClient;
     CloseableHttpResponse mockResponse;
-    HttpEntity mockEntity;
+    HttpEntity resEntity;
     String mockEntityContent = "resource_content.jpg";
 
     int mockCacheServerPort = 5_846;
@@ -138,11 +139,8 @@ public class ClientRequestHandlerTest {
         mockResponse = Mockito.mock(CloseableHttpResponse.class);
         StatusLine mockResponseStatus = new BasicStatusLine(HttpVersion.HTTP_1_1, HttpStatus.SC_OK, "OK");
         when(mockResponse.getStatusLine()).thenReturn(mockResponseStatus);
-        mockEntity = Mockito.mock(HttpEntity.class);
-        InputStream contentStream = IOUtils.toInputStream(mockEntityContent, StandardCharsets.UTF_8.name());
-        when(mockEntity.getContent()).thenReturn(contentStream);
-        contentStream.close();
-        when(mockResponse.getEntity()).thenReturn(mockEntity);
+        resEntity = new StringEntity(mockEntityContent);
+        when(mockResponse.getEntity()).thenReturn(resEntity);
         when(mockClient.execute(any(HttpGet.class))).thenReturn(mockResponse);
 
         // setup mock CacheRedistributor Impl
@@ -150,7 +148,7 @@ public class ClientRequestHandlerTest {
         when(cacheRedis.selectPort(anyString())).thenReturn(mockCacheServerPort);
 
         // setup configuration
-        Logger.configure(new Logger.LogType[] { Logger.LogType.REQUEST_PASSING });
+        Logger.configure(new Logger.LogType[] { Logger.LogType.PRINT_NOTHING });
         config = new ConfigImpl();
         config.setClientFactory(mockClientFactory);
         ClientRequestHandler.configure(config);
@@ -197,17 +195,17 @@ public class ClientRequestHandlerTest {
         assertEquals(expectedPath, reqUri.toString());
     }
 
-//    @Test
-//    @DisplayName("should forward the response returned by the cache server to the client")
-//    public void shouldForwardResponseToClient() throws IOException {
-//        String resourceName = "Grumpy_Sppoky.jpg";
-//        HttpGet getReq = new HttpGet("http://127.0.0.1:" + mockServerPort + "/resource/" + resourceName);
-//        CloseableHttpClient client = clientFactory.buildApacheClient();
-//        CloseableHttpResponse res = client.execute(getReq);
-//        InputStream contentFromMockServer = res.getEntity().getContent();
-//        String stringFromMockServer = IOUtils.toString(contentFromMockServer, StandardCharsets.UTF_8.name());
-//        assertEquals(mockEntityContent, stringFromMockServer);
-//    }
+    @Test
+    @DisplayName("should forward the response returned by the cache server to the client")
+    public void shouldForwardResponseToClient() throws IOException {
+        String resourceName = "Grumpy_Spooky.jpg";
+        HttpGet getReq = new HttpGet("http://127.0.0.1:" + mockServerPort + "/resource/" + resourceName);
+        CloseableHttpClient client = clientFactory.buildApacheClient();
+        CloseableHttpResponse res = client.execute(getReq);
+        InputStream contentFromMockServer = res.getEntity().getContent();
+        String stringFromMockServer = IOUtils.toString(contentFromMockServer, StandardCharsets.UTF_8.name());
+        assertEquals(mockEntityContent, stringFromMockServer);
+    }
 
     @AfterEach
     public void shutdown() {
