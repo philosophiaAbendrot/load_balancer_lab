@@ -13,7 +13,6 @@ import org.mockito.Mockito;
 import static org.mockito.Mockito.*;
 
 public class CacheServerManagerRunnableTest {
-    CacheServerManagerConfig config;
     int cacheServerManagerPort = 8_000;
     int sleepInterval = 100;
     int cacheServerPort = 1_000;
@@ -34,7 +33,6 @@ public class CacheServerManagerRunnableTest {
         when(mockCacheServerFactory.produceCacheServerThread(any(CacheServer.class))).thenReturn(mockCacheServerThread);
 
         cacheServerManager = new CacheServerManager(mockCacheServerFactory, new HttpClientFactory(), new RequestDecoder());
-        config = new CacheServerManagerConfig(cacheServerManager, cacheServerManagerPort, sleepInterval);
         cacheServerManagerRunnable = new CacheServerManagerRunnable(mockCacheServerFactory, new HttpClientFactory(), new RequestDecoder(), cacheServerManager);
         cacheServerManagerThread = new Thread(cacheServerManagerRunnable);
         cacheServerManagerThread.start();
