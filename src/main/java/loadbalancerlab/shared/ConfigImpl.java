@@ -1,6 +1,6 @@
 package loadbalancerlab.shared;
 
-import loadbalancerlab.factory.HttpClientFactoryImpl;
+import loadbalancerlab.factory.HttpClientFactory;
 import loadbalancerlab.loadbalancer.HashFunction;
 import loadbalancerlab.loadbalancer.MurmurHashFunctionImpl;
 
@@ -12,7 +12,7 @@ public class ConfigImpl implements Config {
     private HashFunction hashFunction;
     private double targetCapacityFactor;
     private RequestDecoder reqDecoder;
-    private HttpClientFactoryImpl clientFactory;
+    private HttpClientFactory clientFactory;
     private double[] serverLoadCutoffs;
     private int cacheRedisPingInterval;
     private int cacheRedisRemapInterval;
@@ -27,7 +27,7 @@ public class ConfigImpl implements Config {
         hashFunction = new MurmurHashFunctionImpl();
         targetCapacityFactor = 0.5;
         reqDecoder = new RequestDecoderImpl();
-        clientFactory = new HttpClientFactoryImpl();
+        clientFactory = new HttpClientFactory();
         serverLoadCutoffs = new double[] { 0.15, 0.35, 0.65, 0.85 };
         cacheRedisPingInterval = 1;
         cacheRedisRemapInterval = 3;
@@ -71,7 +71,7 @@ public class ConfigImpl implements Config {
     }
 
     @Override
-    public HttpClientFactoryImpl getClientFactory() {
+    public HttpClientFactory getClientFactory() {
         return clientFactory;
     }
 
@@ -131,7 +131,7 @@ public class ConfigImpl implements Config {
     }
 
     @Override
-    public void setClientFactory( HttpClientFactoryImpl _clientFactory ) {
+    public void setClientFactory( HttpClientFactory _clientFactory ) {
         clientFactory = _clientFactory;
     }
 

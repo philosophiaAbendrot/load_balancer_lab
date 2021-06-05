@@ -1,6 +1,6 @@
 package loadbalancerlab;
 
-import loadbalancerlab.factory.HttpClientFactoryImpl;
+import loadbalancerlab.factory.HttpClientFactory;
 import loadbalancerlab.loadbalancer.LoadBalancerRunnable;
 import loadbalancerlab.services.ConstantDemandFunctionImpl;
 import loadbalancerlab.shared.RequestDecoderImpl;
@@ -34,7 +34,7 @@ public class Executor {
         Logger.log("Run | started Run thread", Logger.LogType.THREAD_MANAGEMENT);
 
         // start cache server manager thread
-        CacheServerManager cacheServerManager = new CacheServerManager(new CacheServerFactory(), new HttpClientFactoryImpl(), new RequestDecoderImpl());
+        CacheServerManager cacheServerManager = new CacheServerManager(new CacheServerFactory(), new HttpClientFactory(), new RequestDecoderImpl());
         Thread cacheServerManagerThread = new Thread(cacheServerManager);
         cacheServerManagerThread.start();
 
@@ -74,7 +74,7 @@ public class Executor {
         List<Client> clients = new ArrayList<>();
 
         for (int i = 0; i < NUM_CLIENTS; i++) {
-            Client client = new Client(Integer.toString(i), this.maxDemandTime, new ConstantDemandFunctionImpl(CONSTANT_DEMAND_REST_INTERVAL), new HttpClientFactoryImpl(), System.currentTimeMillis() + (long)((new Random()).nextInt(15000)), this.rand.nextInt(10_000));
+            Client client = new Client(Integer.toString(i), this.maxDemandTime, new ConstantDemandFunctionImpl(CONSTANT_DEMAND_REST_INTERVAL), new HttpClientFactory(), System.currentTimeMillis() + (long)((new Random()).nextInt(15000)), this.rand.nextInt(10_000));
             Thread clientThread = new Thread(client);
             clients.add(client);
             clientThreads.add(clientThread);

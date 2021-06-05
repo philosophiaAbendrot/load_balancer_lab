@@ -1,6 +1,6 @@
 package loadbalancerlab.cacheservermanager;
 
-import loadbalancerlab.factory.HttpClientFactoryImpl;
+import loadbalancerlab.factory.HttpClientFactory;
 import loadbalancerlab.shared.Logger;
 import loadbalancerlab.shared.RequestDecoder;
 import org.apache.http.client.methods.CloseableHttpResponse;
@@ -22,7 +22,7 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 
 public class ServerMonitorTest {
-    HttpClientFactoryImpl clientFactory;
+    HttpClientFactory clientFactory;
     CloseableHttpClient mockClient;
     long currentTime;
     ServerMonitor serverMonitor;
@@ -36,7 +36,7 @@ public class ServerMonitorTest {
 
     @BeforeEach
     public void setup() {
-        this.clientFactory = Mockito.mock(HttpClientFactoryImpl.class);
+        this.clientFactory = Mockito.mock(HttpClientFactory.class);
         this.mockClient = Mockito.mock(CloseableHttpClient.class);
         this.currentTime = System.currentTimeMillis();
         this.mockDecoder = Mockito.mock(RequestDecoder.class);

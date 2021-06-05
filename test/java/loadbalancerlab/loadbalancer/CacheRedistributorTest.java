@@ -1,6 +1,6 @@
 package loadbalancerlab.loadbalancer;
 
-import loadbalancerlab.factory.HttpClientFactoryImpl;
+import loadbalancerlab.factory.HttpClientFactory;
 import loadbalancerlab.shared.Config;
 import loadbalancerlab.shared.ConfigImpl;
 import loadbalancerlab.shared.RequestDecoder;
@@ -32,7 +32,7 @@ public class CacheRedistributorTest {
     @DisplayName("Test RequestServerInfo()")
     class TestRequestServerInfo {
         // contacts cache server monitor and records data to serverInfoTable
-        HttpClientFactoryImpl mockClientFactory = Mockito.mock(HttpClientFactoryImpl.class);
+        HttpClientFactory mockClientFactory = Mockito.mock(HttpClientFactory.class);
         CloseableHttpClient mockClient = Mockito.mock(CloseableHttpClient.class);
         CloseableHttpResponse mockResponse = Mockito.mock(CloseableHttpResponse.class);
         RequestDecoder mockDecoder = Mockito.mock(RequestDecoder.class);

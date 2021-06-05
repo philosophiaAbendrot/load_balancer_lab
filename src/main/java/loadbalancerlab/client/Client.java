@@ -1,6 +1,6 @@
 package loadbalancerlab.client;
 
-import loadbalancerlab.factory.HttpClientFactoryImpl;
+import loadbalancerlab.factory.HttpClientFactory;
 import loadbalancerlab.services.DemandFunction;
 import loadbalancerlab.shared.Logger;
 
@@ -23,9 +23,9 @@ public class Client implements Runnable {
     List<Integer> requestTimestamps;
     long requestStartTime;
     DemandFunction demandFunction;
-    HttpClientFactoryImpl clientFactory;
+    HttpClientFactory clientFactory;
 
-    public Client( String _name, long maxDemandTime, DemandFunction demandFunction, HttpClientFactoryImpl clientFactory, long requestStartTime, int resourceId) {
+    public Client( String _name, long maxDemandTime, DemandFunction demandFunction, HttpClientFactory clientFactory, long requestStartTime, int resourceId) {
         this.name = _name;
         Random random = new Random();
         this.maxDemandTime = maxDemandTime;

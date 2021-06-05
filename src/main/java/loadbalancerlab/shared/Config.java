@@ -1,6 +1,6 @@
 package loadbalancerlab.shared;
 
-import loadbalancerlab.factory.HttpClientFactoryImpl;
+import loadbalancerlab.factory.HttpClientFactory;
 import loadbalancerlab.loadbalancer.HashFunction;
 
 public interface Config {
@@ -12,7 +12,7 @@ public interface Config {
     HashFunction getHashFunction();
     double getTargetCapacityFactor();
     RequestDecoder getRequestDecoder();
-    HttpClientFactoryImpl getClientFactory();
+    HttpClientFactory getClientFactory();
     double[] getServerLoadCutoffs();
     int getCacheRedisPingInterval();
     int getCacheRedisRemapInterval();
@@ -25,7 +25,7 @@ public interface Config {
     void setHashFunction(HashFunction hashFunction);
     void setTargetCapacityFactor(double _targetCapacityFactor);
     void setRequestDecoder(RequestDecoder _reqDecoder);
-    void setClientFactory(HttpClientFactoryImpl _clientFactory);
+    void setClientFactory( HttpClientFactory _clientFactory);
     void setServerLoadCutoffs(double[] cutoffs);
     void setCacheRedisPingInterval(int pingInterval);
     void setCacheRedisRemapInterval(int remapInterval);

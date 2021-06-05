@@ -2,7 +2,7 @@ package loadbalancerlab.cacheservermanager;
 
 import loadbalancerlab.cacheserver.CacheServer;
 import loadbalancerlab.factory.CacheServerFactory;
-import loadbalancerlab.factory.HttpClientFactoryImpl;
+import loadbalancerlab.factory.HttpClientFactory;
 import loadbalancerlab.services.monitor.RequestMonitor;
 import loadbalancerlab.shared.RequestDecoderImpl;
 import org.junit.jupiter.api.BeforeEach;
@@ -33,7 +33,7 @@ public class CacheServerManagerRunnableTest {
         when(mockCacheServerFactory.produceCacheServer(any(RequestMonitor.class))).thenReturn(mockCacheServer);
         when(mockCacheServerFactory.produceCacheServerThread(any(CacheServer.class))).thenReturn(mockCacheServerThread);
 
-        cacheServerManager = new CacheServerManager(mockCacheServerFactory, new HttpClientFactoryImpl(), new RequestDecoderImpl());
+        cacheServerManager = new CacheServerManager(mockCacheServerFactory, new HttpClientFactory(), new RequestDecoderImpl());
         config = new CacheServerManagerConfig(cacheServerManager, cacheServerManagerPort, sleepInterval);
         cacheServerManagerRunnable = new CacheServerManagerRunnable(config);
         cacheServerManagerThread = new Thread(cacheServerManagerRunnable);

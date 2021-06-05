@@ -1,6 +1,6 @@
 package loadbalancerlab.loadbalancer;
 
-import loadbalancerlab.factory.HttpClientFactoryImpl;
+import loadbalancerlab.factory.HttpClientFactory;
 import loadbalancerlab.shared.Config;
 import loadbalancerlab.shared.Logger;
 import org.apache.commons.text.StringEscapeUtils;
@@ -26,7 +26,7 @@ import java.util.List;
 public class ClientRequestHandler implements HttpRequestHandler {
     private List<Integer> incomingRequestTimestamps;
     private CacheRedistributor cacheRedis;
-    private static HttpClientFactoryImpl clientFactory;
+    private static HttpClientFactory clientFactory;
 
     public static void configure( Config config ) {
         clientFactory = config.getClientFactory();

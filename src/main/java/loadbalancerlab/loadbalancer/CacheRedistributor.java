@@ -1,6 +1,6 @@
 package loadbalancerlab.loadbalancer;
 
-import loadbalancerlab.factory.HttpClientFactoryImpl;
+import loadbalancerlab.factory.HttpClientFactory;
 import loadbalancerlab.shared.Config;
 import loadbalancerlab.shared.Logger;
 import loadbalancerlab.shared.RequestDecoder;
@@ -19,7 +19,7 @@ public class CacheRedistributor {
 
     private static RequestDecoder reqDecoder;
     private int cacheServerManagerPort;
-    private static HttpClientFactoryImpl clientFactory;
+    private static HttpClientFactory clientFactory;
     private static double[] serverLoadCutoffs;
 
     public static void configure( Config config ) {

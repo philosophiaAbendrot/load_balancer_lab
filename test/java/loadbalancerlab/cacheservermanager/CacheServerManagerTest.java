@@ -3,7 +3,7 @@ package loadbalancerlab.cacheservermanager;
 import loadbalancerlab.factory.CacheServerFactory;
 import loadbalancerlab.services.monitor.RequestMonitor;
 import loadbalancerlab.cacheserver.CacheServer;
-import loadbalancerlab.factory.HttpClientFactoryImpl;
+import loadbalancerlab.factory.HttpClientFactory;
 import loadbalancerlab.shared.Logger;
 import loadbalancerlab.shared.RequestDecoderImpl;
 
@@ -39,7 +39,7 @@ public class CacheServerManagerTest {
         when(mockFactory.produceCacheServer(any(RequestMonitor.class))).thenReturn(mockCacheServer);
         when(mockFactory.produceCacheServerThread(any(CacheServer.class))).thenReturn(mockCacheServerThread);
 
-        cacheServerManager = new CacheServerManager(mockFactory, new HttpClientFactoryImpl(), new RequestDecoderImpl());
+        cacheServerManager = new CacheServerManager(mockFactory, new HttpClientFactory(), new RequestDecoderImpl());
         cacheServerManagerThread = new Thread(cacheServerManager);
         cacheServerManagerThread.start();
     }

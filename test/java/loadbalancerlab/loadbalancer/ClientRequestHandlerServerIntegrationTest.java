@@ -1,6 +1,6 @@
 package loadbalancerlab.loadbalancer;
 
-import loadbalancerlab.factory.HttpClientFactoryImpl;
+import loadbalancerlab.factory.HttpClientFactory;
 import loadbalancerlab.shared.Config;
 import loadbalancerlab.shared.ConfigImpl;
 import loadbalancerlab.shared.Logger;
@@ -35,7 +35,7 @@ public class ClientRequestHandlerServerIntegrationTest {
     static int selectedPort = 1;
     static int clientRequestHandlerServerPort;
     static CloseableHttpClient httpClient;
-    static HttpClientFactoryImpl mockClientFactory;
+    static HttpClientFactory mockClientFactory;
     static CloseableHttpClient mockClient;
     static CloseableHttpResponse mockResponse;
     static Config config;
@@ -65,7 +65,7 @@ public class ClientRequestHandlerServerIntegrationTest {
 
         when(mockResponse.getEntity()).thenReturn(resEntity);
         when(mockClient.execute(any(HttpGet.class))).thenReturn(mockResponse);
-        mockClientFactory = Mockito.mock(HttpClientFactoryImpl.class);
+        mockClientFactory = Mockito.mock(HttpClientFactory.class);
         when(mockClientFactory.buildApacheClient()).thenReturn(mockClient);
 
         // passing config to ClientRequestHandler

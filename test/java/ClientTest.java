@@ -1,5 +1,5 @@
 import loadbalancerlab.client.Client;
-import loadbalancerlab.factory.HttpClientFactoryImpl;
+import loadbalancerlab.factory.HttpClientFactory;
 import loadbalancerlab.shared.Logger;
 import loadbalancerlab.services.ConstantDemandFunctionImpl;
 
@@ -20,7 +20,7 @@ import static org.mockito.Mockito.*;
 
 public class ClientTest {
     Client client;
-    HttpClientFactoryImpl mockHttpClientFactory;
+    HttpClientFactory mockHttpClientFactory;
     CloseableHttpClient mockHttpClient;
     int restInterval;
     long requestStartTime;
@@ -39,7 +39,7 @@ public class ClientTest {
         this.rand = new Random();
         this.restInterval = 100;
         this.mockHttpClient = Mockito.mock(CloseableHttpClient.class);
-        this.mockHttpClientFactory = Mockito.mock(HttpClientFactoryImpl.class);
+        this.mockHttpClientFactory = Mockito.mock(HttpClientFactory.class);
         // allow requests to be sent immediately after Client startup for testing purposes
         this.requestStartTime = System.currentTimeMillis() - 1_000;
         this.client.setLoadBalancerPort(this.loadBalancerPort);

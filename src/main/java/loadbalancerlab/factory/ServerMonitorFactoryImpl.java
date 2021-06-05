@@ -8,7 +8,7 @@ import loadbalancerlab.shared.RequestDecoderImpl;
 public class ServerMonitorFactoryImpl implements ServerMonitorFactory {
     @Override
     public ServerMonitor produceServerMonitor( CacheServerManager _cacheServerManager) {
-        return new ServerMonitor(new HttpClientFactoryImpl(), new RequestDecoderImpl(), _cacheServerManager);
+        return new ServerMonitor(new HttpClientFactory(), new RequestDecoderImpl(), _cacheServerManager);
     }
 
     @Override
