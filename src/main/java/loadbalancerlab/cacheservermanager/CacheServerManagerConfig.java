@@ -1,7 +1,6 @@
 package loadbalancerlab.cacheservermanager;
 
 import loadbalancerlab.factory.CacheInfoServerFactory;
-import loadbalancerlab.factory.ServerMonitorFactory;
 import loadbalancerlab.factory.ServerMonitorFactoryImpl;
 
 // takes CacheServerManager instance as input and handles
@@ -18,7 +17,7 @@ public class CacheServerManagerConfig {
 
     public CacheServerManagerConfig(CacheServerManager _cacheServerManager, int cacheInfoServerPort, int _sleepInterval) {
         cacheServerManager = _cacheServerManager;
-        ServerMonitorFactory serverMonitorFactory = new ServerMonitorFactoryImpl();
+        ServerMonitorFactoryImpl serverMonitorFactory = new ServerMonitorFactoryImpl();
         CacheInfoServerFactory cacheInfoServerFactory = new CacheInfoServerFactory();
 
         serverMonitor = serverMonitorFactory.produceServerMonitor(cacheServerManager);
