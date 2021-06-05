@@ -30,7 +30,7 @@ import static org.mockito.Mockito.*;
 public class ClientRequestHandlerServerIntegrationTest {
     static ClientRequestHandler mockClientReqHandler;
     static ClientRequestHandlerServer clientRequestHandlerServer;
-    static CacheRedistributor mockCacheRedis;
+    static CacheRedistributorImpl mockCacheRedis;
     static Thread clientRequestHandlerServerThread;
     static int selectedPort = 1;
     static int clientRequestHandlerServerPort;
@@ -50,7 +50,7 @@ public class ClientRequestHandlerServerIntegrationTest {
         Logger.configure(new Logger.LogType[] { Logger.LogType.THREAD_MANAGEMENT });
 
         // setting up mocks
-        mockCacheRedis = Mockito.mock(CacheRedistributor.class);
+        mockCacheRedis = Mockito.mock(CacheRedistributorImpl.class);
         when(mockCacheRedis.selectPort(anyString())).thenReturn(selectedPort);
 
         mockClientReqHandler = new ClientRequestHandler(mockCacheRedis);

@@ -13,7 +13,7 @@ import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
 
-public class CacheRedistributorImpl implements CacheRedistributor {
+public class CacheRedistributorImpl {
     Map<Integer, ServerInfo> serverInfoTable;
     HashRing hashRing;
 
@@ -39,7 +39,6 @@ public class CacheRedistributorImpl implements CacheRedistributor {
     // sends request to cache server manager for an update on which cache servers are running on which ports and
     // their capacity factors
     // updates the serverInfoTable field using the results
-    @Override
     public void requestServerInfo() {
         CloseableHttpClient client = clientFactory.buildApacheClient();
         HttpGet getReq = new HttpGet("http://127.0.0.1:" + cacheInfoServerPort + "/cache-servers");
@@ -72,7 +71,6 @@ public class CacheRedistributorImpl implements CacheRedistributor {
     // params:
     // resourceName: the name of the resource
 
-    @Override
     public int selectPort( String resourceName ) throws IllegalStateException {
         int serverId = hashRing.findServerId(resourceName);
 
@@ -83,7 +81,6 @@ public class CacheRedistributorImpl implements CacheRedistributor {
     }
 
     // remaps caching responsibility based on the load on each server
-    @Override
     public void remapCacheKeys() {
         for (Map.Entry<Integer, ServerInfo> entry : serverInfoTable.entrySet()) {
             int serverId = entry.getKey();

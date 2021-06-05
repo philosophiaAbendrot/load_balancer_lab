@@ -3,7 +3,7 @@ package loadbalancerlab.loadbalancer;
 import loadbalancerlab.shared.Config;
 
 public class CacheRedistributorRunnable implements Runnable {
-    CacheRedistributor cacheRedis;
+    CacheRedistributorImpl cacheRedis;
     static int pingInterval;
     static int cacheRemapInterval;
 
@@ -12,7 +12,7 @@ public class CacheRedistributorRunnable implements Runnable {
         cacheRemapInterval = config.getCacheRedisRemapInterval();
     }
 
-    public CacheRedistributorRunnable( CacheRedistributor _cacheRedis ) {
+    public CacheRedistributorRunnable( CacheRedistributorImpl _cacheRedis ) {
         cacheRedis = _cacheRedis;
     }
 
