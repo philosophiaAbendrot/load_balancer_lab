@@ -1,6 +1,6 @@
 package loadbalancerlab.loadbalancer;
 
-import loadbalancerlab.shared.Config;
+import loadbalancerlab.shared.ConfigImpl;
 import loadbalancerlab.shared.Logger;
 import org.apache.http.config.SocketConfig;
 import org.apache.http.impl.bootstrap.HttpServer;
@@ -18,7 +18,7 @@ public class ClientRequestHandlerServer implements Runnable {
     volatile private int port = -1;
     ClientRequestHandler clientRequestHandler;
 
-    public static void configure( Config config ) {
+    public static void configure( ConfigImpl config ) {
         defaultPort = config.getClientHandlerServerDefaultPort();
     }
 

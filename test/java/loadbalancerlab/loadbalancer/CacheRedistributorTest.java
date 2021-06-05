@@ -1,7 +1,6 @@
 package loadbalancerlab.loadbalancer;
 
 import loadbalancerlab.factory.HttpClientFactory;
-import loadbalancerlab.shared.Config;
 import loadbalancerlab.shared.ConfigImpl;
 import loadbalancerlab.shared.RequestDecoder;
 import org.apache.http.client.methods.CloseableHttpResponse;
@@ -24,7 +23,7 @@ import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.*;
 
 public class CacheRedistributorTest {
-    Config config;
+    ConfigImpl config;
     CacheRedistributor cacheRedis;
     int cacheInfoServerPort = 8080;
 

@@ -4,7 +4,7 @@ import loadbalancerlab.factory.HttpClientFactory;
 import loadbalancerlab.loadbalancer.HashFunction;
 import loadbalancerlab.loadbalancer.MurmurHashFunctionImpl;
 
-public class ConfigImpl implements Config {
+public class ConfigImpl {
     private int maxAnglesPerServer;
     private int minAnglesPerServer;
     private int defaultAnglesPerServer;
@@ -35,122 +35,98 @@ public class ConfigImpl implements Config {
 
     }
 
-    @Override
     public int getMaxAnglesPerServer() {
         return maxAnglesPerServer;
     }
 
-    @Override
     public int getMinAnglesPerServer() {
         return minAnglesPerServer;
     }
 
-    @Override
     public int getDefaultAnglesPerServer() {
         return defaultAnglesPerServer;
     }
 
-    @Override
     public int getRingSize() {
         return ringSize;
     }
 
-    @Override
     public HashFunction getHashFunction() {
         return hashFunction;
     }
 
-    @Override
     public double getTargetCapacityFactor() {
         return targetCapacityFactor;
     }
 
-    @Override
     public RequestDecoder getRequestDecoder() {
         return reqDecoder;
     }
 
-    @Override
     public HttpClientFactory getClientFactory() {
         return clientFactory;
     }
 
-    @Override
     public double[] getServerLoadCutoffs() {
         return serverLoadCutoffs;
     }
 
-    @Override
     public int getCacheRedisPingInterval() {
         return cacheRedisPingInterval;
     }
 
-    @Override
     public int getCacheRedisRemapInterval() {
         return cacheRedisRemapInterval;
     }
 
-    @Override
     public int getClientHandlerServerDefaultPort() {
         return clientHandlerServerDefaultPort;
     }
 
-    @Override
     public void setMaxAnglesPerServer( int _maxAnglesPerServer ) {
         maxAnglesPerServer = _maxAnglesPerServer;
     }
 
-    @Override
     public void setMinAnglesPerServer( int _minAnglesPerServer ) {
         minAnglesPerServer = _minAnglesPerServer;
     }
 
-    @Override
     public void setDefaultAnglesPerServer( int _defaultAnglesPerServer ) {
         defaultAnglesPerServer = _defaultAnglesPerServer;
     }
 
-    @Override
     public void setRingSize( int _ringSize ) {
         ringSize = _ringSize;
     }
 
-    @Override
     public void setHashFunction(HashFunction _hashFunction) {
         hashFunction = _hashFunction;
     }
 
-    @Override
     public void setTargetCapacityFactor( double _targetCapacityFactor ) {
         targetCapacityFactor = _targetCapacityFactor;
     }
 
-    @Override
     public void setRequestDecoder( RequestDecoder _reqDecoder ) {
         reqDecoder = _reqDecoder;
     }
 
-    @Override
     public void setClientFactory( HttpClientFactory _clientFactory ) {
         clientFactory = _clientFactory;
     }
 
-    @Override
     public void setServerLoadCutoffs( double[] cutoffs ) {
         serverLoadCutoffs = cutoffs;
     }
 
-    @Override
     public void setCacheRedisPingInterval( int pingInterval ) {
         cacheRedisPingInterval = pingInterval;
     }
 
-    @Override
     public void setCacheRedisRemapInterval( int remapInterval ) {
         cacheRedisRemapInterval = remapInterval;
     }
 
-    @Override
     public void setClientHandlerServerDefaultPort( int defaultPort ) {
         clientHandlerServerDefaultPort = defaultPort;
     }

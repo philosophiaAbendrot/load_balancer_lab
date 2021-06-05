@@ -1,6 +1,5 @@
 package loadbalancerlab.loadbalancer;
 
-import loadbalancerlab.shared.Config;
 import loadbalancerlab.shared.ConfigImpl;
 
 import org.junit.jupiter.api.*;
@@ -19,7 +18,7 @@ public class HashRingTest {
     static final int MIN_ANGLES_PER_SERVER = 10;
     static final int RING_SIZE = 10_000;
     int serverId = 5;
-    Config config;
+    ConfigImpl config;
 
     @BeforeEach()
     public void setup() {
