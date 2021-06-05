@@ -1,11 +1,11 @@
 package loadbalancerlab.loadbalancer;
 
-public class ServerInfoImpl {
+public class ServerInfo {
     int serverId;
     int port;
     double cf;
 
-    public ServerInfoImpl(int _serverId, int _port, double _cf) {
+    public ServerInfo( int _serverId, int _port, double _cf) {
         serverId = _serverId;
         port = _port;
         cf = _cf;
@@ -22,7 +22,7 @@ public class ServerInfoImpl {
     public double getCapacityFactor() {
         return cf;
     }
-    
+
     public void setCapacityFactor( double _cf ) {
         cf = _cf;
     }

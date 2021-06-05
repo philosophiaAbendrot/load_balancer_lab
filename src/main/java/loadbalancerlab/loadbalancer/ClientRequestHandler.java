@@ -27,14 +27,14 @@ import java.util.List;
 
 public class ClientRequestHandler implements HttpRequestHandler {
     private List<Integer> incomingRequestTimestamps;
-    private CacheRedistributorImpl cacheRedis;
+    private CacheRedistributor cacheRedis;
     private static HttpClientFactory clientFactory;
 
     public static void configure( Config config ) {
         clientFactory = config.getClientFactory();
     }
 
-    public ClientRequestHandler(CacheRedistributorImpl _cacheRedis) {
+    public ClientRequestHandler( CacheRedistributor _cacheRedis) {
         incomingRequestTimestamps = Collections.synchronizedList(new LinkedList<>());
         cacheRedis = _cacheRedis;
     }

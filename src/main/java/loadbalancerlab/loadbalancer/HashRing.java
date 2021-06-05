@@ -6,15 +6,15 @@ import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 
-public class HashRingImpl {
+public class HashRing {
     static int maxAnglesPerServer;
     static int minAnglesPerServer;
     static int defaultAnglesPerServer;
     static int ringSize;
     static HashFunction hashFunction;
 
-    ConcurrentMap<Integer, HashRingAngleImpl> angles;
-    ConcurrentMap<Integer, List<HashRingAngleImpl>> anglesByServerId;
+    ConcurrentMap<Integer, HashRingAngle> angles;
+    ConcurrentMap<Integer, List<HashRingAngle>> anglesByServerId;
 
     public static void configure( Config config) {
         maxAnglesPerServer = config.getMaxAnglesPerServer();
@@ -24,7 +24,7 @@ public class HashRingImpl {
         hashFunction = config.getHashFunction();
     }
 
-    public HashRingImpl() {
+    public HashRing() {
         angles = new ConcurrentHashMap<>();
         anglesByServerId = new ConcurrentHashMap<>();
     }
@@ -38,7 +38,7 @@ public class HashRingImpl {
         int lowestAngleHigherThanPos = Integer.MAX_VALUE;
         int idLowestAngleHigherThanPos = -1;
 
-        for (Map.Entry<Integer, HashRingAngleImpl> entry : angles.entrySet()) {
+        for (Map.Entry<Integer, HashRingAngle> entry : angles.entrySet()) {
             int angle = entry.getKey();
             int serverId = entry.getValue().getServerId();
 
@@ -80,7 +80,7 @@ public class HashRingImpl {
                 }
             }
 
-            HashRingAngleImpl newAngle = new HashRingAngleImpl(serverId, angle, hashFunction);
+            HashRingAngle newAngle = new HashRingAngle(serverId, angle, hashFunction);
             anglesByServerId.get(serverId).add(newAngle);
             angles.put(angle, newAngle);
         }
@@ -96,7 +96,7 @@ public class HashRingImpl {
             if (anglesByServerId.get(serverId).size() <= minAnglesPerServer)
                 break;
 
-            List<HashRingAngleImpl> angleList = anglesByServerId.get(serverId);
+            List<HashRingAngle> angleList = anglesByServerId.get(serverId);
 
             int randIdx = rand.nextInt(angleList.size());
             int selectedAngle = angleList.get(randIdx).getAngle();
@@ -118,9 +118,9 @@ public class HashRingImpl {
         if (!anglesByServerId.containsKey(serverId))
             throw new IllegalArgumentException("Server with id = " + serverId + " is not recorded in HashRingImpl");
 
-        List<HashRingAngleImpl> angleList = anglesByServerId.get(serverId);
+        List<HashRingAngle> angleList = anglesByServerId.get(serverId);
 
-        for (HashRingAngleImpl angle : angleList)
+        for (HashRingAngle angle : angleList)
             angles.remove(angle.getAngle());
 
         anglesByServerId.remove(serverId);

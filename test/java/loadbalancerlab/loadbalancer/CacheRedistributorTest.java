@@ -23,9 +23,9 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.*;
 
-public class CacheRedistributorImplTest {
+public class CacheRedistributorTest {
     Config config;
-    CacheRedistributorImpl cacheRedis;
+    CacheRedistributor cacheRedis;
     int cacheInfoServerPort = 8080;
 
     @Nested
@@ -52,7 +52,7 @@ public class CacheRedistributorImplTest {
             config.setRequestDecoder(mockDecoder);
             config.setTargetCapacityFactor(targetCapacityFactor);
             config.setClientFactory(mockClientFactory);
-            CacheRedistributorImpl.configure(config);
+            CacheRedistributor.configure(config);
 
             // setting up mocks
             when(mockNestedJson3.getDouble("capacityFactor")).thenReturn(cf3);
@@ -68,7 +68,7 @@ public class CacheRedistributorImplTest {
             when(mockClient.execute(any(HttpUriRequest.class))).thenReturn(mockResponse);
             when(mockDecoder.extractJsonApacheResponse(any(CloseableHttpResponse.class))).thenReturn(mockJsonResponse);
 
-            cacheRedis = new CacheRedistributorImpl(cacheInfoServerPort, new HashRingImpl());
+            cacheRedis = new CacheRedistributor(cacheInfoServerPort, new HashRing());
         }
 
         @Nested
@@ -90,8 +90,8 @@ public class CacheRedistributorImplTest {
         @Nested
         @DisplayName("For servers that are recorded in server info table")
         class WhenInfoDoesExistInRecord {
-            ServerInfoImpl serverInfo3;
-            ServerInfoImpl serverInfo4;
+            ServerInfo serverInfo3;
+            ServerInfo serverInfo4;
             int serverPort3 = 3681;
             int serverPort4 = 4959;
             double cf3Initial = 0.589;
@@ -99,8 +99,8 @@ public class CacheRedistributorImplTest {
 
             @BeforeEach
             public void setup() {
-                serverInfo3 = new ServerInfoImpl(3, serverPort3, cf3Initial);
-                serverInfo4 = new ServerInfoImpl(4, serverPort4, cf4Initial);
+                serverInfo3 = new ServerInfo(3, serverPort3, cf3Initial);
+                serverInfo4 = new ServerInfo(4, serverPort4, cf4Initial);
                 cacheRedis.serverInfoTable.put(3, serverInfo3);
                 cacheRedis.serverInfoTable.put(4, serverInfo4);
                 cacheRedis.requestServerInfo();
@@ -118,7 +118,7 @@ public class CacheRedistributorImplTest {
     @Nested
     @DisplayName("Test selectPort()")
     class TestSelectPort {
-        HashRingImpl mockHashRing;
+        HashRing mockHashRing;
         String resourceName = "Chooder_Bunny";
         int selectedPort;
         int port1 = 10_105;
@@ -131,17 +131,17 @@ public class CacheRedistributorImplTest {
         public void setup() {
             // configuration
             config = new ConfigImpl();
-            CacheRedistributorImpl.configure(config);
+            CacheRedistributor.configure(config);
 
             // setting up mocks
-            mockHashRing = Mockito.mock(HashRingImpl.class);
+            mockHashRing = Mockito.mock(HashRing.class);
             when(mockHashRing.findServerId(anyString())).thenReturn(selectedServerId);
 
             // initialization
-            cacheRedis = new CacheRedistributorImpl(cacheInfoServerPort, mockHashRing);
+            cacheRedis = new CacheRedistributor(cacheInfoServerPort, mockHashRing);
             cacheRedis.serverInfoTable = new HashMap<>();
-            cacheRedis.serverInfoTable.put(1, new ServerInfoImpl(1, port1, cf1));
-            cacheRedis.serverInfoTable.put(2, new ServerInfoImpl(2, port2, cf2));
+            cacheRedis.serverInfoTable.put(1, new ServerInfo(1, port1, cf1));
+            cacheRedis.serverInfoTable.put(2, new ServerInfo(2, port2, cf2));
 
             selectedPort = cacheRedis.selectPort(resourceName);
         }
@@ -157,7 +157,7 @@ public class CacheRedistributorImplTest {
     @Nested
     @DisplayName("Test remapCacheKeys()")
     class TestRemapCacheKeys {
-        HashRingImpl mockHashRing;
+        HashRing mockHashRing;
         int port1 = 4_810, port2 = 5_848, port3 = 5198, port4 = 8931, port5 = 1185;
         double cf1 = 0.1, cf2 = 0.2, cf3 = 0.4, cf4 = 0.75, cf5 = 0.9;
 
@@ -165,17 +165,17 @@ public class CacheRedistributorImplTest {
         public void setup() {
             // configuration
             config = new ConfigImpl();
-            CacheRedistributorImpl.configure(config);
+            CacheRedistributor.configure(config);
 
             // initialization
-            mockHashRing = Mockito.mock(HashRingImpl.class);
-            cacheRedis = new CacheRedistributorImpl(cacheInfoServerPort, mockHashRing);
+            mockHashRing = Mockito.mock(HashRing.class);
+            cacheRedis = new CacheRedistributor(cacheInfoServerPort, mockHashRing);
             cacheRedis.serverInfoTable = new HashMap<>();
-            cacheRedis.serverInfoTable.put(1, new ServerInfoImpl(1, port1, cf1));
-            cacheRedis.serverInfoTable.put(2, new ServerInfoImpl(2, port2, cf2));
-            cacheRedis.serverInfoTable.put(3, new ServerInfoImpl(3, port3, cf3));
-            cacheRedis.serverInfoTable.put(4, new ServerInfoImpl(4, port4, cf4));
-            cacheRedis.serverInfoTable.put(5, new ServerInfoImpl(5, port5, cf5));
+            cacheRedis.serverInfoTable.put(1, new ServerInfo(1, port1, cf1));
+            cacheRedis.serverInfoTable.put(2, new ServerInfo(2, port2, cf2));
+            cacheRedis.serverInfoTable.put(3, new ServerInfo(3, port3, cf3));
+            cacheRedis.serverInfoTable.put(4, new ServerInfo(4, port4, cf4));
+            cacheRedis.serverInfoTable.put(5, new ServerInfo(5, port5, cf5));
         }
 
         @Test

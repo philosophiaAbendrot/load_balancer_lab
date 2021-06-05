@@ -12,8 +12,8 @@ import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.when;
 
-public class HashRingImplTest {
-    HashRingImpl hashRing;
+public class HashRingTest {
+    HashRing hashRing;
     static final int DEFAULT_ANGLES_PER_SERVER = 15;
     static final int MAX_ANGLES_PER_SERVER = 20;
     static final int MIN_ANGLES_PER_SERVER = 10;
@@ -29,8 +29,8 @@ public class HashRingImplTest {
         config.setMinAnglesPerServer(MIN_ANGLES_PER_SERVER);
         config.setRingSize(RING_SIZE);
         config.setHashFunction(new MurmurHashFunctionImpl());
-        HashRingImpl.configure(config);
-        hashRing = new HashRingImpl();
+        HashRing.configure(config);
+        hashRing = new HashRing();
     }
 
     @Nested
@@ -81,8 +81,8 @@ public class HashRingImplTest {
         @Nested
         @DisplayName("When adding a server which exists in hash ring")
         class ServerDoesExist {
-            Set<HashRingAngleImpl> newAngleSet;
-            Set<HashRingAngleImpl> oldAngleSet;
+            Set<HashRingAngle> newAngleSet;
+            Set<HashRingAngle> oldAngleSet;
 
             @Test
             @DisplayName("Should throw illegal argument exception")
@@ -104,7 +104,7 @@ public class HashRingImplTest {
 
                 assertEquals(oldAngleSet.size(), newAngleSet.size());
 
-                for (HashRingAngleImpl angle : newAngleSet) {
+                for (HashRingAngle angle : newAngleSet) {
                     assertTrue(oldAngleSet.contains(angle));
                 }
             }
@@ -121,7 +121,7 @@ public class HashRingImplTest {
 
                 assertEquals(oldAngleSet.size(), newAngleSet.size());
 
-                for (HashRingAngleImpl angle : newAngleSet) {
+                for (HashRingAngle angle : newAngleSet) {
                     assertTrue(oldAngleSet.contains(angle));
                 }
             }
@@ -157,8 +157,8 @@ public class HashRingImplTest {
         public void shouldUpdateSetAngleByServerIdWithCorrectId() {
             hashRing.addAngle(serverId, numAngles);
 
-            for (List<HashRingAngleImpl> angleList : hashRing.anglesByServerId.values()) {
-                for (HashRingAngleImpl angle : angleList) {
+            for (List<HashRingAngle> angleList : hashRing.anglesByServerId.values()) {
+                for (HashRingAngle angle : angleList) {
                     assertEquals(serverId, angle.getServerId());
                 }
             }
@@ -169,7 +169,7 @@ public class HashRingImplTest {
         public void shouldUpdateAnglesWithCorrectId() {
             hashRing.addAngle(serverId, numAngles);
 
-            for (HashRingAngleImpl angle : hashRing.angles.values()) {
+            for (HashRingAngle angle : hashRing.angles.values()) {
                 assertEquals(serverId, angle.getServerId());
             }
         }
@@ -323,11 +323,11 @@ public class HashRingImplTest {
         public void shouldFindServerWithNextHighestAngle() {
             int position = hashFunction.hash(resourceName) % RING_SIZE;
             System.out.println("position = " + position);
-            List<HashRingAngleImpl> angles = new ArrayList<>(hashRing.angles.values());
+            List<HashRingAngle> angles = new ArrayList<>(hashRing.angles.values());
 
-            Collections.sort(angles, (HashRingAngleImpl a, HashRingAngleImpl b) -> a.getAngle() - b.getAngle());
+            Collections.sort(angles, ( HashRingAngle a, HashRingAngle b) -> a.getAngle() - b.getAngle());
 
-            HashRingAngleImpl expectedNextAngle = null;
+            HashRingAngle expectedNextAngle = null;
 
             if (position > angles.get(angles.size() - 1).getAngle()) {
                 expectedNextAngle = angles.get(0);
@@ -358,8 +358,8 @@ public class HashRingImplTest {
             @BeforeEach
             public void setup() {
                 config.setHashFunction(mockHashFunction);
-                HashRingImpl.configure(config);
-                hashRing = new HashRingImpl();
+                HashRing.configure(config);
+                hashRing = new HashRing();
                 hashRing.addServer(serverId1);
                 hashRing.addServer(serverId2);
                 hashRing.addServer(serverId3);
@@ -369,9 +369,9 @@ public class HashRingImplTest {
                 boolean containsHighest = false;
                 int serverWithHighest = -1;
                 int highestAnglePos = 9_999;
-                HashRingAngleImpl highestAngle = null;
+                HashRingAngle highestAngle = null;
 
-                for (HashRingAngleImpl angle : hashRing.angles.values()) {
+                for (HashRingAngle angle : hashRing.angles.values()) {
                     if (angle.getAngle() < lowestAngle) {
                         lowestAngle = angle.getAngle();
                         lowestAngleServerId = angle.getServerId();

@@ -13,9 +13,9 @@ import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
 
-public class CacheRedistributorImpl {
-    Map<Integer, ServerInfoImpl> serverInfoTable;
-    HashRingImpl hashRing;
+public class CacheRedistributor {
+    Map<Integer, ServerInfo> serverInfoTable;
+    HashRing hashRing;
 
     static double targetCapacityFactor;
     private static RequestDecoder reqDecoder;
@@ -30,7 +30,7 @@ public class CacheRedistributorImpl {
         serverLoadCutoffs = config.getServerLoadCutoffs();
     }
 
-    public CacheRedistributorImpl(int _cacheServerManagerPort, HashRingImpl _hashRing) {
+    public CacheRedistributor( int _cacheServerManagerPort, HashRing _hashRing) {
         serverInfoTable = new HashMap<>();
         cacheInfoServerPort = _cacheServerManagerPort;
         hashRing = _hashRing;
@@ -58,7 +58,7 @@ public class CacheRedistributorImpl {
                 } else {
                     // otherwise, create new entry
                     int port = entry.getInt("port");
-                    ServerInfoImpl newInfo = new ServerInfoImpl(serverIdInt, port, cf);
+                    ServerInfo newInfo = new ServerInfo(serverIdInt, port, cf);
                     serverInfoTable.put(serverIdInt, newInfo);
                 }
             }
@@ -82,9 +82,9 @@ public class CacheRedistributorImpl {
 
     // remaps caching responsibility based on the load on each server
     public void remapCacheKeys() {
-        for (Map.Entry<Integer, ServerInfoImpl> entry : serverInfoTable.entrySet()) {
+        for (Map.Entry<Integer, ServerInfo> entry : serverInfoTable.entrySet()) {
             int serverId = entry.getKey();
-            ServerInfoImpl info = entry.getValue();
+            ServerInfo info = entry.getValue();
 
             if (info.getCapacityFactor() < serverLoadCutoffs[1]) {
                 // cf is lower than target range

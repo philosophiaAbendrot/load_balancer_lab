@@ -1,11 +1,11 @@
 package loadbalancerlab.loadbalancer;
 
-public class HashRingAngleImpl {
+public class HashRingAngle {
     private int serverId;
     private int angle;
     private HashFunction hashFunction;
 
-    public HashRingAngleImpl(int _serverId, int _angle, HashFunction _hashFunction) {
+    public HashRingAngle( int _serverId, int _angle, HashFunction _hashFunction) {
         angle = _angle;
         serverId = _serverId;
         hashFunction = _hashFunction;

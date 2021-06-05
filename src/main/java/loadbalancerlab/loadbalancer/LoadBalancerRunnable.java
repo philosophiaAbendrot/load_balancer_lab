@@ -1,23 +1,21 @@
 package loadbalancerlab.loadbalancer;
 
-import loadbalancerlab.factory.HttpClientFactory;
-
 public class LoadBalancerRunnable implements Runnable {
     private int port;
     private int cacheServerManagerPort;
     private Thread clientReqHandlerServer;
     private ClientRequestHandlerServer clientReqHandlerRunnable;
     private ClientRequestHandler clientReqHandler;
-    private CacheRedistributorImpl cacheRedisImpl;
+    private CacheRedistributor cacheRedisImpl;
     private Thread cacheRedisThread;
-    private HashRingImpl hashRing;
+    private HashRing hashRing;
 
     public LoadBalancerRunnable(int _cacheServerManagerPort) {
         cacheServerManagerPort = _cacheServerManagerPort;
 
         // prepare CacheRedistributor
-        hashRing = new HashRingImpl();
-        cacheRedisImpl = new CacheRedistributorImpl(cacheServerManagerPort, hashRing);
+        hashRing = new HashRing();
+        cacheRedisImpl = new CacheRedistributor(cacheServerManagerPort, hashRing);
         CacheRedistributorRunnable cacheRedisRunnable = new CacheRedistributorRunnable(cacheRedisImpl);
         cacheRedisThread = new Thread(cacheRedisRunnable);
 

@@ -42,7 +42,7 @@ import static org.mockito.Mockito.*;
 
 // tests client request handler and client request handler server together
 public class ClientRequestHandlerTest {
-    CacheRedistributorImpl cacheRedis;
+    CacheRedistributor cacheRedis;
     ClientRequestHandler reqHandler;
     static int defaultPort = 3_000;
     Thread mockServerThread;
@@ -61,10 +61,10 @@ public class ClientRequestHandlerTest {
 
     private class MockServer implements Runnable {
         ClientRequestHandler reqHandler;
-        CacheRedistributorImpl cacheRedis;
+        CacheRedistributor cacheRedis;
         public volatile int port = -1;
 
-        public MockServer(ClientRequestHandler _reqHandler, CacheRedistributorImpl _cacheRedis) {
+        public MockServer(ClientRequestHandler _reqHandler, CacheRedistributor _cacheRedis) {
             reqHandler = _reqHandler;
             cacheRedis = _cacheRedis;
         }
@@ -144,7 +144,7 @@ public class ClientRequestHandlerTest {
         when(mockClient.execute(any(HttpGet.class))).thenReturn(mockResponse);
 
         // setup mock CacheRedistributor Impl
-        cacheRedis = Mockito.mock(CacheRedistributorImpl.class);
+        cacheRedis = Mockito.mock(CacheRedistributor.class);
         when(cacheRedis.selectPort(anyString())).thenReturn(mockCacheServerPort);
 
         // setup configuration
