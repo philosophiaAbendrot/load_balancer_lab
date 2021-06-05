@@ -17,6 +17,7 @@ public class Config {
     private int cacheRedisPingInterval;
     private int cacheRedisRemapInterval;
     private int clientHandlerServerDefaultPort;
+    private int cacheInfoServerDefaultPort;
 
     public Config() {
         // default configurations
@@ -32,7 +33,7 @@ public class Config {
         cacheRedisPingInterval = 1;
         cacheRedisRemapInterval = 3;
         clientHandlerServerDefaultPort = 3_000;
-
+        cacheInfoServerDefaultPort = 5_500;
     }
 
     public int getMaxAnglesPerServer() {
@@ -83,6 +84,8 @@ public class Config {
         return clientHandlerServerDefaultPort;
     }
 
+    public int getCacheInfoServerDefaultPort() { return cacheInfoServerDefaultPort; }
+
     public void setMaxAnglesPerServer( int _maxAnglesPerServer ) {
         maxAnglesPerServer = _maxAnglesPerServer;
     }
@@ -130,4 +133,6 @@ public class Config {
     public void setClientHandlerServerDefaultPort( int defaultPort ) {
         clientHandlerServerDefaultPort = defaultPort;
     }
+
+    public void setCacheInfoServerDefaultPort( int defaultPort ) { cacheInfoServerDefaultPort = defaultPort; }
 }

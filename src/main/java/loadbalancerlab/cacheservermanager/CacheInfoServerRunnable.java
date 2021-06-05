@@ -1,10 +1,10 @@
 package loadbalancerlab.cacheservermanager;
 
+import loadbalancerlab.shared.Config;
 import loadbalancerlab.shared.Logger;
 import org.apache.http.config.SocketConfig;
 import org.apache.http.impl.bootstrap.HttpServer;
 import org.apache.http.impl.bootstrap.ServerBootstrap;
-import org.apache.http.protocol.HttpProcessor;
 import org.apache.http.protocol.ImmutableHttpProcessor;
 
 import java.io.IOException;
@@ -14,15 +14,21 @@ import java.util.ArrayList;
 import java.util.concurrent.TimeUnit;
 
 public class CacheInfoServerRunnable implements Runnable {
-    int defaultPort;
-    int port;
+    private static int defaultPort;
+    volatile private int port;
     CacheInfoRequestHandler cacheInfoRequestHandler;
-    private HttpProcessor httpProcessor;
 
     public CacheInfoServerRunnable( int _defaultPort, CacheInfoRequestHandler _cacheInfoRequestHandler) {
         defaultPort = _defaultPort;
         cacheInfoRequestHandler = _cacheInfoRequestHandler;
-        httpProcessor = new ImmutableHttpProcessor(new ArrayList<>(), new ArrayList<>());
+    }
+
+    public static void configure( Config config ) {
+        defaultPort = config.getCacheInfoServerDefaultPort();
+    }
+
+    public int getPort() {
+        return port;
     }
 
     @Override
@@ -51,7 +57,7 @@ public class CacheInfoServerRunnable implements Runnable {
                 server = ServerBootstrap.bootstrap()
                         .setLocalAddress(hostAddress)
                         .setListenerPort(chosenPort)
-                        .setHttpProcessor(httpProcessor)
+                        .setHttpProcessor(new ImmutableHttpProcessor(new ArrayList<>(), new ArrayList<>()))
                         .setSocketConfig(config)
                         .registerHandler("/cache-servers", cacheInfoRequestHandler)
                         .create();
