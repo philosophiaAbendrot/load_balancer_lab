@@ -36,6 +36,7 @@ public class CacheServerManagerRunnable implements Runnable {
                 cacheServerManager.modulateCapacity();
                 Thread.sleep(sleepInterval);
             } catch (InterruptedException e) {
+                Thread.currentThread().interrupt();
                 break;
             }
         }
@@ -48,7 +49,5 @@ public class CacheServerManagerRunnable implements Runnable {
         for (Thread serverThread : cacheServerManager.serverThreadTable.values()) {
             serverThread.interrupt();
         }
-
-        Thread.currentThread().interrupt();
     }
 }

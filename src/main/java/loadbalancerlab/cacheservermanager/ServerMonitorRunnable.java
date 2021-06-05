@@ -31,8 +31,8 @@ public class ServerMonitorRunnable implements Runnable {
             int currentSecond = (int)(System.currentTimeMillis() / 1_000);
             serverMonitor.updateServerCount(currentSecond, cacheServerManager.numServers());
         } catch (InterruptedException e) {
-            Logger.log("ServerMonitorRunnable | Shutting down ServerMonitorRunnable", Logger.LogType.THREAD_MANAGEMENT);
             Thread.currentThread().interrupt();
+            Logger.log("ServerMonitorRunnable | Shutting down ServerMonitorRunnable", Logger.LogType.THREAD_MANAGEMENT);
             this.stopExecution = true;
         }
     }

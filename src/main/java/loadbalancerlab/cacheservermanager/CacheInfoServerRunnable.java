@@ -85,10 +85,10 @@ public class CacheInfoServerRunnable implements Runnable {
             Logger.log("CacheInfoServer | CacheInfoServer thread interrupted", Logger.LogType.THREAD_MANAGEMENT);
         } finally {
             // shutdown server
+            Thread.currentThread().interrupt();
             server.shutdown(5, TimeUnit.SECONDS);
         }
 
         Logger.log("CacheInfoServer | Shut down CacheInfoServer", Logger.LogType.THREAD_MANAGEMENT);
-        Thread.currentThread().interrupt();
     }
 }

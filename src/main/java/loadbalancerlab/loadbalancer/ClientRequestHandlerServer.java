@@ -86,10 +86,10 @@ public class ClientRequestHandlerServer implements Runnable {
         } catch (InterruptedException e) {
             Logger.log("ClientRequestHandlerServer | Thread interrupted", Logger.LogType.THREAD_MANAGEMENT);
         } finally {
+            Thread.currentThread().interrupt();
             server.shutdown(5, TimeUnit.SECONDS);
             // shut down capacity factor monitor thread
             // shut down this thread
-            Thread.currentThread().interrupt();
             Logger.log("ClientRequestHandlerServer | Thread shutdown", Logger.LogType.THREAD_MANAGEMENT);
         }
     }
