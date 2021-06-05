@@ -3,7 +3,6 @@ package loadbalancerlab.loadbalancer;
 import loadbalancerlab.factory.HttpClientFactory;
 import loadbalancerlab.shared.Config;
 import loadbalancerlab.shared.Logger;
-import org.apache.commons.io.IOUtils;
 import org.apache.commons.text.StringEscapeUtils;
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpRequest;
@@ -20,7 +19,6 @@ import org.json.JSONObject;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.nio.charset.StandardCharsets;
 import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
@@ -57,10 +55,6 @@ public class ClientRequestHandler implements HttpRequestHandler {
         try {
             CloseableHttpResponse res = httpClient.execute(getReq);
             HttpEntity resBody = res.getEntity();
-
-            InputStream content = resBody.getContent();
-            String contentString = IOUtils.toString(content, StandardCharsets.UTF_8);
-
             httpResponse.setEntity(resBody);
             EntityUtils.consume(resBody);
             httpResponse.setStatusCode(200);
@@ -75,23 +69,5 @@ public class ClientRequestHandler implements HttpRequestHandler {
             httpResponse.setStatusCode(500);
             httpResponse.setEntity((HttpEntity)responseBody);
         }
-
-//        try {
-//            CloseableHttpResponse response = httpClient.execute();
-//            Logger.log("ClientRequestHandler | sent message", Logger.LogType.REQUEST_PASSING);
-//            HttpEntity responseBody = response.getEntity();
-//            httpResponse.setEntity(responseBody);
-//        } catch (IOException e) {
-//            // if request to cache server failed
-//            JSONObject outputJsonObj = new JSONObject();
-//            outputJsonObj.put("error_message", "Cache server failed to respond");
-//            String htmlResponse = StringEscapeUtils.escapeJson(outputJsonObj.toString());
-//            InputStream stream = new ByteArrayInputStream(htmlResponse.getBytes());
-//            BasicHttpEntity responseBody = new BasicHttpEntity();
-//            responseBody.setContent(stream);
-//            httpResponse.setStatusCode(500);
-//            httpResponse.setEntity((HttpEntity)responseBody);
-//            System.out.println("ClientRequestHandler | IOException : Cache server failed to respond.");
-//        }
     }
 }

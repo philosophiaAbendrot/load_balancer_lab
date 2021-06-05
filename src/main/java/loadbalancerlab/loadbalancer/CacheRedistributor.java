@@ -18,7 +18,7 @@ public class CacheRedistributor {
     HashRing hashRing;
 
     private static RequestDecoder reqDecoder;
-    private int cacheInfoServerPort;
+    private int cacheServerManagerPort;
     private static HttpClientFactory clientFactory;
     private static double[] serverLoadCutoffs;
 
@@ -30,7 +30,7 @@ public class CacheRedistributor {
 
     public CacheRedistributor( int _cacheServerManagerPort, HashRing _hashRing) {
         serverInfoTable = new HashMap<>();
-        cacheInfoServerPort = _cacheServerManagerPort;
+        cacheServerManagerPort = _cacheServerManagerPort;
         hashRing = _hashRing;
     }
 
@@ -39,7 +39,7 @@ public class CacheRedistributor {
     // updates the serverInfoTable field using the results
     public void requestServerInfo() {
         CloseableHttpClient client = clientFactory.buildApacheClient();
-        HttpGet getReq = new HttpGet("http://127.0.0.1:" + cacheInfoServerPort + "/cache-servers");
+        HttpGet getReq = new HttpGet("http://127.0.0.1:" + cacheServerManagerPort + "/cache-servers");
 
         try {
             CloseableHttpResponse res = client.execute(getReq);
