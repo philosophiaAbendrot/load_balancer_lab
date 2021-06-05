@@ -1,7 +1,7 @@
 package loadbalancerlab.loadbalancer;
 
 import loadbalancerlab.factory.HttpClientFactory;
-import loadbalancerlab.shared.ConfigImpl;
+import loadbalancerlab.shared.Config;
 import loadbalancerlab.shared.Logger;
 import org.apache.commons.text.StringEscapeUtils;
 import org.apache.http.HttpEntity;
@@ -28,7 +28,7 @@ public class ClientRequestHandler implements HttpRequestHandler {
     private CacheRedistributor cacheRedis;
     private static HttpClientFactory clientFactory;
 
-    public static void configure( ConfigImpl config ) {
+    public static void configure( Config config ) {
         clientFactory = config.getClientFactory();
     }
 

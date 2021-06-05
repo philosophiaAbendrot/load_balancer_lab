@@ -1,7 +1,7 @@
 package loadbalancerlab.loadbalancer;
 
 import loadbalancerlab.factory.HttpClientFactory;
-import loadbalancerlab.shared.ConfigImpl;
+import loadbalancerlab.shared.Config;
 import loadbalancerlab.shared.Logger;
 import org.apache.commons.io.IOUtils;
 import org.apache.http.HttpEntity;
@@ -37,7 +37,7 @@ public class ClientRequestHandlerServerIntegrationTest {
     static HttpClientFactory mockClientFactory;
     static CloseableHttpClient mockClient;
     static CloseableHttpResponse mockResponse;
-    static ConfigImpl config;
+    static Config config;
     static String resourceName = "Chooder_Bunny.jpg";
     static String reqPath;
     HttpGet getReq;
@@ -68,7 +68,7 @@ public class ClientRequestHandlerServerIntegrationTest {
         when(mockClientFactory.buildApacheClient()).thenReturn(mockClient);
 
         // passing config to ClientRequestHandler
-        config = new ConfigImpl();
+        config = new Config();
         config.setClientFactory(mockClientFactory);
 
         ClientRequestHandler.configure(config);

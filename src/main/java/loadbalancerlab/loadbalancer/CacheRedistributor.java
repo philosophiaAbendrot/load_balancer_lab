@@ -1,7 +1,7 @@
 package loadbalancerlab.loadbalancer;
 
 import loadbalancerlab.factory.HttpClientFactory;
-import loadbalancerlab.shared.ConfigImpl;
+import loadbalancerlab.shared.Config;
 import loadbalancerlab.shared.Logger;
 import loadbalancerlab.shared.RequestDecoder;
 import org.apache.http.client.methods.CloseableHttpResponse;
@@ -22,7 +22,7 @@ public class CacheRedistributor {
     private static HttpClientFactory clientFactory;
     private static double[] serverLoadCutoffs;
 
-    public static void configure( ConfigImpl config ) {
+    public static void configure( Config config ) {
         reqDecoder = config.getRequestDecoder();
         clientFactory = config.getClientFactory();
         serverLoadCutoffs = config.getServerLoadCutoffs();

@@ -1,7 +1,7 @@
 package loadbalancerlab.loadbalancer;
 
 import loadbalancerlab.factory.HttpClientFactory;
-import loadbalancerlab.shared.ConfigImpl;
+import loadbalancerlab.shared.Config;
 import loadbalancerlab.shared.Logger;
 import org.apache.commons.io.IOUtils;
 import org.apache.http.HttpEntity;
@@ -45,7 +45,7 @@ public class ClientRequestHandlerTest {
     static int defaultPort = 3_000;
     Thread mockServerThread;
     MockServer mockServerRunnable;
-    ConfigImpl config;
+    Config config;
     HttpClientFactory clientFactory;
     int mockServerPort;
 
@@ -147,7 +147,7 @@ public class ClientRequestHandlerTest {
 
         // setup configuration
         Logger.configure(new Logger.LogType[] { Logger.LogType.PRINT_NOTHING });
-        config = new ConfigImpl();
+        config = new Config();
         config.setClientFactory(mockClientFactory);
         ClientRequestHandler.configure(config);
 

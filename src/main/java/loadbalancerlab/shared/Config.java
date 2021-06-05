@@ -4,7 +4,7 @@ import loadbalancerlab.factory.HttpClientFactory;
 import loadbalancerlab.loadbalancer.HashFunction;
 import loadbalancerlab.loadbalancer.MurmurHashFunctionImpl;
 
-public class ConfigImpl {
+public class Config {
     private int maxAnglesPerServer;
     private int minAnglesPerServer;
     private int defaultAnglesPerServer;
@@ -18,7 +18,7 @@ public class ConfigImpl {
     private int cacheRedisRemapInterval;
     private int clientHandlerServerDefaultPort;
 
-    public ConfigImpl() {
+    public Config() {
         // default configurations
         maxAnglesPerServer = 40;
         minAnglesPerServer = 10;

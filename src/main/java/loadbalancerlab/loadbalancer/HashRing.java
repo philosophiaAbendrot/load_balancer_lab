@@ -1,6 +1,6 @@
 package loadbalancerlab.loadbalancer;
 
-import loadbalancerlab.shared.ConfigImpl;
+import loadbalancerlab.shared.Config;
 
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
@@ -16,7 +16,7 @@ public class HashRing {
     ConcurrentMap<Integer, HashRingAngle> angles;
     ConcurrentMap<Integer, List<HashRingAngle>> anglesByServerId;
 
-    public static void configure( ConfigImpl config) {
+    public static void configure( Config config) {
         maxAnglesPerServer = config.getMaxAnglesPerServer();
         minAnglesPerServer = config.getMinAnglesPerServer();
         defaultAnglesPerServer = config.getDefaultAnglesPerServer();

@@ -1,6 +1,6 @@
 package loadbalancerlab.loadbalancer;
 
-import loadbalancerlab.shared.ConfigImpl;
+import loadbalancerlab.shared.Config;
 
 import org.junit.jupiter.api.*;
 import org.mockito.Mockito;
@@ -18,11 +18,11 @@ public class HashRingTest {
     static final int MIN_ANGLES_PER_SERVER = 10;
     static final int RING_SIZE = 10_000;
     int serverId = 5;
-    ConfigImpl config;
+    Config config;
 
     @BeforeEach()
     public void setup() {
-        config = new ConfigImpl();
+        config = new Config();
         config.setMaxAnglesPerServer(MAX_ANGLES_PER_SERVER);
         config.setDefaultAnglesPerServer(DEFAULT_ANGLES_PER_SERVER);
         config.setMinAnglesPerServer(MIN_ANGLES_PER_SERVER);

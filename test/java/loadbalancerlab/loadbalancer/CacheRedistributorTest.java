@@ -1,7 +1,7 @@
 package loadbalancerlab.loadbalancer;
 
 import loadbalancerlab.factory.HttpClientFactory;
-import loadbalancerlab.shared.ConfigImpl;
+import loadbalancerlab.shared.Config;
 import loadbalancerlab.shared.RequestDecoder;
 import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.HttpUriRequest;
@@ -23,7 +23,7 @@ import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.*;
 
 public class CacheRedistributorTest {
-    ConfigImpl config;
+    Config config;
     CacheRedistributor cacheRedis;
     int cacheInfoServerPort = 8080;
 
@@ -46,7 +46,7 @@ public class CacheRedistributorTest {
         @BeforeEach
         public void setup() throws IOException {
             // configuration logic
-            config = new ConfigImpl();
+            config = new Config();
             // setup config
             config.setRequestDecoder(mockDecoder);
             config.setTargetCapacityFactor(targetCapacityFactor);
@@ -129,7 +129,7 @@ public class CacheRedistributorTest {
         @BeforeEach
         public void setup() {
             // configuration
-            config = new ConfigImpl();
+            config = new Config();
             CacheRedistributor.configure(config);
 
             // setting up mocks
@@ -163,7 +163,7 @@ public class CacheRedistributorTest {
         @BeforeEach
         public void setup() {
             // configuration
-            config = new ConfigImpl();
+            config = new Config();
             CacheRedistributor.configure(config);
 
             // initialization
