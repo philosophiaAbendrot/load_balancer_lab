@@ -1,7 +1,7 @@
 package loadbalancerlab;
 
-import loadbalancerlab.loadbalancer.LoadBalancer;
 import loadbalancerlab.factory.HttpClientFactoryImpl;
+import loadbalancerlab.loadbalancer.LoadBalancerRunnable;
 import loadbalancerlab.services.ConstantDemandFunctionImpl;
 import loadbalancerlab.shared.RequestDecoderImpl;
 import loadbalancerlab.vendor.Graph;
@@ -51,7 +51,7 @@ public class Executor {
         System.out.println("CacheServerManager running on port " + cacheServerManagerPort);
 
         // start load balancer thread
-        LoadBalancer loadBalancer = new LoadBalancer(STARTUP_SERVER_COUNT, cacheServerManagerPort, new HttpClientFactoryImpl());
+        LoadBalancerRunnable loadBalancer = new LoadBalancerRunnable(cacheServerManagerPort);
         Thread loadBalancerThread = new Thread(loadBalancer);
         loadBalancerThread.start();
         int loadBalancerPort;
@@ -123,7 +123,7 @@ public class Executor {
 
         // collect data from load balancer
         Logger.log("collecting request log data from load balancer", Logger.LogType.RECORDING_DATA);
-        SortedMap<Integer, Integer> loadBalancerRequestLog = loadBalancer.deliverData();
+//        SortedMap<Integer, Integer> loadBalancerRequestLog = loadBalancer.deliverData();
 
         // shutdown load balancer
         loadBalancerThread.interrupt();
@@ -153,8 +153,8 @@ public class Executor {
         for (Integer value : synthesizedClientRequestLog.values())
             synthesizedClientRequestLogOutput.add((double)value);
 
-        for (Integer value : loadBalancerRequestLog.values())
-            loadBalancerRequestLogOutput.add((double)value);
+//        for (Integer value : loadBalancerRequestLog.values())
+//            loadBalancerRequestLogOutput.add((double)value);
 
         for (Map.Entry<Integer, Integer> entry : serverCountLog.entrySet())
             serverCountLogOutput.add((double) entry.getValue());
