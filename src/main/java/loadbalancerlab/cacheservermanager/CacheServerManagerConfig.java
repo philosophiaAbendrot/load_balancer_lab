@@ -24,7 +24,7 @@ public class CacheServerManagerConfig {
         serverMonitorRunnable = serverMonitorFactory.produceServerMonitorRunnable(serverMonitor, cacheServerManager);
         serverMonitorThread = new Thread(serverMonitorRunnable);
         cacheInfoRequestHandler = cacheInfoServerFactory.produceCacheInfoRequestHandler(serverMonitor);
-        cacheInfoServerRunnable = cacheInfoServerFactory.produceCacheInfoServerRunnable(cacheInfoServerPort, cacheInfoRequestHandler);
+        cacheInfoServerRunnable = cacheInfoServerFactory.produceCacheInfoServerRunnable(cacheInfoRequestHandler);
         cacheInfoServerThread = new Thread(cacheInfoServerRunnable);
 
         sleepInterval = _sleepInterval;

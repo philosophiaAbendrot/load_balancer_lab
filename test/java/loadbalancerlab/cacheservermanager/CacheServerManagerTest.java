@@ -40,13 +40,6 @@ public class CacheServerManagerTest {
         when(mockFactory.produceCacheServerThread(any(CacheServer.class))).thenReturn(mockCacheServerThread);
 
         cacheServerManager = new CacheServerManager(mockFactory, new HttpClientFactory(), new RequestDecoder());
-        cacheServerManagerThread = new Thread(cacheServerManager);
-        cacheServerManagerThread.start();
-    }
-
-    @AfterEach
-    public void shutdown() {
-        cacheServerManagerThread.interrupt();
     }
 
     @Nested

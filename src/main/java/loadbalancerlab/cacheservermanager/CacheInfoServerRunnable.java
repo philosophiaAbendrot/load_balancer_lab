@@ -14,12 +14,11 @@ import java.util.ArrayList;
 import java.util.concurrent.TimeUnit;
 
 public class CacheInfoServerRunnable implements Runnable {
-    private static int defaultPort;
     volatile private int port;
     CacheInfoRequestHandler cacheInfoRequestHandler;
+    private static int defaultPort = -1;
 
-    public CacheInfoServerRunnable( int _defaultPort, CacheInfoRequestHandler _cacheInfoRequestHandler) {
-        defaultPort = _defaultPort;
+    public CacheInfoServerRunnable(CacheInfoRequestHandler _cacheInfoRequestHandler) {
         cacheInfoRequestHandler = _cacheInfoRequestHandler;
     }
 

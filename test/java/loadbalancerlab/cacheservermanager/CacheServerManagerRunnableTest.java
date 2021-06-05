@@ -35,7 +35,7 @@ public class CacheServerManagerRunnableTest {
 
         cacheServerManager = new CacheServerManager(mockCacheServerFactory, new HttpClientFactory(), new RequestDecoder());
         config = new CacheServerManagerConfig(cacheServerManager, cacheServerManagerPort, sleepInterval);
-        cacheServerManagerRunnable = new CacheServerManagerRunnable(config);
+        cacheServerManagerRunnable = new CacheServerManagerRunnable(mockCacheServerFactory, new HttpClientFactory(), new RequestDecoder(), cacheServerManager);
         cacheServerManagerThread = new Thread(cacheServerManagerRunnable);
         cacheServerManagerThread.start();
     }
@@ -43,9 +43,18 @@ public class CacheServerManagerRunnableTest {
     @Test
     @DisplayName("When CacheServerMonitor thread is interrupted, it interrupts all cache servers that it has spawned")
     public void cacheServerMonitorThreadInterruptedInterruptsAllCacheServers() {
-        // interrupt cacheServerMonitor thread
         cacheServerManager.startupCacheServer(1);
+
+        // wait for CacheServerMonitor to run interruption callbacks
+        try {
+            Thread.sleep(500);
+        } catch(InterruptedException e) {
+            e.printStackTrace();
+        }
+
+        // interrupt cacheServerMonitor thread
         cacheServerManagerThread.interrupt();
+
         // wait for CacheServerMonitor to run interruption callbacks
         try {
             Thread.sleep(500);

@@ -1,33 +1,52 @@
 package loadbalancerlab.cacheservermanager;
 
+import loadbalancerlab.factory.CacheServerFactory;
+import loadbalancerlab.factory.HttpClientFactory;
+import loadbalancerlab.shared.RequestDecoder;
+
 public class CacheServerManagerRunnable implements Runnable {
     CacheServerManager cacheServerManager;
     ServerMonitor serverMonitor;
     CacheInfoRequestHandler cacheInfoRequestHandler;
 
-    CacheServerManagerRunnable cacheServerManagerRunnable;
     ServerMonitorRunnable serverMonitorRunnable;
     CacheInfoServerRunnable cacheInfoServerRunnable;
 
     Thread serverMonitorThread;
     Thread cacheInfoServerThread;
-    int sleepInterval;
+    static int sleepInterval = 50;
 
-    public CacheServerManagerRunnable(CacheServerManagerConfig config) {
-        // read from config
-        cacheServerManager = config.cacheServerManager;
-        serverMonitor = config.serverMonitor;
-        serverMonitorRunnable = config.serverMonitorRunnable;
-        cacheInfoRequestHandler = config.cacheInfoRequestHandler;
-        cacheInfoServerRunnable = config.cacheInfoServerRunnable;
-        serverMonitorThread = config.serverMonitorThread;
-        cacheInfoServerThread = config.cacheInfoServerThread;
-        sleepInterval = config.sleepInterval;
+    RequestDecoder reqDecoder;
+    CacheServerFactory cacheServerFactory;
+    HttpClientFactory clientFactory;
+
+    public CacheServerManagerRunnable( CacheServerFactory _cacheServerFactory, HttpClientFactory _clientFactory, RequestDecoder _reqDecoder, CacheServerManager _cacheServerManager ) {
+        reqDecoder = _reqDecoder;
+        clientFactory = _clientFactory;
+        cacheServerFactory = _cacheServerFactory;
+
+        cacheServerManager = _cacheServerManager;
+
+        // generate instances of sub-components
+        serverMonitor = new ServerMonitor(clientFactory, reqDecoder, cacheServerManager);
+        cacheInfoRequestHandler = new CacheInfoRequestHandler(serverMonitor);
+
+        // generate runnables for sub-components
+        serverMonitorRunnable = new ServerMonitorRunnable(serverMonitor, cacheServerManager);
+        cacheInfoServerRunnable = new CacheInfoServerRunnable(cacheInfoRequestHandler);
+
+        // generate threads for sub-components
+        serverMonitorThread = new Thread(serverMonitorRunnable);
+        cacheInfoServerThread = new Thread(cacheInfoServerRunnable);
+    }
+
+    public int getPort() {
+        return cacheInfoServerRunnable.getPort();
     }
 
     @Override
     public void run() {
-        // start threads
+        // start sub-threads
         serverMonitorThread.start();
         cacheInfoServerThread.start();
 

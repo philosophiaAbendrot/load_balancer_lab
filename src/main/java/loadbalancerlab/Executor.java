@@ -1,5 +1,6 @@
 package loadbalancerlab;
 
+import loadbalancerlab.cacheservermanager.CacheServerManagerRunnable;
 import loadbalancerlab.factory.HttpClientFactory;
 import loadbalancerlab.loadbalancer.LoadBalancerRunnable;
 import loadbalancerlab.services.ConstantDemandFunctionImpl;
@@ -35,12 +36,13 @@ public class Executor {
 
         // start cache server manager thread
         CacheServerManager cacheServerManager = new CacheServerManager(new CacheServerFactory(), new HttpClientFactory(), new RequestDecoder());
-        Thread cacheServerManagerThread = new Thread(cacheServerManager);
+        CacheServerManagerRunnable cacheServerManagerRunnable = new CacheServerManagerRunnable(new CacheServerFactory(), new HttpClientFactory(), new RequestDecoder(), cacheServerManager);
+        Thread cacheServerManagerThread = new Thread(cacheServerManagerRunnable);
         cacheServerManagerThread.start();
 
         int cacheServerManagerPort;
 
-        while ((cacheServerManagerPort = cacheServerManager.getPort()) == -1) {
+        while ((cacheServerManagerPort = cacheServerManagerRunnable.getPort()) == -1) {
             try {
                 Thread.sleep(10);
             } catch (InterruptedException e) {
