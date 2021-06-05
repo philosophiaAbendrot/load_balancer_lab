@@ -4,7 +4,7 @@ import loadbalancerlab.cacheservermanager.CacheInfoRequestHandler;
 import loadbalancerlab.cacheservermanager.CacheInfoServerRunnable;
 import loadbalancerlab.cacheservermanager.ServerMonitor;
 
-public class CacheInfoServerFactoryImpl {
+public class CacheInfoServerFactory {
     public CacheInfoRequestHandler produceCacheInfoRequestHandler( ServerMonitor serverMonitor) {
         return new CacheInfoRequestHandler(serverMonitor);
     }
