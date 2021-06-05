@@ -1,6 +1,5 @@
 package loadbalancerlab.cacheservermanager;
 
-import loadbalancerlab.factory.HttpClientFactory;
 import loadbalancerlab.factory.HttpClientFactoryImpl;
 import loadbalancerlab.shared.Logger;
 import loadbalancerlab.shared.RequestDecoder;
@@ -30,7 +29,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.Mockito.when;
 
 public class CacheInfoRequestHandlerTest {
-    HttpClientFactory clientFactory;
+    HttpClientFactoryImpl clientFactory;
     static final int DEFAULT_SERVER_PORT = 8_080;
     static int serverPort;
     static Thread dummyServerThread;

@@ -1,6 +1,5 @@
 package loadbalancerlab.loadbalancer;
 
-import loadbalancerlab.factory.HttpClientFactory;
 import loadbalancerlab.factory.HttpClientFactoryImpl;
 import loadbalancerlab.shared.Config;
 import loadbalancerlab.shared.ConfigImpl;
@@ -48,7 +47,7 @@ public class ClientRequestHandlerTest {
     Thread mockServerThread;
     MockServer mockServerRunnable;
     Config config;
-    HttpClientFactory clientFactory;
+    HttpClientFactoryImpl clientFactory;
     int mockServerPort;
 
     CloseableHttpClient mockClient;
@@ -132,7 +131,7 @@ public class ClientRequestHandlerTest {
     public void setup() throws IOException {
         // setup mock http client
         mockClient = Mockito.mock(CloseableHttpClient.class);
-        HttpClientFactory mockClientFactory = Mockito.mock(HttpClientFactory.class);
+        HttpClientFactoryImpl mockClientFactory = Mockito.mock(HttpClientFactoryImpl.class);
         when(mockClientFactory.buildApacheClient()).thenReturn(mockClient);
 
         // setting up mocks for mock response

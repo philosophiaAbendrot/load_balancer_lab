@@ -1,6 +1,5 @@
 package loadbalancerlab.shared;
 
-import loadbalancerlab.factory.HttpClientFactory;
 import loadbalancerlab.factory.HttpClientFactoryImpl;
 import loadbalancerlab.loadbalancer.HashFunction;
 import loadbalancerlab.loadbalancer.MurmurHashFunctionImpl;
@@ -13,7 +12,7 @@ public class ConfigImpl implements Config {
     private HashFunction hashFunction;
     private double targetCapacityFactor;
     private RequestDecoder reqDecoder;
-    private HttpClientFactory clientFactory;
+    private HttpClientFactoryImpl clientFactory;
     private double[] serverLoadCutoffs;
     private int cacheRedisPingInterval;
     private int cacheRedisRemapInterval;
@@ -72,7 +71,7 @@ public class ConfigImpl implements Config {
     }
 
     @Override
-    public HttpClientFactory getClientFactory() {
+    public HttpClientFactoryImpl getClientFactory() {
         return clientFactory;
     }
 
@@ -132,7 +131,7 @@ public class ConfigImpl implements Config {
     }
 
     @Override
-    public void setClientFactory( HttpClientFactory _clientFactory ) {
+    public void setClientFactory( HttpClientFactoryImpl _clientFactory ) {
         clientFactory = _clientFactory;
     }
 
