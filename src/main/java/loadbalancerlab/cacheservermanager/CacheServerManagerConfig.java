@@ -1,7 +1,7 @@
 package loadbalancerlab.cacheservermanager;
 
 import loadbalancerlab.factory.CacheInfoServerFactory;
-import loadbalancerlab.factory.ServerMonitorFactoryImpl;
+import loadbalancerlab.factory.ServerMonitorFactory;
 
 // takes CacheServerManager instance as input and handles
 // setup of instances necessary for CacheServerManagerRunnable
@@ -17,7 +17,7 @@ public class CacheServerManagerConfig {
 
     public CacheServerManagerConfig(CacheServerManager _cacheServerManager, int cacheInfoServerPort, int _sleepInterval) {
         cacheServerManager = _cacheServerManager;
-        ServerMonitorFactoryImpl serverMonitorFactory = new ServerMonitorFactoryImpl();
+        ServerMonitorFactory serverMonitorFactory = new ServerMonitorFactory();
         CacheInfoServerFactory cacheInfoServerFactory = new CacheInfoServerFactory();
 
         serverMonitor = serverMonitorFactory.produceServerMonitor(cacheServerManager);
