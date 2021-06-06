@@ -83,7 +83,7 @@ public class ServerMonitor {
         }
     }
 
-    public float averageCapacityFactor() {
-        return -1.0f;
+    public double getAverageCf() {
+        return -1.0;
     }
 }

@@ -181,12 +181,13 @@ public class CacheServerManagerTest {
         public void setup() {
             config = new Config();
             CacheServerManager.configure(config);
+            cacheServerManager = new CacheServerManager(mockFactory, new HttpClientFactory(), new RequestDecoder());
         }
 
         @Nested
         @DisplayName("when average capacity factor exceeds target by 20%")
         class WhenAverageCapacityFactorExceedsThreshold {
-            float targetCf;
+            double targetCf;
 
             @BeforeEach
             public void setup() {
@@ -201,8 +202,8 @@ public class CacheServerManagerTest {
                 CacheServerManager.cacheServerIdCounter = initialServerCount;
                 mockServerMonitor = Mockito.mock(ServerMonitor.class);
 
-                when(mockServerMonitor.averageCapacityFactor()).thenReturn(targetCf);
-
+                when(mockServerMonitor.getAverageCf()).thenReturn(targetCf);
+                cacheServerManager.serverMonitor = mockServerMonitor;
                 cacheServerManager.modulateCapacity();
             }
 
@@ -216,7 +217,7 @@ public class CacheServerManagerTest {
         @Nested
         @DisplayName("when average capacity factor equals the target")
         class WhenAverageCapacityFactorEqualsTarget {
-            float targetCf;
+            double targetCf;
 
             @BeforeEach
             public void setup() {
@@ -231,8 +232,8 @@ public class CacheServerManagerTest {
                 CacheServerManager.cacheServerIdCounter = initialServerCount;
                 mockServerMonitor = Mockito.mock(ServerMonitor.class);
 
-                when(mockServerMonitor.averageCapacityFactor()).thenReturn(targetCf);
-
+                when(mockServerMonitor.getAverageCf()).thenReturn(targetCf);
+                cacheServerManager.serverMonitor = mockServerMonitor;
                 cacheServerManager.modulateCapacity();
             }
 
@@ -246,12 +247,12 @@ public class CacheServerManagerTest {
         @Nested
         @DisplayName("when average capacity factor is lower than the target by 20%")
         class WhenAverageCapacityFactorIsBelowThreshold {
-            float targetCf;
+            double targetCf;
 
             @BeforeEach
             public void setup() {
                 cacheServerManager.serverThreadTable = new ConcurrentHashMap<>();
-                targetCf = config.getTargetCf();
+                targetCf = config.getTargetCf() - 0.2;
 
                 for (int i = 0; i < initialServerCount; i++) {
                     Thread mockThread = Mockito.mock(Thread.class);
@@ -261,8 +262,8 @@ public class CacheServerManagerTest {
                 CacheServerManager.cacheServerIdCounter = initialServerCount;
                 mockServerMonitor = Mockito.mock(ServerMonitor.class);
 
-                when(mockServerMonitor.averageCapacityFactor()).thenReturn(targetCf);
-
+                when(mockServerMonitor.getAverageCf()).thenReturn(targetCf);
+                cacheServerManager.serverMonitor = mockServerMonitor;
                 cacheServerManager.modulateCapacity();
             }
 

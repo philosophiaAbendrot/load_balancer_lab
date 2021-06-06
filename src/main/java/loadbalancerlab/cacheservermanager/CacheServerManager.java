@@ -22,7 +22,7 @@ public class CacheServerManager {
     public RequestDecoder reqDecoder;
     ServerMonitor serverMonitor;
     static int cacheServerIdCounter;
-    static float targetCf;
+    static double targetCf;
 
     CacheInfoRequestHandler cacheInfoRequestHandler;
     CacheInfoServerRunnable cacheInfoServer;
@@ -71,7 +71,17 @@ public class CacheServerManager {
     }
 
     public void modulateCapacity() {
+        double averageCapacityFactor = serverMonitor.getAverageCf();
+        double diff = averageCapacityFactor - targetCf;
+        int intDiff = (int)(Math.round(diff * 25));
 
+        if (diff == 0) {
+            return;
+        } else if (diff > 0) {
+            startupCacheServer(intDiff);
+        } else {
+            shutdownCacheServer(-intDiff);
+        }
     }
 
     public void shutdownCacheServer(int num) {
