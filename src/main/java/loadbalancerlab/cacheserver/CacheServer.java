@@ -20,36 +20,11 @@ public class CacheServer implements Runnable {
     RequestMonitorRunnable reqMonitorRunnable;
     Thread reqMonitorThread;
 
-    // http handler that is fed into HttpServer upon initialization
-    // serves direct requests from load balancer for updates on capacity factor
-    private class CapacityFactorRequestHandler implements HttpHandler {
-        @Override
-        public void handle(HttpExchange httpExchange) throws IOException {
-            OutputStream outputStream = httpExchange.getResponseBody();
-
-            double capacityFactor = CacheServer.this.reqMonitor.getCapacityFactor(System.currentTimeMillis());
-
-            Logger.log(String.format("CacheServer | capacityFactor = %f", capacityFactor), Logger.LogType.REQUEST_PASSING);
-
-            JSONObject outputJsonObj = new JSONObject();
-            outputJsonObj.put("capacity_factor", capacityFactor);
-
-            // encode html content
-            String htmlResponse = StringEscapeUtils.escapeJson(outputJsonObj.toString());
-            Logger.log("CacheServer | CapacityFactorRequestHandler processed request", Logger.LogType.REQUEST_PASSING);
-            // send out response
-            httpExchange.sendResponseHeaders(200, htmlResponse.length());
-            outputStream.write(htmlResponse.getBytes());
-            outputStream.flush();
-            outputStream.close();
-        }
-    }
-
     private volatile int port;
     int[] selectablePorts = new int[100];
 
-    public CacheServer(RequestMonitor reqMonitor) {
-        reqMonitor = reqMonitor;
+    public CacheServer(RequestMonitor _reqMonitor) {
+        reqMonitor = _reqMonitor;
         reqMonitorRunnable = new RequestMonitorRunnable(reqMonitor);
         reqMonitorThread = new Thread(reqMonitorRunnable);
 
@@ -77,7 +52,7 @@ public class CacheServer implements Runnable {
         // start server
         ThreadPoolExecutor threadPoolExecutor = (ThreadPoolExecutor) Executors.newFixedThreadPool(1);
         HttpHandler clientReqHandler = new ClientRequestHandler(reqMonitor);
-        HttpHandler capacityFactorRequestHandler = new CapacityFactorRequestHandler();
+        HttpHandler capacityFactorRequestHandler = new CapacityFactorRequestHandler(reqMonitor);
         HttpServer server = null;
 
         for (int i = 0; i < selectablePorts.length; i++) {

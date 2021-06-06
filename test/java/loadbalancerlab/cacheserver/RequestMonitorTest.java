@@ -1,4 +1,4 @@
-package loadbalancerlab.monitortest;
+package loadbalancerlab.cacheserver;
 
 import loadbalancerlab.shared.Logger;
 import org.junit.jupiter.api.BeforeAll;
@@ -9,8 +9,6 @@ import org.junit.jupiter.api.Test;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
-
-import loadbalancerlab.cacheserver.RequestMonitor;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;

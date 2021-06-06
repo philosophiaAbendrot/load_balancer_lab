@@ -1,5 +1,5 @@
-import loadbalancerlab.cacheserver.RequestMonitor;
-import loadbalancerlab.cacheserver.CacheServer;
+package loadbalancerlab.cacheserver;
+
 import loadbalancerlab.shared.Logger;
 
 import org.apache.http.client.methods.HttpGet;
