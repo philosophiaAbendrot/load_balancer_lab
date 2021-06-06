@@ -88,6 +88,7 @@ public class CacheServer implements Runnable {
                 Logger.log("CacheServer | CacheServer thread interrupted", Logger.LogType.THREAD_MANAGEMENT);
                 // shutdown associated telemetry curator thread
                 reqMonitorThread.interrupt();
+                Logger.log("CacheServer | Request Monitor thread interrupted", Logger.LogType.THREAD_MANAGEMENT);
                 server.stop(3);
                 threadPoolExecutor.shutdown();
                 break;

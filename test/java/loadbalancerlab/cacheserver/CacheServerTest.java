@@ -80,6 +80,11 @@ public class CacheServerTest {
         @Test
         @DisplayName("request monitor thread should be interrupted")
         public void reqMonitorThreadShouldBeInterrupted() {
+            try {
+                Thread.sleep(501);
+            } catch (InterruptedException e) {
+
+            }
             verify(mockReqMonitorThread, times(1)).interrupt();
         }
     }
