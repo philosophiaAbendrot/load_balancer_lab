@@ -26,7 +26,8 @@ class RequestMonitorRunnable implements Runnable {
                 Thread.sleep(300);
                 reqMonitor.clearOutData(System.currentTimeMillis());
             } catch (InterruptedException e) {
-                System.out.println("CacheServer Telemetry curator thread interrupted");
+                Thread.currentThread().interrupt();
+                System.out.println("CacheServer RequestMonitorRunnable thread interrupted");
             }
         }
         Logger.log("CacheServer | Terminated TelemetryCurator thread", Logger.LogType.THREAD_MANAGEMENT);
