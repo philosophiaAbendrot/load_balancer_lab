@@ -1,7 +1,7 @@
 package loadbalancerlab.factory;
 
 import loadbalancerlab.cacheserver.CacheServer;
-import loadbalancerlab.services.monitor.RequestMonitor;
+import loadbalancerlab.cacheserver.RequestMonitor;
 
 public class CacheServerFactory {
     public CacheServer produceCacheServer(RequestMonitor reqMonitor) {

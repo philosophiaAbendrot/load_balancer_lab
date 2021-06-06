@@ -3,7 +3,7 @@ package loadbalancerlab.cacheservermanager;
 import loadbalancerlab.cacheserver.CacheServer;
 import loadbalancerlab.factory.CacheServerFactory;
 import loadbalancerlab.factory.HttpClientFactory;
-import loadbalancerlab.services.monitor.RequestMonitor;
+import loadbalancerlab.cacheserver.RequestMonitor;
 import loadbalancerlab.shared.RequestDecoder;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;

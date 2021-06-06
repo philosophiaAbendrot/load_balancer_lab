@@ -1,4 +1,4 @@
-import loadbalancerlab.services.monitor.RequestMonitor;
+import loadbalancerlab.cacheserver.RequestMonitor;
 import loadbalancerlab.cacheserver.CacheServer;
 import loadbalancerlab.shared.Logger;
 

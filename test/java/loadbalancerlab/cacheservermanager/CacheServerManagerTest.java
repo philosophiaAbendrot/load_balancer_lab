@@ -1,7 +1,7 @@
 package loadbalancerlab.cacheservermanager;
 
 import loadbalancerlab.factory.CacheServerFactory;
-import loadbalancerlab.services.monitor.RequestMonitor;
+import loadbalancerlab.cacheserver.RequestMonitor;
 import loadbalancerlab.cacheserver.CacheServer;
 import loadbalancerlab.factory.HttpClientFactory;
 import loadbalancerlab.shared.Config;

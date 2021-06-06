@@ -1,4 +1,4 @@
-package loadbalancerlab.services.monitor;
+package loadbalancerlab.cacheserver;
 
 import loadbalancerlab.shared.Logger;
 

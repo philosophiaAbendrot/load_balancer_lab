@@ -3,7 +3,6 @@ package loadbalancerlab.cacheserver;
 import com.sun.net.httpserver.HttpExchange;
 import com.sun.net.httpserver.HttpHandler;
 import com.sun.net.httpserver.HttpServer;
-import loadbalancerlab.services.monitor.RequestMonitor;
 import org.apache.commons.text.StringEscapeUtils;
 import org.json.JSONObject;
 import java.io.IOException;
