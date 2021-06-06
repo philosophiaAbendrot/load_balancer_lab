@@ -21,7 +21,7 @@ public class Config {
     private double targetCf;
     private double cacheServerGrowthRate;
     private int capacityModulationInterval;
-    private long requestMonitorTTL;
+    private int requestMonitorRecordTTL;
 
     public Config() {
         // default configurations
@@ -41,7 +41,7 @@ public class Config {
         targetCf = 0.75;
         cacheServerGrowthRate = 25;
         capacityModulationInterval = 5;
-        requestMonitorTTL = 10_000;
+        requestMonitorRecordTTL = 10_000;
     }
 
     public int getMaxAnglesPerServer() {
@@ -100,7 +100,7 @@ public class Config {
 
     public int getCapacityModulationInterval() { return capacityModulationInterval; }
 
-    public long getRequestMonitorTTL() { return requestMonitorTTL; }
+    public int getRequestMonitorRecordTTL() { return requestMonitorRecordTTL; }
 
     public void setMaxAnglesPerServer( int _maxAnglesPerServer ) {
         maxAnglesPerServer = _maxAnglesPerServer;
@@ -160,5 +160,5 @@ public class Config {
 
     public void setCapacityModulationInterval(int modulationInterval) { capacityModulationInterval = modulationInterval; }
 
-    public void setRequestMonitorTTL(long ttl) { requestMonitorTTL = ttl; }
+    public void setRequestMonitorRecordTTL( int ttl) { requestMonitorRecordTTL = ttl; }
 }
