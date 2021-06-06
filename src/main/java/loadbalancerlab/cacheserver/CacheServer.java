@@ -63,58 +63,6 @@ public class CacheServer implements Runnable {
         }
     }
 
-    // http handler that is fed into HttpServer upon initialization
-    // serves requests from load balancer that are from client
-    private class CustomHttpHandler implements HttpHandler {
-        @Override
-        public void handle(HttpExchange httpExchange) throws IOException {
-            String requestParams = extractParams(httpExchange);
-            handleResponse(httpExchange, requestParams);
-        }
-
-        private void handleResponse(HttpExchange httpExchange, String requestParams) throws IOException {
-            long startTime = System.currentTimeMillis();
-            Logger.log("CacheServer | received request from load balancer", Logger.LogType.REQUEST_PASSING);
-            try {
-                Thread.sleep(200);
-            } catch(InterruptedException e) {
-                System.out.println("within CacheServer::CustomHandler.handleResponse");
-                e.printStackTrace();
-            }
-
-            OutputStream outputStream = httpExchange.getResponseBody();
-
-            StringBuilder htmlBuilder = new StringBuilder();
-            htmlBuilder.append("<html>").append("<body>")
-                    .append("<h1>")
-                    .append("Hello")
-                    .append("</h1>")
-                    .append("</body>")
-                    .append("</html>");
-
-            // encode html content
-            String htmlResponse = StringEscapeUtils.escapeHtml4(htmlBuilder.toString());
-
-            // send out response
-            httpExchange.sendResponseHeaders(200, htmlResponse.length());
-            outputStream.write(htmlResponse.getBytes());
-            Logger.log("CacheServer | sent request back to load balancer", Logger.LogType.REQUEST_PASSING);
-            outputStream.flush();
-            outputStream.close();
-            long endTime = System.currentTimeMillis();
-            CacheServer.this.reqMonitor.addRecord(startTime, endTime);
-        }
-
-        private String extractParams(HttpExchange httpExchange) {
-            String[] intermediate1 = httpExchange.getRequestURI().toString().split("\\?");
-
-            if (intermediate1.length > 1)
-                return intermediate1[1];
-            else
-                return "";
-        }
-    }
-
     private volatile int port;
     int[] selectablePorts = new int[100];
 
@@ -143,7 +91,7 @@ public class CacheServer implements Runnable {
         Logger.log("CacheServer | Started CacheServer thread", Logger.LogType.THREAD_MANAGEMENT);
         // start server
         ThreadPoolExecutor threadPoolExecutor = (ThreadPoolExecutor) Executors.newFixedThreadPool(1);
-        HttpHandler customHttpHandler = new CustomHttpHandler();
+        HttpHandler clientReqHandler = new ClientRequestHandler(reqMonitor);
         HttpHandler capacityFactorRequestHandler = new CapacityFactorRequestHandler();
         HttpServer server = null;
 
@@ -155,7 +103,7 @@ public class CacheServer implements Runnable {
                 InetAddress host = InetAddress.getByName("127.0.0.1");
                 InetSocketAddress socketAddress = new InetSocketAddress(host, port);
                 server = HttpServer.create(socketAddress, 0);
-                server.createContext("/", customHttpHandler);
+                server.createContext("/", clientReqHandler);
                 server.createContext("/capacity-factor", capacityFactorRequestHandler);
                 server.setExecutor(threadPoolExecutor);
                 Logger.log(String.format("CacheServer | Server started on %s", socketAddress.toString()), Logger.LogType.CACHE_SERVER_STARTUP);
