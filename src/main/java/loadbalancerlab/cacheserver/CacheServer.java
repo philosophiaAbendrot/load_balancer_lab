@@ -16,27 +16,9 @@ import java.util.concurrent.ThreadPoolExecutor;
 import loadbalancerlab.shared.Logger;
 
 public class CacheServer implements Runnable {
-    final int TELEMETRY_CURATOR_RUNNING_TIME = 10_000;
     RequestMonitor reqMonitor;
-
-    // class for periodically clearing out outdated telemetry
-    private class TelemetryCurator implements Runnable {
-        @Override
-        public void run() {
-            Logger.log("CacheServer | Started TelemetryCurator thread", Logger.LogType.THREAD_MANAGEMENT);
-            long startTime = System.currentTimeMillis();
-
-            while (System.currentTimeMillis() < startTime + TELEMETRY_CURATOR_RUNNING_TIME) {
-                try {
-                    Thread.sleep(300);
-                    CacheServer.this.reqMonitor.clearOutData(System.currentTimeMillis());
-                } catch (InterruptedException e) {
-                    System.out.println("CacheServer Telemetry curator thread interrupted");
-                }
-            }
-            Logger.log("CacheServer | Terminated TelemetryCurator thread", Logger.LogType.THREAD_MANAGEMENT);
-        }
-    }
+    RequestMonitorRunnable reqMonitorRunnable;
+    Thread reqMonitorThread;
 
     // http handler that is fed into HttpServer upon initialization
     // serves direct requests from load balancer for updates on capacity factor
@@ -67,7 +49,10 @@ public class CacheServer implements Runnable {
     int[] selectablePorts = new int[100];
 
     public CacheServer(RequestMonitor reqMonitor) {
-        this.reqMonitor = reqMonitor;
+        reqMonitor = reqMonitor;
+        reqMonitorRunnable = new RequestMonitorRunnable(reqMonitor);
+        reqMonitorThread = new Thread(reqMonitorRunnable);
+
         Random rand = new Random();
         // initialize list of ports 37000 - 37099 as selectable ports for cache servers to run on
         initializeSelectablePorts();
@@ -114,8 +99,7 @@ public class CacheServer implements Runnable {
         }
 
         // start request telemetry curator
-        Thread telemetryCuratorThread = new Thread(new TelemetryCurator());
-        telemetryCuratorThread.start();
+        reqMonitorThread.start();
 
         // start server
         server.start();
@@ -125,12 +109,12 @@ public class CacheServer implements Runnable {
             try {
                 Thread.sleep(500);
             } catch (InterruptedException e) {
+                Thread.currentThread().interrupt();
                 Logger.log("CacheServer | CacheServer thread interrupted", Logger.LogType.THREAD_MANAGEMENT);
                 // shutdown associated telemetry curator thread
-                telemetryCuratorThread.interrupt();
+                reqMonitorThread.interrupt();
                 server.stop(3);
                 threadPoolExecutor.shutdown();
-                Thread.currentThread().interrupt();
                 break;
             }
         }
