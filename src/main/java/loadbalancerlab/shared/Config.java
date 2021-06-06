@@ -19,6 +19,8 @@ public class Config {
     private int clientHandlerServerDefaultPort;
     private int cacheInfoServerDefaultPort;
     private double targetCf;
+    private double cacheServerGrowthRate;
+    private int capacityModulationInterval;
 
     public Config() {
         // default configurations
@@ -35,7 +37,9 @@ public class Config {
         cacheRedisRemapInterval = 3;
         clientHandlerServerDefaultPort = 3_000;
         cacheInfoServerDefaultPort = 5_500;
-        targetCf = 0.75f;
+        targetCf = 0.75;
+        cacheServerGrowthRate = 25;
+        capacityModulationInterval = 5;
     }
 
     public int getMaxAnglesPerServer() {
@@ -90,6 +94,10 @@ public class Config {
 
     public double getTargetCf() { return targetCf; }
 
+    public double getCacheServerGrowthRate() { return cacheServerGrowthRate; }
+
+    public int getCapacityModulationInterval() { return capacityModulationInterval; }
+
     public void setMaxAnglesPerServer( int _maxAnglesPerServer ) {
         maxAnglesPerServer = _maxAnglesPerServer;
     }
@@ -143,4 +151,8 @@ public class Config {
     public void setTargetCf(double cf) {
         targetCf = cf;
     }
+
+    public void setCacheServerGrowthRate(double growthRate) { cacheServerGrowthRate = growthRate; }
+
+    public void setCapacityModulationInterval(int modulationInterval) { capacityModulationInterval = modulationInterval; }
 }

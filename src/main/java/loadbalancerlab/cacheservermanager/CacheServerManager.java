@@ -23,6 +23,7 @@ public class CacheServerManager {
     ServerMonitor serverMonitor;
     static int cacheServerIdCounter;
     static double targetCf;
+    static double growthRate;
 
     CacheInfoRequestHandler cacheInfoRequestHandler;
     CacheInfoServerRunnable cacheInfoServer;
@@ -36,6 +37,7 @@ public class CacheServerManager {
 
     public static void configure( Config config ) {
         targetCf = config.getTargetCf();
+        growthRate = config.getCacheServerGrowthRate();
     }
 
     public CacheServerManager( CacheServerFactory _cacheServerFactory, HttpClientFactory _clientFactory, RequestDecoder _reqDecoder ) {
@@ -73,7 +75,7 @@ public class CacheServerManager {
     public void modulateCapacity() {
         double averageCapacityFactor = serverMonitor.getAverageCf();
         double diff = averageCapacityFactor - targetCf;
-        int intDiff = (int)(Math.round(diff * 25));
+        int intDiff = (int)(Math.round(diff * growthRate));
 
         if (diff == 0) {
             return;

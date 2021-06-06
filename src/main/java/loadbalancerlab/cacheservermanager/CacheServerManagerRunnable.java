@@ -2,6 +2,7 @@ package loadbalancerlab.cacheservermanager;
 
 import loadbalancerlab.factory.CacheServerFactory;
 import loadbalancerlab.factory.HttpClientFactory;
+import loadbalancerlab.shared.Config;
 import loadbalancerlab.shared.RequestDecoder;
 
 public class CacheServerManagerRunnable implements Runnable {
@@ -19,6 +20,9 @@ public class CacheServerManagerRunnable implements Runnable {
     RequestDecoder reqDecoder;
     CacheServerFactory cacheServerFactory;
     HttpClientFactory clientFactory;
+
+    int lastCapacityModulationTime;
+    static int capacityModulationInterval;
 
     public CacheServerManagerRunnable( CacheServerFactory _cacheServerFactory, HttpClientFactory _clientFactory, RequestDecoder _reqDecoder, CacheServerManager _cacheServerManager ) {
         reqDecoder = _reqDecoder;
@@ -44,15 +48,26 @@ public class CacheServerManagerRunnable implements Runnable {
         return cacheInfoServerRunnable.getPort();
     }
 
+    public static void configure(Config config) {
+        capacityModulationInterval = config.getCapacityModulationInterval();
+    }
+
     @Override
     public void run() {
         // start sub-threads
         serverMonitorThread.start();
         cacheInfoServerThread.start();
 
+        int currentTime = (int)(System.currentTimeMillis() / 1_000);
+        lastCapacityModulationTime = currentTime;
+
         while (true) {
+            currentTime = (int)(System.currentTimeMillis() / 1_000);
             try {
-                cacheServerManager.modulateCapacity();
+                if (capacityModulationInterval - currentTime >= capacityModulationInterval) {
+                    lastCapacityModulationTime = currentTime;
+                    cacheServerManager.modulateCapacity();
+                }
                 Thread.sleep(sleepInterval);
             } catch (InterruptedException e) {
                 Thread.currentThread().interrupt();
