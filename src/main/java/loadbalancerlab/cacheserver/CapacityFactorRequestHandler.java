@@ -9,31 +9,41 @@ import org.json.JSONObject;
 import java.io.IOException;
 import java.io.OutputStream;
 
-// http handler that is fed into CacheServer
-// serves direct requests from CacheServerManager for updates on capacity factor
+/**
+ * This is a support class for CacheServer.
+ * It is an implementation of the HttpHandler interface for the /capacity-factor route for the server on the CacheServer class.
+ * This logic serves requests from the CacheServerManager class for updates on the capacity factor of the CacheServer instance.
+ */
 public class CapacityFactorRequestHandler implements HttpHandler {
     RequestMonitor reqMonitor;
 
+    /**
+     * @param _reqMonitor the associated CacheServer instance's associated RequestMonitor instance
+     */
     public CapacityFactorRequestHandler( RequestMonitor _reqMonitor ) {
         reqMonitor = _reqMonitor;
     }
 
+    /**
+     * handles incoming request for update on the capacity factor of the associated CacheServer instance
+     * @param httpExchange - an encapsulation of an Http request for the com.sun.net.httpserver package
+     */
     @Override
     public void handle( HttpExchange httpExchange ) throws IOException {
         OutputStream outputStream = httpExchange.getResponseBody();
 
+        // receive capacity factor from the CacheServer instance's RequestMonitor instance.
         double capacityFactor = reqMonitor.getCapacityFactor(System.currentTimeMillis());
-
         Logger.log(String.format("CacheServer | capacityFactor = %f", capacityFactor), Logger.LogType.REQUEST_PASSING);
 
+        // generate JSON object for response
         JSONObject outputJsonObj = new JSONObject();
         outputJsonObj.put("capacity_factor", capacityFactor);
-
-        // encode html content
         String htmlResponse = StringEscapeUtils.escapeJson(outputJsonObj.toString());
         Logger.log("CacheServer | CapacityFactorRequestHandler processed request", Logger.LogType.REQUEST_PASSING);
         // send out response
         httpExchange.sendResponseHeaders(200, htmlResponse.length());
+        // insert JSON object into response
         outputStream.write(htmlResponse.getBytes());
         outputStream.flush();
         outputStream.close();
