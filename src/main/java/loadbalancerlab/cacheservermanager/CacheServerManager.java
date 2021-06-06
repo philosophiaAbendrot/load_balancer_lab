@@ -4,7 +4,6 @@ import loadbalancerlab.factory.CacheServerFactory;
 import loadbalancerlab.services.monitor.RequestMonitor;
 import loadbalancerlab.cacheserver.CacheServer;
 import loadbalancerlab.shared.Config;
-import loadbalancerlab.shared.Logger;
 import loadbalancerlab.factory.HttpClientFactory;
 import loadbalancerlab.shared.RequestDecoder;
 
@@ -13,7 +12,6 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 
 public class CacheServerManager {
-    static final int TICK_INTERVAL = 100;
     private int port;
     volatile ConcurrentMap<Integer, Thread> serverThreadTable = new ConcurrentHashMap<>();
     private int[] selectablePorts = new int[100];
@@ -26,10 +24,6 @@ public class CacheServerManager {
     static double growthRate;
 
     CacheInfoRequestHandler cacheInfoRequestHandler;
-    CacheInfoServerRunnable cacheInfoServer;
-    Runnable serverMonitorRunnable;
-    Thread serverMonitorThread;
-    Thread cacheInfoServerThread;
 
     static {
         cacheServerIdCounter = 0;
