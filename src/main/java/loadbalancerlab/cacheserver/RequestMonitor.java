@@ -14,31 +14,31 @@ public class RequestMonitor {
     int parametricStorageTime;
     final static int DEFAULT_PARAMETRIC_STORAGE_TIME = 10_000;
 
-    public RequestMonitor(String parentClass) {
-        this.parametricStorageTime = DEFAULT_PARAMETRIC_STORAGE_TIME;
-        this.parentClass = parentClass;
-        this.requestData = Collections.synchronizedList(new ArrayList<>());
+    public RequestMonitor(String _parentClass) {
+        parametricStorageTime = DEFAULT_PARAMETRIC_STORAGE_TIME;
+        parentClass = _parentClass;
+        requestData = Collections.synchronizedList(new ArrayList<>());
     }
 
-    public RequestMonitor(String parentClass, int parametricStorageTime) {
-        this.parametricStorageTime = parametricStorageTime;
-        this.parentClass = parentClass;
-        this.requestData = Collections.synchronizedList(new ArrayList<>());
+    public RequestMonitor(String _parentClass, int _parametricStorageTime) {
+        parametricStorageTime = _parametricStorageTime;
+        parentClass = _parentClass;
+        requestData = Collections.synchronizedList(new ArrayList<>());
     }
 
     public void addRecord(long startTime, long endTime) {
-        this.requestData.add(new RequestDatum(startTime, endTime));
+        requestData.add(new RequestDatum(startTime, endTime));
     }
 
     public void clearOutData(long currentTime) {
-        Logger.log("RequestMonitor - " + this.parentClass + " | clearOutTelemetry running", Logger.LogType.TELEMETRY_UPDATE);
+        Logger.log("RequestMonitor - " + parentClass + " | clearOutTelemetry running", Logger.LogType.TELEMETRY_UPDATE);
         // delete request data which are out of date
-        Iterator<RequestDatum> iterator = this.requestData.iterator();
+        Iterator<RequestDatum> iterator = requestData.iterator();
         int deleteCount = 0;
 
         while (iterator.hasNext()) {
             RequestDatum datum = iterator.next();
-            if (datum.startTime + this.parametricStorageTime < currentTime) {
+            if (datum.startTime + parametricStorageTime < currentTime) {
                 iterator.remove();
                 deleteCount++;
             } else {
@@ -46,15 +46,15 @@ public class RequestMonitor {
             }
         }
 
-        Logger.log("RequestMonitor - " + this.parentClass + " | " + deleteCount + " data deleted.", Logger.LogType.TELEMETRY_UPDATE);
+        Logger.log("RequestMonitor - " + parentClass + " | " + deleteCount + " data deleted.", Logger.LogType.TELEMETRY_UPDATE);
     }
 
     public double getCapacityFactor(long endTime) {
-        if (!this.requestData.isEmpty()) {
-            long startTime = this.requestData.get(0).startTime;
+        if (!requestData.isEmpty()) {
+            long startTime = requestData.get(0).startTime;
             long runningTime = 0;
 
-            for (RequestDatum datum : this.requestData)
+            for (RequestDatum datum : requestData)
                 runningTime += datum.processingTime;
 
             double capacityFactor = runningTime / (double)(endTime - startTime);
