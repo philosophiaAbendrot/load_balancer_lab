@@ -41,14 +41,6 @@ public class ServerInfo {
         return port;
     }
 
-    public void setPort( int _port ) {
-        port = _port;
-    }
-
-    public void setServerId( int _serverId ) {
-        serverId = _serverId;
-    }
-
     public void updateCapacityFactor( int timestamp, double cf ) {
         if (capFactorRecord.containsKey(timestamp)) {
             // do nothing if an entry already exists for this timestamp

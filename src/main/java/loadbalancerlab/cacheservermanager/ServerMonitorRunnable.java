@@ -28,8 +28,8 @@ public class ServerMonitorRunnable implements Runnable {
             tick();
         }
     }
-    // end of Runnable Interface
 
+    // end of Runnable Interface
     void tick() {
         try {
             Thread.sleep(100);

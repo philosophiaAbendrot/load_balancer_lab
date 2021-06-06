@@ -29,8 +29,9 @@ public class ServerMonitor {
         stopExecution = false;
     }
 
-    // ServerMonitor Interface
     // adds new cache server to record of servers
+    // params: id: id of the server
+    //         port: port that the server is running on
     public void addServer( int id, int port ) {
         if (serverInfoTable.containsKey(id)) {
             throw new IllegalArgumentException("serverInfoTable already contains an entry for id " + id);
@@ -38,6 +39,8 @@ public class ServerMonitor {
         serverInfoTable.put(id, new ServerInfo(id, port));
     }
 
+    // removes server from record
+    // params: id: id of the server
     public void removeServer(int id) {
         if (serverInfoTable.containsKey(id)) {
             serverInfoTable.remove(id);
@@ -64,6 +67,7 @@ public class ServerMonitor {
         return copyMap;
     }
 
+    // pings cache servers for updates on capacity factor and records the info
     public void pingCacheServers() {
         CloseableHttpClient httpClient = this.clientFactory.buildApacheClient();
         List<Integer> ports = new ArrayList<>(this.serverInfoTable.keySet());
@@ -83,6 +87,7 @@ public class ServerMonitor {
         }
     }
 
+    // returns the average capacity factor of every cache server
     public double getAverageCf() {
         double cfSum = 0;
         int numEntries = 0;

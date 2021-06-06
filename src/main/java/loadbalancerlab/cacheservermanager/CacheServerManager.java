@@ -12,18 +12,19 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 
 public class CacheServerManager {
-    private int port;
+    static double growthRate;
+    static double targetCf;
     volatile ConcurrentMap<Integer, Thread> serverThreadTable = new ConcurrentHashMap<>();
-    private int[] selectablePorts = new int[100];
-    private CacheServerFactory cacheServerFactory;
-    private HttpClientFactory clientFactory;
-    public RequestDecoder reqDecoder;
     ServerMonitor serverMonitor;
     static int cacheServerIdCounter;
-    static double targetCf;
-    static double growthRate;
-
+    int[] selectablePorts = new int[100];
     CacheInfoRequestHandler cacheInfoRequestHandler;
+
+    private CacheServerFactory cacheServerFactory;
+    private HttpClientFactory clientFactory;
+    private RequestDecoder reqDecoder;
+    private int port;
+
 
     static {
         cacheServerIdCounter = 0;
@@ -43,6 +44,7 @@ public class CacheServerManager {
         // reserve ports 37000 through 37099 as usable ports
         for (int i = 0; i < selectablePorts.length; i++)
             selectablePorts[i] = 37100 + i;
+
         serverMonitor = new ServerMonitor(clientFactory, reqDecoder, this);
         cacheInfoRequestHandler = new CacheInfoRequestHandler(serverMonitor);
     }
@@ -96,7 +98,7 @@ public class CacheServerManager {
         }
     }
 
-    int numServers() {
+    public int numServers() {
         return this.serverThreadTable.size();
     }
 }

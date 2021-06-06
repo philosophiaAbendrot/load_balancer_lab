@@ -21,8 +21,8 @@ public class CacheServerManagerRunnable implements Runnable {
     CacheServerFactory cacheServerFactory;
     HttpClientFactory clientFactory;
 
-    int lastCapacityModulationTime;
     static int capacityModulationInterval;
+    private int lastCapacityModulationTime;
 
     public CacheServerManagerRunnable( CacheServerFactory _cacheServerFactory, HttpClientFactory _clientFactory, RequestDecoder _reqDecoder, CacheServerManager _cacheServerManager ) {
         reqDecoder = _reqDecoder;
