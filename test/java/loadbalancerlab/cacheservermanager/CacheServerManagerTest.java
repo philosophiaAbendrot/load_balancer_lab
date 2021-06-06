@@ -4,6 +4,7 @@ import loadbalancerlab.factory.CacheServerFactory;
 import loadbalancerlab.services.monitor.RequestMonitor;
 import loadbalancerlab.cacheserver.CacheServer;
 import loadbalancerlab.factory.HttpClientFactory;
+import loadbalancerlab.shared.Config;
 import loadbalancerlab.shared.Logger;
 import loadbalancerlab.shared.RequestDecoder;
 
@@ -12,6 +13,7 @@ import org.mockito.Mockito;
 
 import java.util.ArrayList;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.ArgumentMatchers.any;
@@ -19,7 +21,6 @@ import static org.mockito.Mockito.*;
 
 public class CacheServerManagerTest {
     CacheServerManager cacheServerManager;
-    Thread cacheServerManagerThread;
     CacheServerFactory mockFactory;
     CacheServer mockCacheServer;
     Thread mockCacheServerThread;
@@ -165,6 +166,110 @@ public class CacheServerManagerTest {
             public void serverMonitorRunnableShouldBeUpdated() {
                 cacheServerManager.shutdownCacheServer(numShutdown);
                 assertEquals(num - numShutdown, cacheServerManager.serverMonitor.serverInfoTable.size());
+            }
+        }
+    }
+
+    @Nested
+    @DisplayName("Testing modulateCapacity()")
+    class ModulateCapacity {
+        ServerMonitor mockServerMonitor;
+        int initialServerCount = 100;
+        Config config;
+
+        @BeforeEach
+        public void setup() {
+            config = new Config();
+            CacheServerManager.configure(config);
+        }
+
+        @Nested
+        @DisplayName("when average capacity factor exceeds target by 20%")
+        class WhenAverageCapacityFactorExceedsThreshold {
+            float targetCf;
+
+            @BeforeEach
+            public void setup() {
+                cacheServerManager.serverThreadTable = new ConcurrentHashMap<>();
+                targetCf = config.getTargetCf() + 0.2f;
+
+                for (int i = 0; i < initialServerCount; i++) {
+                    Thread mockThread = Mockito.mock(Thread.class);
+                    cacheServerManager.serverThreadTable.put(i, mockThread);
+                }
+
+                CacheServerManager.cacheServerIdCounter = initialServerCount;
+                mockServerMonitor = Mockito.mock(ServerMonitor.class);
+
+                when(mockServerMonitor.averageCapacityFactor()).thenReturn(targetCf);
+
+                cacheServerManager.modulateCapacity();
+            }
+
+            @Test
+            @DisplayName("number of servers should be increased by 5%")
+            public void numServersShouldIncrease() {
+                assertEquals(Math.round(initialServerCount * 1.05), cacheServerManager.serverThreadTable.size());
+            }
+        }
+
+        @Nested
+        @DisplayName("when average capacity factor equals the target")
+        class WhenAverageCapacityFactorEqualsTarget {
+            float targetCf;
+
+            @BeforeEach
+            public void setup() {
+                cacheServerManager.serverThreadTable = new ConcurrentHashMap<>();
+                targetCf = config.getTargetCf();
+
+                for (int i = 0; i < initialServerCount; i++) {
+                    Thread mockThread = Mockito.mock(Thread.class);
+                    cacheServerManager.serverThreadTable.put(i, mockThread);
+                }
+
+                CacheServerManager.cacheServerIdCounter = initialServerCount;
+                mockServerMonitor = Mockito.mock(ServerMonitor.class);
+
+                when(mockServerMonitor.averageCapacityFactor()).thenReturn(targetCf);
+
+                cacheServerManager.modulateCapacity();
+            }
+
+            @Test
+            @DisplayName("number of servers should remain the same")
+            public void numServersShouldRemainSame() {
+                assertEquals(Math.round(initialServerCount), cacheServerManager.serverThreadTable.size());
+            }
+        }
+
+        @Nested
+        @DisplayName("when average capacity factor is lower than the target by 20%")
+        class WhenAverageCapacityFactorIsBelowThreshold {
+            float targetCf;
+
+            @BeforeEach
+            public void setup() {
+                cacheServerManager.serverThreadTable = new ConcurrentHashMap<>();
+                targetCf = config.getTargetCf();
+
+                for (int i = 0; i < initialServerCount; i++) {
+                    Thread mockThread = Mockito.mock(Thread.class);
+                    cacheServerManager.serverThreadTable.put(i, mockThread);
+                }
+
+                CacheServerManager.cacheServerIdCounter = initialServerCount;
+                mockServerMonitor = Mockito.mock(ServerMonitor.class);
+
+                when(mockServerMonitor.averageCapacityFactor()).thenReturn(targetCf);
+
+                cacheServerManager.modulateCapacity();
+            }
+
+            @Test
+            @DisplayName("number of servers should decrease by 5%")
+            public void numServersShouldDecrease() {
+                assertEquals(Math.round(initialServerCount * 0.95), cacheServerManager.serverThreadTable.size());
             }
         }
     }

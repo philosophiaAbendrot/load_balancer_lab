@@ -82,4 +82,8 @@ public class ServerMonitor {
             }
         }
     }
+
+    public float averageCapacityFactor() {
+        return -1.0f;
+    }
 }

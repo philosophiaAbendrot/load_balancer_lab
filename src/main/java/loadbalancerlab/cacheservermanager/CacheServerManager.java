@@ -3,6 +3,7 @@ package loadbalancerlab.cacheservermanager;
 import loadbalancerlab.factory.CacheServerFactory;
 import loadbalancerlab.services.monitor.RequestMonitor;
 import loadbalancerlab.cacheserver.CacheServer;
+import loadbalancerlab.shared.Config;
 import loadbalancerlab.shared.Logger;
 import loadbalancerlab.factory.HttpClientFactory;
 import loadbalancerlab.shared.RequestDecoder;
@@ -21,6 +22,8 @@ public class CacheServerManager {
     public RequestDecoder reqDecoder;
     ServerMonitor serverMonitor;
     static int cacheServerIdCounter;
+    static float targetCf;
+
     CacheInfoRequestHandler cacheInfoRequestHandler;
     CacheInfoServerRunnable cacheInfoServer;
     Runnable serverMonitorRunnable;
@@ -29,6 +32,10 @@ public class CacheServerManager {
 
     static {
         cacheServerIdCounter = 0;
+    }
+
+    public static void configure( Config config ) {
+        targetCf = config.getTargetCf();
     }
 
     public CacheServerManager( CacheServerFactory _cacheServerFactory, HttpClientFactory _clientFactory, RequestDecoder _reqDecoder ) {
