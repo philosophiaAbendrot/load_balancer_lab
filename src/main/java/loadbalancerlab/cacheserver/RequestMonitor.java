@@ -14,23 +14,6 @@ public class RequestMonitor {
     int parametricStorageTime;
     final static int DEFAULT_PARAMETRIC_STORAGE_TIME = 10_000;
 
-    // class for storing information on requests
-    private class RequestDatum {
-        long startTime;
-        long endTime;
-        long processingTime;
-
-        public RequestDatum(long startTime, long endTime) {
-            this.startTime = startTime;
-            this.endTime = endTime;
-            this.processingTime = endTime - startTime;
-        }
-
-        public String toString() {
-            return String.format("startTime = %d | endTime = %d | processingTime = %d", startTime, endTime, processingTime);
-        }
-    }
-
     public RequestMonitor(String parentClass) {
         this.parametricStorageTime = DEFAULT_PARAMETRIC_STORAGE_TIME;
         this.parentClass = parentClass;
