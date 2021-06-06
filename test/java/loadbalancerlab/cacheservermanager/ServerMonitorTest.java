@@ -7,6 +7,7 @@ import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.methods.HttpUriRequest;
 import org.apache.http.impl.client.CloseableHttpClient;
+import org.apache.maven.settings.Server;
 import org.json.JSONObject;
 import org.junit.jupiter.api.*;
 import org.mockito.ArgumentCaptor;
@@ -15,7 +16,9 @@ import org.mockito.Mockito;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Random;
 import java.util.SortedMap;
+import java.util.concurrent.ConcurrentHashMap;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
@@ -24,7 +27,7 @@ import static org.mockito.Mockito.*;
 public class ServerMonitorTest {
     HttpClientFactory clientFactory;
     CloseableHttpClient mockClient;
-    long currentTime;
+    int currentTime;
     ServerMonitor serverMonitor;
     CacheServerManager mockCacheServerManager;
     RequestDecoder mockDecoder;
@@ -38,7 +41,6 @@ public class ServerMonitorTest {
     public void setup() {
         this.clientFactory = Mockito.mock(HttpClientFactory.class);
         this.mockClient = Mockito.mock(CloseableHttpClient.class);
-        this.currentTime = System.currentTimeMillis();
         this.mockDecoder = Mockito.mock(RequestDecoder.class);
         this.mockCacheServerManager = Mockito.mock(CacheServerManager.class);
     }
@@ -54,7 +56,7 @@ public class ServerMonitorTest {
         @Test
         @DisplayName("Should return the correct number of active servers by second")
         public void returnActiveServers() {
-            int currentTime = (int)System.currentTimeMillis() / 1_000;
+            currentTime = (int)System.currentTimeMillis() / 1_000;
             serverMonitor.updateServerCount(currentTime + 1, 10);
             serverMonitor.updateServerCount(currentTime + 2, 12);
             serverMonitor.updateServerCount(currentTime + 3, 15);
@@ -71,7 +73,7 @@ public class ServerMonitorTest {
         @Test
         @DisplayName("If there are duplicate entries for a given second, the first one should be recorded")
         public void ignoreDuplicateInputs() {
-            int currentTime = (int)System.currentTimeMillis() / 1_000;
+            currentTime = (int)System.currentTimeMillis() / 1_000;
             serverMonitor.updateServerCount(currentTime + 1, 10);
             serverMonitor.updateServerCount(currentTime + 2, 12);
             serverMonitor.updateServerCount(currentTime + 2, 16);
@@ -180,6 +182,42 @@ public class ServerMonitorTest {
             assertThrows(IllegalArgumentException.class, () -> {
                 serverMonitor.addServer(1, 13_581);
             });
+        }
+    }
+
+    @Nested
+    @DisplayName("Tests getAverageCf()")
+    class TestGetAverageCf {
+        @BeforeEach
+        public void setup() {
+            Random rand = new Random();
+
+            serverMonitor = new ServerMonitor(clientFactory, mockDecoder, mockCacheServerManager);
+            serverMonitor.addServer(1, 10_105);
+            serverMonitor.addServer(2, 37_594);
+            serverMonitor.addServer(3, 14_049);
+
+            currentTime = (int)(System.currentTimeMillis() / 1_000);
+
+            // add entries to server info table
+            for (int i = 1; i < 4; i++) {
+                for (int j = 0; j < 10; j++) {
+                    serverMonitor.serverInfoTable.get(i).updateCapacityFactor(currentTime - 10 + j, rand.nextDouble());
+                }
+            }
+        }
+
+        @Test
+        @DisplayName("Should return correct average capacity factor")
+        public void shouldReturnCorrectAvgCf() {
+            double expectedCfSum = 0;
+
+            for (int i = 1; i < 4; i++) {
+                expectedCfSum += serverMonitor.serverInfoTable.get(i).getAverageCapacityFactor();
+            }
+
+            double expectedCf = expectedCfSum / 3;
+            assertTrue(Math.abs(expectedCf - serverMonitor.getAverageCf()) < 0.001);
         }
     }
 }

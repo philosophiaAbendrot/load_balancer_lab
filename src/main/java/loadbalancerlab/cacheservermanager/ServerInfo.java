@@ -21,6 +21,9 @@ public class ServerInfo {
     }
 
     public double getAverageCapacityFactor() {
+        if (capFactorRecord.isEmpty())
+            return 0.0;
+
         double totalCf = 0;
 
         for (Double cf : capFactorRecord.values()) {

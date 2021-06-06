@@ -21,6 +21,16 @@ public class ServerInfoTest {
         }
 
         @Nested
+        @DisplayName("When server info Cf records are empty")
+        class WhenRecordsEmpty {
+            @Test
+            @DisplayName("should return an average capacity factor of 0.0")
+            public void shouldReturnZeroCapFactor() {
+                assertEquals(0.0, serverInfo.getAverageCapacityFactor());
+            }
+        }
+
+        @Nested
         @DisplayName("When server info is not at capacity")
         class WhenCfRecordsNotFull {
             double[] capFactors;

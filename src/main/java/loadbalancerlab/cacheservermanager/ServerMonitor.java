@@ -84,6 +84,17 @@ public class ServerMonitor {
     }
 
     public double getAverageCf() {
-        return -1.0;
+        double cfSum = 0;
+        int numEntries = 0;
+
+        for (ServerInfo info : serverInfoTable.values()) {
+            if (info.getAverageCapacityFactor() != 0.0) {
+                cfSum += info.getAverageCapacityFactor();
+                numEntries++;
+            }
+        }
+
+        // return average
+        return cfSum / numEntries;
     }
 }
