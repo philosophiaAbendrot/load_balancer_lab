@@ -12,11 +12,28 @@ import java.util.concurrent.ThreadPoolExecutor;
 import loadbalancerlab.shared.Logger;
 
 public class CacheServer implements Runnable {
+    /**
+     * Associated RequestMonitor which keeps track of load on a CacheServer instance
+     */
     RequestMonitor reqMonitor;
+    /**
+     * Runnable implementation which wraps around 'reqMonitor' variable
+     */
     RequestMonitorRunnable reqMonitorRunnable;
+    /**
+     * Thread running the runnable implementation 'reqMonitorRunnable'
+     */
     Thread reqMonitorThread;
 
+    /**
+     * Port number on which the cache server instance is running
+     */
     private volatile int port;
+
+    /**
+     * Array of available ports on which CacheServers can run.
+     * These are allocated to be all ports between 37_000 and 37_099
+     */
     int[] selectablePorts = new int[100];
 
     public CacheServer(RequestMonitor _reqMonitor) {
@@ -25,23 +42,36 @@ public class CacheServer implements Runnable {
         reqMonitorThread = new Thread(reqMonitorRunnable);
 
         Random rand = new Random();
-        // initialize list of ports 37000 - 37099 as selectable ports for cache servers to run on
         initializeSelectablePorts();
     }
 
+    /**
+     * Helper method which initializes 'selectablePorts' field to be an array of all ports between 37_000 and 37_099
+     */
     private void initializeSelectablePorts() {
         for (int i = 0; i < selectablePorts.length; i++)
             selectablePorts[i] = 37100 + i;
     }
 
+    /**
+     * @return getter method which returns the port that the CacheServer instance is running on
+     */
     public int getPort() {
         return port;
     }
 
+    /**
+     * Setter method for setting the port on which the CacheServer instance is running
+     * @param _port: the port number
+     */
     public void setPort(int _port) {
         port = _port;
     }
 
+    /**
+     * Method inherited from Runnable interface
+     * Starts server and request monitor thread
+     */
     @Override
     public void run() {
         Logger.log("CacheServer | Started CacheServer thread", Logger.LogType.THREAD_MANAGEMENT);
@@ -69,7 +99,7 @@ public class CacheServer implements Runnable {
             }
         }
 
-        // start request telemetry curator
+        // start request monitor thread
         reqMonitorThread.start();
 
         // start server
