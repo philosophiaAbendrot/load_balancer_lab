@@ -3,7 +3,7 @@ package loadbalancerlab;
 import loadbalancerlab.cacheservermanager.CacheServerManagerRunnable;
 import loadbalancerlab.factory.HttpClientFactory;
 import loadbalancerlab.loadbalancer.LoadBalancerRunnable;
-import loadbalancerlab.services.ConstantDemandFunctionImpl;
+import loadbalancerlab.client.ConstantDemandFunctionImpl;
 import loadbalancerlab.shared.RequestDecoder;
 import loadbalancerlab.vendor.Graph;
 import loadbalancerlab.shared.Logger;

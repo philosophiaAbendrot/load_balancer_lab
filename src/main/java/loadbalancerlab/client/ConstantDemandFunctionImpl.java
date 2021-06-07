@@ -1,4 +1,4 @@
-package loadbalancerlab.services;
+package loadbalancerlab.client;
 
 import loadbalancerlab.shared.Logger;
 

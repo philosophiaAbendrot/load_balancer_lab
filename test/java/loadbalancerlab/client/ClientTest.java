@@ -1,7 +1,7 @@
-import loadbalancerlab.client.Client;
+package loadbalancerlab.client;
+
 import loadbalancerlab.factory.HttpClientFactory;
 import loadbalancerlab.shared.Logger;
-import loadbalancerlab.services.ConstantDemandFunctionImpl;
 
 import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.HttpUriRequest;

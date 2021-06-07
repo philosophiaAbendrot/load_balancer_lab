@@ -1,7 +1,6 @@
 package loadbalancerlab.client;
 
 import loadbalancerlab.factory.HttpClientFactory;
-import loadbalancerlab.services.DemandFunction;
 import loadbalancerlab.shared.Logger;
 
 import org.apache.commons.io.IOUtils;
