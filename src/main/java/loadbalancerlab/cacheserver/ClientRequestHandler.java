@@ -2,60 +2,87 @@ package loadbalancerlab.cacheserver;
 
 import com.sun.net.httpserver.HttpExchange;
 import com.sun.net.httpserver.HttpHandler;
+import loadbalancerlab.shared.Config;
 import loadbalancerlab.shared.Logger;
 import org.apache.commons.text.StringEscapeUtils;
+import org.json.JSONObject;
 
 import java.io.IOException;
 import java.io.OutputStream;
 
-// http handler that is fed into CacheServer
-// serves requests from load balancer which originate from the client
+/**
+ * HttpHandler implementation which serves requests to '/' path on CacheServer.
+ * Serves requests which originate from the Client class.
+ * Returns a dummy response indicating that the response was returned by the CacheServer.
+ */
 public class ClientRequestHandler implements HttpHandler {
+    /**
+     * RequestMonitor which monitors load on the associated CacheServer instance
+     */
     RequestMonitor reqMonitor;
+    static int processingTime;
+
+    public static void configure( Config config ) {
+        processingTime = config.getCacheServerProcessingTime();
+    }
 
     public ClientRequestHandler( RequestMonitor _reqMonitor ) {
         reqMonitor = _reqMonitor;
     }
 
+    /**
+     * handles incoming request for update on the capacity factor of the associated CacheServer instance
+     * @param httpExchange - an encapsulation of an Http request for the com.sun.net.httpserver package
+     */
     @Override
     public void handle( HttpExchange httpExchange ) throws IOException {
-        String requestParams = extractParams(httpExchange);
-        handleResponse(httpExchange, requestParams);
-    }
-
-    private void handleResponse(HttpExchange httpExchange, String requestParams) throws IOException {
         long startTime = System.currentTimeMillis();
         Logger.log("CacheServer | received request from load balancer", Logger.LogType.REQUEST_PASSING);
+        // extract parameters from request uri
+        String requestParams = extractParams(httpExchange);
+
+        // simulate processing time
         try {
             Thread.sleep(200);
-        } catch(InterruptedException e) {
-            System.out.println("within CacheServer::CustomHandler.handleResponse");
+        } catch (InterruptedException e) {
+            System.out.println("within ClientRequestHandler.handle()");
             e.printStackTrace();
         }
 
+        // generate response and send it back
+        String responseString = generateResponse(requestParams);
         OutputStream outputStream = httpExchange.getResponseBody();
-
-        StringBuilder htmlBuilder = new StringBuilder();
-        htmlBuilder.append("<html>").append("<body>")
-                .append("<h1>")
-                .append("Hello")
-                .append("</h1>")
-                .append("</body>")
-                .append("</html>");
-
-        // encode html content
-        String htmlResponse = StringEscapeUtils.escapeHtml4(htmlBuilder.toString());
-
-        // send out response
-        httpExchange.sendResponseHeaders(200, htmlResponse.length());
-        outputStream.write(htmlResponse.getBytes());
-        Logger.log("CacheServer | sent request back to load balancer", Logger.LogType.REQUEST_PASSING);
+        httpExchange.sendResponseHeaders(200, responseString.length());
+        outputStream.write(responseString.getBytes());
         outputStream.flush();
         outputStream.close();
+        Logger.log("CacheServer | sent request back to load balancer", Logger.LogType.REQUEST_PASSING);
+
         long endTime = System.currentTimeMillis();
+        // record request
         reqMonitor.addRecord(startTime, endTime);
     }
 
+    /**
+     * Helper method which is called by 'handle' method.
+     * @param requestParams: a parameter which holds the query string of the request URI
+     * Generates a dummy response
+     */
+    private String generateResponse(String requestParams) {
+        JSONObject jsonOutput = new JSONObject();
+        jsonOutput.put("resourceName", requestParams);
+        jsonOutput.put("resourceContents", "here it is");
+        // encode html content
+        String htmlResponse = StringEscapeUtils.escapeJson(jsonOutput.toString());
+        return htmlResponse;
+    }
+
+    /**
+     * Helper method which is called by 'handle' method.
+     * Returns the query string of the uri of a request
+     * @param httpExchange: httpExchange - an encapsulation of an Http request for the com.sun.net.httpserver package
+     * @return query string of the request uri
+     */
     private String extractParams(HttpExchange httpExchange) {
         String[] intermediate1 = httpExchange.getRequestURI().toString().split("\\?");
 

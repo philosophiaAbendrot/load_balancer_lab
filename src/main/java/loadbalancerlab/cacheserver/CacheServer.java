@@ -1,12 +1,8 @@
 package loadbalancerlab.cacheserver;
 
-import com.sun.net.httpserver.HttpExchange;
 import com.sun.net.httpserver.HttpHandler;
 import com.sun.net.httpserver.HttpServer;
-import org.apache.commons.text.StringEscapeUtils;
-import org.json.JSONObject;
 import java.io.IOException;
-import java.io.OutputStream;
 import java.net.InetAddress;
 import java.net.InetSocketAddress;
 import java.util.*;

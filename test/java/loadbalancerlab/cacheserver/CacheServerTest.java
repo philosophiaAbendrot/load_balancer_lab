@@ -27,7 +27,7 @@ public class CacheServerTest {
 
     @BeforeEach
     public void setup() {
-        cacheServer = new CacheServer(new RequestMonitor("CacheServer"));
+        cacheServer = new CacheServer(new RequestMonitor());
         cacheServerThread = new Thread(cacheServer);
         cacheServerThread.start();
 

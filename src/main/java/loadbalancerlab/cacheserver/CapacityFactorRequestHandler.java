@@ -15,11 +15,11 @@ import java.io.OutputStream;
  * This logic serves requests from the CacheServerManager class for updates on the capacity factor of the CacheServer instance.
  */
 public class CapacityFactorRequestHandler implements HttpHandler {
-    RequestMonitor reqMonitor;
-
     /**
      * @param _reqMonitor the associated CacheServer instance's associated RequestMonitor instance
      */
+    RequestMonitor reqMonitor;
+
     public CapacityFactorRequestHandler( RequestMonitor _reqMonitor ) {
         reqMonitor = _reqMonitor;
     }

@@ -21,14 +21,14 @@ public class RequestMonitorTest {
 
     @BeforeEach
     public void setupTest() {
-        reqMonitor = new RequestMonitor("RequestMonitorTest");
+        reqMonitor = new RequestMonitor();
         reqData = new ArrayList<>();
     }
 
     // test that request timestamps are recorded
     @Nested
-    @DisplayName("Test addRecord()")
-    class TestAddRecord {
+    @DisplayName("Test getCapacityFactor() and addRecord()")
+    class TestCapacityFactorTracking {
         @Test
         @DisplayName("Test that request timestamps recorded in RequestMonitor are correct")
         public void checkRequestTimestampsRecorded() {

@@ -22,6 +22,7 @@ public class Config {
     private double cacheServerGrowthRate;
     private int capacityModulationInterval;
     private int requestMonitorRecordTTL;
+    private int cacheServerProcessingTime;
 
     public Config() {
         // default configurations
@@ -42,6 +43,7 @@ public class Config {
         cacheServerGrowthRate = 25;
         capacityModulationInterval = 5;
         requestMonitorRecordTTL = 10_000;
+        cacheServerProcessingTime = 200;
     }
 
     public int getMaxAnglesPerServer() {
@@ -94,6 +96,8 @@ public class Config {
 
     public int getCacheInfoServerDefaultPort() { return cacheInfoServerDefaultPort; }
 
+    public int getCacheServerProcessingTime() { return cacheServerProcessingTime; }
+
     public double getTargetCf() { return targetCf; }
 
     public double getCacheServerGrowthRate() { return cacheServerGrowthRate; }
@@ -118,7 +122,7 @@ public class Config {
         ringSize = _ringSize;
     }
 
-    public void setHashFunction(HashFunction _hashFunction) {
+    public void setHashFunction( HashFunction _hashFunction ) {
         hashFunction = _hashFunction;
     }
 
@@ -152,13 +156,15 @@ public class Config {
 
     public void setCacheInfoServerDefaultPort( int defaultPort ) { cacheInfoServerDefaultPort = defaultPort; }
 
-    public void setTargetCf(double cf) {
+    public void setTargetCf( double cf ) {
         targetCf = cf;
     }
 
-    public void setCacheServerGrowthRate(double growthRate) { cacheServerGrowthRate = growthRate; }
+    public void setCacheServerGrowthRate( double growthRate ) { cacheServerGrowthRate = growthRate; }
 
-    public void setCapacityModulationInterval(int modulationInterval) { capacityModulationInterval = modulationInterval; }
+    public void setCapacityModulationInterval( int modulationInterval ) { capacityModulationInterval = modulationInterval; }
 
-    public void setRequestMonitorRecordTTL( int ttl) { requestMonitorRecordTTL = ttl; }
+    public void setRequestMonitorRecordTTL( int ttl ) { requestMonitorRecordTTL = ttl; }
+
+    public void setCacheServerProcessingTime( int processingTime ) { cacheServerProcessingTime = processingTime; }
 }

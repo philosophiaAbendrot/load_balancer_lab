@@ -10,23 +10,25 @@ import java.util.Collections;
 
 // monitors the number of incoming requests, compiles data and delivers reports
 public class RequestMonitor {
+    /**
+     * A list of RequestDatum objects. Keeps track of the processing times of the most recent requests
+     */
     List<RequestDatum> requestData;
-    String parentClass;
-    int recordStorageTime;
-    static int defaultRecordStorageTime = 10_000;
+    /**
+     * How long RequestMonitor records are kept in memory, in milliseconds.
+     */
+    static int recordTTL = 10_000;
 
     public void configure( Config config ) {
-        defaultRecordStorageTime = config.getRequestMonitorRecordTTL();
+        recordTTL = config.getRequestMonitorRecordTTL();
     }
 
-    public RequestMonitor(String _parentClass) {
-        recordStorageTime = defaultRecordStorageTime;
-        parentClass = _parentClass;
+    public RequestMonitor() {
         requestData = Collections.synchronizedList(new ArrayList<>());
     }
 
     /**
-     * Adds a request record
+     * Adds a request record. This method is called whenever a client request is handled by ClientRequestHandler.
      * @param startTime   when request processing began (milliseconds since Jan 1, 1970)
      * @param endTime     when request processing completed (milliseconds since Jan 1, 1970)
      */
@@ -36,18 +38,19 @@ public class RequestMonitor {
 
     /**
      * Clears out request records which are outdated. Records are considered outdated if they are older than 'recordStorageTime' by
-     * the given timestamp 'currentTime'.
+     * the given timestamp 'currentTime'. This method is periodically called by RequestMonitorRunnable to keep capacity factor
+     * records up to date.
      * @param currentTime: the time which is used to calculate whether the records are old enough to be deleted
      */
     public void clearOutData(long currentTime) {
-        Logger.log("RequestMonitor - " + parentClass + " | clearOutTelemetry running", Logger.LogType.TELEMETRY_UPDATE);
+        Logger.log("RequestMonitor | clearOutTelemetry running", Logger.LogType.TELEMETRY_UPDATE);
         // delete request data which are out of date
         Iterator<RequestDatum> iterator = requestData.iterator();
         int deleteCount = 0;
 
         while (iterator.hasNext()) {
             RequestDatum datum = iterator.next();
-            if (datum.startTime + recordStorageTime < currentTime) {
+            if (datum.startTime + recordTTL < currentTime) {
                 iterator.remove();
                 deleteCount++;
             } else {
@@ -55,13 +58,13 @@ public class RequestMonitor {
             }
         }
 
-        Logger.log("RequestMonitor - " + parentClass + " | " + deleteCount + " data deleted.", Logger.LogType.TELEMETRY_UPDATE);
+        Logger.log("RequestMonitor | " + deleteCount + " data deleted.", Logger.LogType.TELEMETRY_UPDATE);
     }
 
     /**
      * Returns a recent capacity factor value by processing recent request records, stored in 'requestData'
      * @param currentTime: a timestamp for the current time in milliseconds since 1-Jan-1970
-     * @return
+     * @return capacityFactor: the 'load' on the CacheServer, in terms of running time / total time
      */
     public double getCapacityFactor(long currentTime) {
         if (requestData.isEmpty()) {

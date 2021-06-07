@@ -59,7 +59,7 @@ public class CacheServerManager {
 
     public void startupCacheServer(int num) {
         for (int i = 0; i < num; i++) {
-            CacheServer cacheServer = cacheServerFactory.produceCacheServer(new RequestMonitor("CacheServer"));
+            CacheServer cacheServer = cacheServerFactory.produceCacheServer(new RequestMonitor());
             Thread cacheServerThread = cacheServerFactory.produceCacheServerThread(cacheServer);
             cacheServerThread.start();
             serverThreadTable.put(cacheServerIdCounter, cacheServerThread);
