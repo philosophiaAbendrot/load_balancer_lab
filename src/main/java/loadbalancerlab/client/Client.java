@@ -44,11 +44,11 @@ public class Client implements Runnable {
 
     public Client( long maxDemandTime, DemandFunction demandFunction, HttpClientFactory clientFactory, long requestStartTime, String resourceName ) {
         this.maxDemandTime = maxDemandTime;
-        this.resourceName = resourceName;
         // first request is sent up to 15 seconds after initialization to stagger the incoming requests
         this.requestStartTime = requestStartTime;
         this.demandFunction = demandFunction;
         this.clientFactory = clientFactory;
+        this.resourceName = resourceName;
     }
 
     /**
