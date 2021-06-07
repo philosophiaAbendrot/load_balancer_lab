@@ -43,7 +43,7 @@ public class ClientRequestHandler implements HttpHandler {
 
         // simulate processing time
         try {
-            Thread.sleep(200);
+            Thread.sleep(processingTime);
         } catch (InterruptedException e) {
             System.out.println("within ClientRequestHandler.handle()");
             e.printStackTrace();
@@ -51,6 +51,7 @@ public class ClientRequestHandler implements HttpHandler {
 
         // generate response and send it back
         String responseString = generateResponse(requestParams);
+        System.out.println("responseString = " + responseString);
         OutputStream outputStream = httpExchange.getResponseBody();
         httpExchange.sendResponseHeaders(200, responseString.length());
         outputStream.write(responseString.getBytes());
@@ -70,6 +71,7 @@ public class ClientRequestHandler implements HttpHandler {
      */
     private String generateResponse(String requestParams) {
         JSONObject jsonOutput = new JSONObject();
+        System.out.println("requestParams = " + requestParams);
         jsonOutput.put("resourceName", requestParams);
         jsonOutput.put("resourceContents", "here it is");
         // encode html content
@@ -84,10 +86,10 @@ public class ClientRequestHandler implements HttpHandler {
      * @return query string of the request uri
      */
     private String extractParams(HttpExchange httpExchange) {
-        String[] intermediate1 = httpExchange.getRequestURI().toString().split("\\?");
+        String uri = httpExchange.getRequestURI().toString().substring(1);
 
-        if (intermediate1.length > 1)
-            return intermediate1[1];
+        if (uri.length() > 1)
+            return uri;
         else
             return "";
     }
