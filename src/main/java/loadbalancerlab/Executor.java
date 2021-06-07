@@ -76,7 +76,7 @@ public class Executor {
         List<Client> clients = new ArrayList<>();
 
         for (int i = 0; i < NUM_CLIENTS; i++) {
-            Client client = new Client(Integer.toString(i), this.maxDemandTime, new ConstantDemandFunctionImpl(CONSTANT_DEMAND_REST_INTERVAL), new HttpClientFactory(), System.currentTimeMillis() + (long)((new Random()).nextInt(15000)), this.rand.nextInt(10_000));
+            Client client = new Client(this.maxDemandTime, new ConstantDemandFunctionImpl(CONSTANT_DEMAND_REST_INTERVAL), new HttpClientFactory(), System.currentTimeMillis() + (long)((new Random()).nextInt(15000)), "Chooder_Bunny.jpg");
             Thread clientThread = new Thread(client);
             clients.add(client);
             clientThreads.add(clientThread);
@@ -97,8 +97,8 @@ public class Executor {
         List<Integer> synthesizedRequestList = new ArrayList<>();
 
         // collate timestamp lists from all the clients into one list
-        for (Client client : clients)
-            synthesizedRequestList.addAll(client.deliverData());
+//        for (Client client : clients)
+//            synthesizedRequestList.addAll(client.deliverData());
 
         // interrupt client threads to initiate their shutdown
         for (Thread clientThread : clientThreads)

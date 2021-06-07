@@ -13,45 +13,64 @@ import org.apache.http.impl.client.CloseableHttpClient;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
-import java.util.*;
 
 public class Client implements Runnable {
+    /**
+     * Timestamp at which demand peaks. Used for certain demand functions. Milliseconds since 1-Jan-1970
+     */
     long maxDemandTime;
+    /**
+     * The port on which the load balancer is running
+     */
     private static int loadBalancerPort;
-    int resourceId;
-    String name;
-    List<Integer> requestTimestamps;
+    /**
+     * Name of the resource that is being fetched from the service
+     */
+    String resourceName;
+
+    /**
+     * Timestamp at which client starts sending requests. Milliseconds since 1-Jan-1970.
+     */
     long requestStartTime;
+
+    /**
+     * Associated DemandFunction. This function regulates the time between requests, and thus the total request load to the load balancer.
+     */
     DemandFunction demandFunction;
+
+    /**
+     * A factory which generates CloseableHttpClient instances which send off http requests.
+     */
     HttpClientFactory clientFactory;
 
-    public Client( String _name, long maxDemandTime, DemandFunction demandFunction, HttpClientFactory clientFactory, long requestStartTime, int resourceId) {
-        this.name = _name;
-        Random random = new Random();
+    public Client( long maxDemandTime, DemandFunction demandFunction, HttpClientFactory clientFactory, long requestStartTime, String resourceName ) {
         this.maxDemandTime = maxDemandTime;
-        this.resourceId = resourceId;
-        this.requestTimestamps = Collections.synchronizedList(new ArrayList<>());
+        this.resourceName = resourceName;
         // first request is sent up to 15 seconds after initialization to stagger the incoming requests
         this.requestStartTime = requestStartTime;
         this.demandFunction = demandFunction;
         this.clientFactory = clientFactory;
     }
 
+    /**
+     * Sets the load balancer port field so the Client instances know where to send requests.
+     * @param port: The port that the load balancer is running on
+     */
     public static void setLoadBalancerPort(int port) {
         Client.loadBalancerPort = port;
     }
 
+    /**
+     * Method for Runnable interface.
+     * Starts client instance. Makes the client instance send a request to the load balancer, amd then rests an interval
+     * regulated by the DemandFunction, and repeats.
+     */
     @Override
     public void run() {
         Logger.log("Client | Started Client thread", Logger.LogType.THREAD_MANAGEMENT);
-        start();
-        Logger.log("Client | Terminated Client thread", Logger.LogType.THREAD_MANAGEMENT);
-    }
-
-    void start() {
         int count = 0;
         while (true) {
-            if (System.currentTimeMillis() < this.requestStartTime) {
+            if (System.currentTimeMillis() < requestStartTime) {
                 // dummy printout used to force thread scheduling and thus even out client request load at beginning
 //                Logger.log("", "alwaysPrint");
                 count++;
@@ -60,19 +79,16 @@ public class Client implements Runnable {
 
             try {
                 String path;
-                path = "/api/" + resourceId;
+                path = "/api/" + resourceName;
                 HttpGet httpGet = new HttpGet("http://127.0.0.1:" + Client.loadBalancerPort + path);
-                Logger.log(String.format("Client %s | path: %s", name, path), Logger.LogType.CLIENT_STARTUP);
-                long timestamp = System.currentTimeMillis();
+                Logger.log(String.format("Client | path: %s", path), Logger.LogType.CLIENT_STARTUP);
                 CloseableHttpClient httpClient = this.clientFactory.buildApacheClient();
                 CloseableHttpResponse response = httpClient.execute(httpGet);
-                // record timestamp at which request was fired off to the load balancer
-                this.requestTimestamps.add((int)(timestamp / 1000));
                 printResponse(response);
                 response.close();
                 httpClient.close();
             } catch (IOException e) {
-                System.out.println("Client | No response to request sent to load balancer by client server " + this.name);
+                System.out.println("Client | No response to request sent to load balancer by client server ");
             }
 
             try {
@@ -84,18 +100,19 @@ public class Client implements Runnable {
                 break;
             }
         }
+        Logger.log("Client | Terminated Client thread", Logger.LogType.THREAD_MANAGEMENT);
     }
 
-    // return a hash table mapping seconds since 1970 to number of requests sent
-    public List<Integer> deliverData() {
-        return this.requestTimestamps;
-    }
-
+    /**
+     * Helper method for printing responses from the load balancer
+     * @param response: the response object passed from the load balancer
+     * @throws IOException: Throws exception if there is a failure in IO operations
+     */
     private void printResponse(CloseableHttpResponse response) throws IOException {
         HttpEntity responseBody = response.getEntity();
         InputStream bodyStream = responseBody.getContent();
         String responseString = IOUtils.toString(bodyStream, StandardCharsets.UTF_8.name());
-        Logger.log(String.format("Client %s | response body: %s", name, responseString), Logger.LogType.REQUEST_PASSING);
+        Logger.log(String.format("Client | response body: %s", responseString), Logger.LogType.REQUEST_PASSING);
         bodyStream.close();
     }
 }

@@ -27,7 +27,7 @@ public class ClientTest {
     Thread clientThread;
     int loadBalancerPort = 8080;
     Random rand;
-    int resourceId;
+    String resourceName;
 
     @BeforeAll
     public static void beforeAll() {
@@ -36,20 +36,20 @@ public class ClientTest {
 
     @BeforeEach
     public void setup() {
-        this.rand = new Random();
-        this.restInterval = 100;
-        this.mockHttpClient = Mockito.mock(CloseableHttpClient.class);
-        this.mockHttpClientFactory = Mockito.mock(HttpClientFactory.class);
+        rand = new Random();
+        restInterval = 100;
+        mockHttpClient = Mockito.mock(CloseableHttpClient.class);
+        mockHttpClientFactory = Mockito.mock(HttpClientFactory.class);
         // allow requests to be sent immediately after Client startup for testing purposes
-        this.requestStartTime = System.currentTimeMillis() - 1_000;
-        this.client.setLoadBalancerPort(this.loadBalancerPort);
-        when(this.mockHttpClientFactory.buildApacheClient()).thenReturn(this.mockHttpClient);
-        this.resourceId = rand.nextInt(10_000);
+        requestStartTime = System.currentTimeMillis() - 1_000;
+        client.setLoadBalancerPort(loadBalancerPort);
+        when(mockHttpClientFactory.buildApacheClient()).thenReturn(mockHttpClient);
+        resourceName = "Chooder_Bunny.jpg";
     }
 
     @AfterEach
     public void reset() {
-        this.clientThread.interrupt();
+        clientThread.interrupt();
     }
 
     @Nested
@@ -60,17 +60,17 @@ public class ClientTest {
 
         @BeforeEach
         public void setup() throws IOException {
-            this.requestCaptor = ArgumentCaptor.forClass(HttpUriRequest.class);
-            this.mockCloseableHttpResponse = Mockito.mock(CloseableHttpResponse.class);
-            when(ClientTest.this.mockHttpClient.execute(any(HttpUriRequest.class))).thenReturn(this.mockCloseableHttpResponse);
+            requestCaptor = ArgumentCaptor.forClass(HttpUriRequest.class);
+            mockCloseableHttpResponse = Mockito.mock(CloseableHttpResponse.class);
+            when(mockHttpClient.execute(any(HttpUriRequest.class))).thenReturn(mockCloseableHttpResponse);
 
-            ClientTest.this.client = new Client("1", System.currentTimeMillis() + 20_000, new ConstantDemandFunctionImpl(ClientTest.this.restInterval), ClientTest.this.mockHttpClientFactory, ClientTest.this.requestStartTime, ClientTest.this.resourceId);
-            ClientTest.this.clientThread = new Thread(ClientTest.this.client);
-            ClientTest.this.clientThread.start();
+            client = new Client(System.currentTimeMillis() + 20_000, new ConstantDemandFunctionImpl(restInterval), mockHttpClientFactory, requestStartTime, resourceName);
+            clientThread = new Thread(client);
+            clientThread.start();
 
             // wait for client to initialize and send request
             try {
-                Thread.sleep(ClientTest.this.restInterval * 3);
+                Thread.sleep(restInterval * 3);
             } catch (InterruptedException e) {
                 e.printStackTrace();
             }
@@ -78,24 +78,24 @@ public class ClientTest {
 
         @Test
         @DisplayName("Client should create http client using provided factory")
-        public void clientShouldCreateHttpClient() throws IOException {
-            verify(ClientTest.this.mockHttpClientFactory, times(1)).buildApacheClient();
+        public void clientShouldCreateHttpClient() {
+            verify(mockHttpClientFactory, times(1)).buildApacheClient();
         }
 
         @Test
         @DisplayName("Request should be sent to the right uri")
         public void testShouldSendToCorrectUri() throws IOException {
-            verify(ClientTest.this.mockHttpClient, times(1)).execute(this.requestCaptor.capture());
-            HttpUriRequest request = this.requestCaptor.getAllValues().get(0);
-            String expectedPath = "http://127.0.0.1:" + ClientTest.this.loadBalancerPort + "/api/" + ClientTest.this.resourceId;
+            verify(mockHttpClient, times(1)).execute(requestCaptor.capture());
+            HttpUriRequest request = requestCaptor.getAllValues().get(0);
+            String expectedPath = "http://127.0.0.1:" + loadBalancerPort + "/api/" + resourceName;
             assertEquals(expectedPath, request.getURI().toString());
         }
 
         @Test
         @DisplayName("Request should be of type GET")
         public void testShouldHaveCorrectMethod() throws IOException {
-            verify(ClientTest.this.mockHttpClient, times(1)).execute(this.requestCaptor.capture());
-            HttpUriRequest request = this.requestCaptor.getAllValues().get(0);
+            verify(mockHttpClient, times(1)).execute(requestCaptor.capture());
+            HttpUriRequest request = requestCaptor.getAllValues().get(0);
             assertEquals("GET", request.getMethod().toString());
         }
     }
