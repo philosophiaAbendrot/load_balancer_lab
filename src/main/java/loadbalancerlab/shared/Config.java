@@ -23,6 +23,7 @@ public class Config {
     private int capacityModulationInterval;
     private int requestMonitorRecordTTL;
     private int cacheServerProcessingTime;
+    private int numClients;
 
     public Config() {
         // default configurations
@@ -44,6 +45,7 @@ public class Config {
         capacityModulationInterval = 5;
         requestMonitorRecordTTL = 10_000;
         cacheServerProcessingTime = 200;
+        numClients = 20;
     }
 
     public int getMaxAnglesPerServer() {
@@ -106,6 +108,8 @@ public class Config {
 
     public int getRequestMonitorRecordTTL() { return requestMonitorRecordTTL; }
 
+    public int getNumClients() { return numClients; }
+
     public void setMaxAnglesPerServer( int _maxAnglesPerServer ) {
         maxAnglesPerServer = _maxAnglesPerServer;
     }
@@ -167,4 +171,6 @@ public class Config {
     public void setRequestMonitorRecordTTL( int ttl ) { requestMonitorRecordTTL = ttl; }
 
     public void setCacheServerProcessingTime( int processingTime ) { cacheServerProcessingTime = processingTime; }
+
+    public void setNumClients(int numClients) { this.numClients = numClients; }
 }
