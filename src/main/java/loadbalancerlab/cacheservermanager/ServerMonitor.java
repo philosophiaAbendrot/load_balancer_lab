@@ -33,10 +33,12 @@ public class ServerMonitor {
     // params: id: id of the server
     //         port: port that the server is running on
     public void addServer( int id, int port ) {
+        System.out.println("ServerMonitor | addServer being called - id = " + id + " | port = " + port);
         if (serverInfoTable.containsKey(id)) {
             throw new IllegalArgumentException("serverInfoTable already contains an entry for id " + id);
         }
         serverInfoTable.put(id, new ServerInfo(id, port));
+        System.out.println("ServerMonitor | serverInfoTable.size() = " + serverInfoTable.size());
     }
 
     // removes server from record
@@ -62,6 +64,8 @@ public class ServerMonitor {
 
     // returns server info table
     public Map<Integer, ServerInfo> getServerInfo() {
+        System.out.println("ServerMonitor | getServerInfo called");
+        System.out.println("ServerMonitor | serverInfoTable.size() = " + serverInfoTable.size());
         Map<Integer, ServerInfo> copyMap = new HashMap<>();
         copyMap.putAll(serverInfoTable);
         return copyMap;

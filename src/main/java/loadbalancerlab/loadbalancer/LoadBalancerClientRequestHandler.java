@@ -19,6 +19,7 @@ import org.json.JSONObject;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
@@ -40,15 +41,15 @@ public class LoadBalancerClientRequestHandler implements HttpRequestHandler {
 
     @Override
     public void handle( HttpRequest httpRequest, HttpResponse httpResponse, HttpContext httpContext) {
-        System.out.println("path 1");
-        System.out.println("clientFactory = " + clientFactory);
         CloseableHttpClient httpClient = clientFactory.buildApacheClient();
-        System.out.println("path 2");
         String uri = httpRequest.getRequestLine().getUri();
-        String[] uriArr = uri.split("/", 0);
+        System.out.println("uri = " + uri);
+        String[] uriArr = uri.split("/");
+        System.out.println("uriArr = " + Arrays.toString(uriArr));
         String resourceName = uriArr[uriArr.length - 1];
+        System.out.println("resourceName = " + resourceName);
         int cacheServerPort = cacheRedis.selectPort(resourceName);
-
+        System.out.println("cacheServerPort = " + cacheServerPort);
         System.out.println("ClientRequestHandler | relaying message to cache server at port %d" + cacheServerPort);
         Logger.log(String.format("ClientRequestHandler | relaying message to cache server at port %d", cacheServerPort), Logger.LogType.REQUEST_PASSING);
         // record request incoming timestamp

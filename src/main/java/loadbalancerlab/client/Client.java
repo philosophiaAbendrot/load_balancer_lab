@@ -3,12 +3,14 @@ package loadbalancerlab.client;
 import loadbalancerlab.factory.HttpClientFactory;
 import loadbalancerlab.shared.Logger;
 
+import loadbalancerlab.shared.RequestDecoder;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.RandomStringUtils;
 import org.apache.http.*;
 import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.impl.client.CloseableHttpClient;
+import org.json.JSONObject;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -43,11 +45,17 @@ public class Client implements Runnable {
      */
     HttpClientFactory clientFactory;
 
-    public Client( long maxDemandTime, DemandFunction demandFunction, HttpClientFactory clientFactory, long requestStartTime ) {
+    /**
+     * Used for decoding json within responses
+     */
+    RequestDecoder reqDecoder;
+
+    public Client( long maxDemandTime, DemandFunction demandFunction, HttpClientFactory clientFactory, long requestStartTime, RequestDecoder reqDecoder ) {
         this.maxDemandTime = maxDemandTime;
         // first request is sent up to 15 seconds after initialization to stagger the incoming requests
         this.requestStartTime = requestStartTime;
         this.demandFunction = demandFunction;
+        this.reqDecoder = reqDecoder;
         this.clientFactory = clientFactory;
     }
 
@@ -105,7 +113,10 @@ public class Client implements Runnable {
         System.out.println("Client | sending request to loadbalancer at path = " + httpGet.getURI().toString());
         Logger.log(String.format("Client | path: %s", path), Logger.LogType.CLIENT_STARTUP);
         CloseableHttpClient httpClient = clientFactory.buildApacheClient();
+        System.out.println("Client | received response from loadbalancer");
         CloseableHttpResponse res = httpClient.execute(httpGet);
+        JSONObject resJson = reqDecoder.extractJsonApacheResponse(res);
+        System.out.println("Client | resJson.keySet() = " + resJson.keySet());
         httpClient.close();
         return res;
     }

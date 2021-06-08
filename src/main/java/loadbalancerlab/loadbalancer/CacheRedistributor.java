@@ -38,12 +38,16 @@ public class CacheRedistributor {
     // their capacity factors
     // updates the serverInfoTable field using the results
     public void requestServerInfo() {
+        System.out.println("CacheRedistributor | request server info running");
         CloseableHttpClient client = httpClientFactory.buildApacheClient();
         HttpGet getReq = new HttpGet("http://127.0.0.1:" + cacheServerManagerPort + "/cache-servers");
 
         try {
+            System.out.println("CacheRedistributor | attempting to send request to CacheServerManager");
+            System.out.println("CacheRedistributor | ping request uri = " + getReq.getURI().toString());
             CloseableHttpResponse res = client.execute(getReq);
             JSONObject resJson = reqDecoder.extractJsonApacheResponse(res);
+            System.out.println("resJson.keySet() = " + resJson.keySet());
             for (String serverId : resJson.keySet()) {
                 int serverIdInt = Integer.valueOf(serverId);
                 JSONObject entry = resJson.getJSONObject(serverId);
@@ -58,6 +62,8 @@ public class CacheRedistributor {
                     int port = entry.getInt("port");
                     ServerInfo newInfo = new ServerInfo(serverIdInt, port, cf);
                     serverInfoTable.put(serverIdInt, newInfo);
+                    // add server to HashRing
+                    hashRing.addServer(serverIdInt);
                 }
             }
         } catch (IOException e) {
@@ -71,7 +77,9 @@ public class CacheRedistributor {
     // resourceName: the name of the resource
 
     public int selectPort( String resourceName ) throws IllegalStateException {
+        System.out.println("CacheRedistributor | selectPort called with resourceName = " + resourceName);
         int serverId = hashRing.findServerId(resourceName);
+        System.out.println("CacheRedistributor | hashRing.findServerId returned id = " + serverId);
 
         if (!serverInfoTable.containsKey(serverId))
             throw new IllegalStateException("There is no corresponding server for this resource name");

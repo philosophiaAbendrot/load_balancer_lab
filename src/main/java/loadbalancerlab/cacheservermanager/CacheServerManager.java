@@ -35,11 +35,12 @@ public class CacheServerManager {
         growthRate = config.getCacheServerGrowthRate();
     }
 
-    public CacheServerManager( CacheServerFactory _cacheServerFactory, HttpClientFactory _clientFactory, RequestDecoder _reqDecoder ) {
+    public CacheServerManager( CacheServerFactory cacheServerFactory, HttpClientFactory clientFactory, RequestDecoder reqDecoder ) {
+        System.out.println("CacheServerManager initializer called");
         port = -1;
-        cacheServerFactory = _cacheServerFactory;
-        clientFactory = _clientFactory;
-        reqDecoder = _reqDecoder;
+        this.cacheServerFactory = cacheServerFactory;
+        this.clientFactory = clientFactory;
+        this.reqDecoder = reqDecoder;
 
         // reserve ports 37000 through 37099 as usable ports
         for (int i = 0; i < selectablePorts.length; i++)
@@ -58,13 +59,25 @@ public class CacheServerManager {
     }
 
     public void startupCacheServer(int num) {
+        System.out.println("CacheServerManager | startupCacheServer running | num = " + num);
         for (int i = 0; i < num; i++) {
             CacheServer cacheServer = cacheServerFactory.produceCacheServer(new RequestMonitor());
             Thread cacheServerThread = cacheServerFactory.produceCacheServerThread(cacheServer);
             cacheServerThread.start();
             serverThreadTable.put(cacheServerIdCounter, cacheServerThread);
+
+            // wait for cache server to startup and set its port
+            while (cacheServer.getPort() == 0) {
+                try {
+                    Thread.sleep(10);
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
+            }
+
             serverMonitor.addServer(cacheServerIdCounter, cacheServer.getPort());
             cacheServerIdCounter++;
+            System.out.println("CacheServerManager | adding cacheServer i = " + i);
         }
     }
 

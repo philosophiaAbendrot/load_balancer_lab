@@ -24,6 +24,7 @@ public class Config {
     private int requestMonitorRecordTTL;
     private int cacheServerProcessingTime;
     private int numClients;
+    private int numCacheServersOnStartup;
 
     public Config() {
         // default configurations
@@ -46,6 +47,7 @@ public class Config {
         requestMonitorRecordTTL = 10_000;
         cacheServerProcessingTime = 200;
         numClients = 20;
+        numCacheServersOnStartup = 5;
 
         // factories
         httpClientFactory = new HttpClientFactory();
@@ -116,6 +118,8 @@ public class Config {
 
     public int getNumClients() { return numClients; }
 
+    public int getNumCacheServersOnStartup() { return numCacheServersOnStartup; }
+
     public void setMaxAnglesPerServer( int _maxAnglesPerServer ) {
         maxAnglesPerServer = _maxAnglesPerServer;
     }
@@ -179,4 +183,8 @@ public class Config {
     public void setCacheServerProcessingTime( int processingTime ) { cacheServerProcessingTime = processingTime; }
 
     public void setNumClients(int numClients) { this.numClients = numClients; }
+
+    public void setNumCacheServersOnStartup( int numCacheServersOnStartup ) {
+        this.numCacheServersOnStartup = numCacheServersOnStartup;
+    }
 }

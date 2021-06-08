@@ -33,6 +33,7 @@ public class CacheInfoServerRunnable implements Runnable {
     @Override
     public void run() {
         int chosenPort = defaultPort;
+        System.out.println("started CacheInfoServerRunnable");
         Logger.log("CacheServerManager.CacheInfoServer | Started CacheInfoServer thread", Logger.LogType.THREAD_MANAGEMENT);
         InetAddress hostAddress = null;
 
@@ -69,8 +70,8 @@ public class CacheInfoServerRunnable implements Runnable {
                 continue;
             }
 
+            System.out.println("CacheInfoServerRunnable | Server successfully started on port " + chosenPort);
             // break out of loop if server successfully started
-            System.out.println("CacheServerManager | Server successfully started on port " + chosenPort);
             break;
         }
 

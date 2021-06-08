@@ -21,6 +21,7 @@ public class CacheServerManagerRunnable implements Runnable {
     CacheServerFactory cacheServerFactory;
     HttpClientFactory clientFactory;
 
+    static int numCacheServersOnStartup;
     static int capacityModulationInterval;
     private int lastCapacityModulationTime;
 
@@ -32,7 +33,7 @@ public class CacheServerManagerRunnable implements Runnable {
         cacheServerManager = _cacheServerManager;
 
         // generate instances of sub-components
-        serverMonitor = new ServerMonitor(clientFactory, reqDecoder, cacheServerManager);
+        serverMonitor = cacheServerManager.serverMonitor;
         cacheInfoRequestHandler = new CacheInfoRequestHandler(serverMonitor);
 
         // generate runnables for sub-components
@@ -49,6 +50,7 @@ public class CacheServerManagerRunnable implements Runnable {
     }
 
     public static void configure(Config config) {
+        numCacheServersOnStartup = config.getNumCacheServersOnStartup();
         capacityModulationInterval = config.getCapacityModulationInterval();
     }
 
@@ -57,6 +59,9 @@ public class CacheServerManagerRunnable implements Runnable {
         // start sub-threads
         serverMonitorThread.start();
         cacheInfoServerThread.start();
+
+        // startup cache servers
+        cacheServerManager.startupCacheServer(numCacheServersOnStartup);
 
         int currentTime = (int)(System.currentTimeMillis() / 1_000);
         lastCapacityModulationTime = currentTime;

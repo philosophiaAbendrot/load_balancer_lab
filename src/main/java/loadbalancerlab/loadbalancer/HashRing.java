@@ -30,6 +30,9 @@ public class HashRing {
     }
 
     public int findServerId( String resourceName ) {
+        System.out.println("HashRing | findServerId called with resourceName = " + resourceName);
+        System.out.println("HashRing | angles.size() = " + angles.size());
+        System.out.println("HashRing | anglesByServerId.size() = " + anglesByServerId.size());
         int resourcePosition = hashFunction.hash(resourceName) % ringSize;
 
         int lowestAngle = Integer.MAX_VALUE;

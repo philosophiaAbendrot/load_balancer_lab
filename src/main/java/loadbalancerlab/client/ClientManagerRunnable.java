@@ -4,6 +4,7 @@ import com.thoughtworks.qdox.model.expression.Constant;
 import loadbalancerlab.factory.ClientFactory;
 import loadbalancerlab.factory.HttpClientFactory;
 import loadbalancerlab.shared.Config;
+import loadbalancerlab.shared.RequestDecoder;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -38,14 +39,19 @@ public class ClientManagerRunnable implements Runnable {
      * The basic rest time between requests in milliseconds. This base time is modified by demand functions.
      */
     int restInterval = 200;
-    static final int TICK_INTERVAL = 100;
-    String resourceName = "Chooder_Bunny.jpg";
+    /**
+     * Used for parsing JSON from responses
+     */
+    RequestDecoder reqDecoder;
 
-    public ClientManagerRunnable( ClientFactory clientFactory, long maxDemandTime, long requestStartTime, HttpClientFactory httpClientFactory ) {
+    static final int TICK_INTERVAL = 100;
+
+    public ClientManagerRunnable( ClientFactory clientFactory, long maxDemandTime, long requestStartTime, HttpClientFactory httpClientFactory, RequestDecoder reqDecoder ) {
         this.clientFactory = clientFactory;
         this.maxDemandTime = maxDemandTime;
         this.requestStartTime = requestStartTime;
         this.httpClientFactory = httpClientFactory;
+        this.reqDecoder = reqDecoder;
     }
 
     /** Allow configurations of static variables using a Config instance
@@ -65,7 +71,7 @@ public class ClientManagerRunnable implements Runnable {
 
         // generate client threads
         for (int i = 0; i < numClients; i++) {
-            Client client = clientFactory.buildClient(maxDemandTime, new ConstantDemandFunctionImpl(restInterval), httpClientFactory, requestStartTime);
+            Client client = clientFactory.buildClient(maxDemandTime, new ConstantDemandFunctionImpl(restInterval), httpClientFactory, requestStartTime, reqDecoder);
             Thread clientThread = new Thread(client);
             clientThreads.add(clientThread);
         }

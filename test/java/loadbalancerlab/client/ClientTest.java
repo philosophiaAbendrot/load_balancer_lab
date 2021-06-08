@@ -3,6 +3,7 @@ package loadbalancerlab.client;
 import loadbalancerlab.factory.HttpClientFactory;
 import loadbalancerlab.shared.Logger;
 
+import loadbalancerlab.shared.RequestDecoder;
 import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.HttpUriRequest;
 import org.apache.http.impl.client.CloseableHttpClient;
@@ -62,7 +63,7 @@ public class ClientTest {
             mockCloseableHttpResponse = Mockito.mock(CloseableHttpResponse.class);
             when(mockHttpClient.execute(any(HttpUriRequest.class))).thenReturn(mockCloseableHttpResponse);
 
-            client = new Client(System.currentTimeMillis() + 20_000, new ConstantDemandFunctionImpl(restInterval), mockHttpClientFactory, requestStartTime);
+            client = new Client(System.currentTimeMillis() + 20_000, new ConstantDemandFunctionImpl(restInterval), mockHttpClientFactory, requestStartTime, new RequestDecoder());
             clientThread = new Thread(client);
             clientThread.start();
 

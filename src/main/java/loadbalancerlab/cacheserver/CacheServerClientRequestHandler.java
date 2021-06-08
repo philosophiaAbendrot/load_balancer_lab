@@ -37,6 +37,7 @@ public class CacheServerClientRequestHandler implements HttpHandler {
     @Override
     public void handle( HttpExchange httpExchange ) throws IOException {
         long startTime = System.currentTimeMillis();
+        System.out.println("CacheServer | received request from load balancer");
         Logger.log("CacheServer | received request from load balancer", Logger.LogType.REQUEST_PASSING);
         // extract parameters from request uri
         String requestParams = extractParams(httpExchange);

@@ -39,7 +39,7 @@ public class Executor {
     public void start() {
         this.rand = new Random();
         Logger.configure(new Logger.LogType[] { Logger.LogType.CAPACITY_MODULATION });
-        Logger.log("Run | started Run thread", Logger.LogType.ALWAYS_PRINT);
+        Logger.log("Run | started Run thread", Logger.LogType.STARTUP_SEQUENCE);
 
         // configure classes
         Config config = new Config();
@@ -60,7 +60,7 @@ public class Executor {
         int cacheServerManagerPort;
 
         // wait for cache server manager to start up and record the port it's running on
-        while ((cacheServerManagerPort = cacheServerManagerRunnable.getPort()) == -1) {
+        while ((cacheServerManagerPort = cacheServerManagerRunnable.getPort()) == 0) {
             try {
                 Thread.sleep(10);
             } catch (InterruptedException e) {
@@ -69,6 +69,7 @@ public class Executor {
             }
         }
 
+        System.out.println("Executor | CacheServerManager running on port " + cacheServerManagerPort);
         Logger.log("Executor | CacheServerManager running on port " + cacheServerManagerPort, Logger.LogType.STARTUP_SEQUENCE);
 
         // instantiate and start load balancer
@@ -95,7 +96,7 @@ public class Executor {
         long requestStartTime = System.currentTimeMillis() + 1_000;
 
         // startup ClientManager class
-        ClientManagerRunnable clientManagerRunnable = new ClientManagerRunnable(clientFactory, maxDemandTime, requestStartTime, httpClientFactory);
+        ClientManagerRunnable clientManagerRunnable = new ClientManagerRunnable(clientFactory, maxDemandTime, requestStartTime, httpClientFactory, reqDecoder);
         Thread clientManagerRunnableThread = new Thread(clientManagerRunnable);
         clientManagerRunnableThread.start();
 
@@ -199,6 +200,7 @@ public class Executor {
         // configure CacheServerManager package
         CacheInfoServerRunnable.configure(config); // being called
         CacheServerManager.configure(config); // being called
+        CacheServerManagerRunnable.configure(config);
         // configure LoadBalancer package
         CacheRedistributor.configure(config); // being called
         CacheRedistributorRunnable.configure(config); // being called
