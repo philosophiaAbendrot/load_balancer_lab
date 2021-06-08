@@ -27,7 +27,6 @@ public class ClientTest {
     Thread clientThread;
     int loadBalancerPort = 8080;
     Random rand;
-    String resourceName;
 
     @BeforeAll
     public static void beforeAll() {
@@ -44,7 +43,6 @@ public class ClientTest {
         requestStartTime = System.currentTimeMillis() - 1_000;
         client.setLoadBalancerPort(loadBalancerPort);
         when(mockHttpClientFactory.buildApacheClient()).thenReturn(mockHttpClient);
-        resourceName = "Chooder_Bunny.jpg";
     }
 
     @AfterEach
@@ -64,7 +62,7 @@ public class ClientTest {
             mockCloseableHttpResponse = Mockito.mock(CloseableHttpResponse.class);
             when(mockHttpClient.execute(any(HttpUriRequest.class))).thenReturn(mockCloseableHttpResponse);
 
-            client = new Client(System.currentTimeMillis() + 20_000, new ConstantDemandFunctionImpl(restInterval), mockHttpClientFactory, requestStartTime, resourceName);
+            client = new Client(System.currentTimeMillis() + 20_000, new ConstantDemandFunctionImpl(restInterval), mockHttpClientFactory, requestStartTime);
             clientThread = new Thread(client);
             clientThread.start();
 
@@ -87,7 +85,7 @@ public class ClientTest {
         public void testShouldSendToCorrectUri() throws IOException {
             verify(mockHttpClient, times(1)).execute(requestCaptor.capture());
             HttpUriRequest request = requestCaptor.getAllValues().get(0);
-            String expectedPath = "http://127.0.0.1:" + loadBalancerPort + "/api/" + resourceName;
+            String expectedPath = "http://127.0.0.1:" + loadBalancerPort + "/api/" + client.resourceName;
             assertEquals(expectedPath, request.getURI().toString());
         }
 

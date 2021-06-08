@@ -61,7 +61,7 @@ public class ClientManagerRunnable implements Runnable {
     public void run() {
         // generate client threads
         for (int i = 0; i < numClients; i++) {
-            clientThreads.add(new Thread(clientFactory.buildClient(maxDemandTime, new ConstantDemandFunctionImpl(restInterval), httpClientFactory, requestStartTime, resourceName)));
+            clientThreads.add(new Thread(clientFactory.buildClient(maxDemandTime, new ConstantDemandFunctionImpl(restInterval), httpClientFactory, requestStartTime)));
         }
 
         // start threads

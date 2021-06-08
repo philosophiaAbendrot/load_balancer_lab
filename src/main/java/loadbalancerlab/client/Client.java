@@ -4,6 +4,7 @@ import loadbalancerlab.factory.HttpClientFactory;
 import loadbalancerlab.shared.Logger;
 
 import org.apache.commons.io.IOUtils;
+import org.apache.commons.lang3.RandomStringUtils;
 import org.apache.http.*;
 import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.HttpGet;
@@ -42,13 +43,12 @@ public class Client implements Runnable {
      */
     HttpClientFactory clientFactory;
 
-    public Client( long maxDemandTime, DemandFunction demandFunction, HttpClientFactory clientFactory, long requestStartTime, String resourceName ) {
+    public Client( long maxDemandTime, DemandFunction demandFunction, HttpClientFactory clientFactory, long requestStartTime ) {
         this.maxDemandTime = maxDemandTime;
         // first request is sent up to 15 seconds after initialization to stagger the incoming requests
         this.requestStartTime = requestStartTime;
         this.demandFunction = demandFunction;
         this.clientFactory = clientFactory;
-        this.resourceName = resourceName;
     }
 
     /**
@@ -77,15 +77,10 @@ public class Client implements Runnable {
             }
 
             try {
-                String path;
-                path = "/api/" + resourceName;
-                HttpGet httpGet = new HttpGet("http://127.0.0.1:" + Client.loadBalancerPort + path);
-                Logger.log(String.format("Client | path: %s", path), Logger.LogType.CLIENT_STARTUP);
-                CloseableHttpClient httpClient = this.clientFactory.buildApacheClient();
-                CloseableHttpResponse response = httpClient.execute(httpGet);
-                printResponse(response);
-                response.close();
-                httpClient.close();
+                resourceName = RandomStringUtils.randomAlphabetic(10);
+                CloseableHttpResponse res = sendResponse(resourceName);
+                printResponse(res);
+                res.close();
             } catch (IOException e) {
                 System.out.println("Client | No response to request sent to load balancer by client server ");
             }
@@ -100,6 +95,16 @@ public class Client implements Runnable {
             }
         }
         Logger.log("Client | Terminated Client thread", Logger.LogType.THREAD_MANAGEMENT);
+    }
+
+    public CloseableHttpResponse sendResponse(String resourceName) throws IOException {
+        String path = "/api/" + resourceName;
+        HttpGet httpGet = new HttpGet("http://127.0.0.1:" + Client.loadBalancerPort + path);
+        Logger.log(String.format("Client | path: %s", path), Logger.LogType.CLIENT_STARTUP);
+        CloseableHttpClient httpClient = clientFactory.buildApacheClient();
+        CloseableHttpResponse res = httpClient.execute(httpGet);
+        httpClient.close();
+        return res;
     }
 
     /**

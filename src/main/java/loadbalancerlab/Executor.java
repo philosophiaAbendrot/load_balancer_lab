@@ -76,7 +76,7 @@ public class Executor {
         List<Client> clients = new ArrayList<>();
 
         for (int i = 0; i < NUM_CLIENTS; i++) {
-            Client client = new Client(this.maxDemandTime, new ConstantDemandFunctionImpl(CONSTANT_DEMAND_REST_INTERVAL), new HttpClientFactory(), System.currentTimeMillis() + (long)((new Random()).nextInt(15000)), "Chooder Bunny.jpg");
+            Client client = new Client(this.maxDemandTime, new ConstantDemandFunctionImpl(CONSTANT_DEMAND_REST_INTERVAL), new HttpClientFactory(), System.currentTimeMillis() + (long)((new Random()).nextInt(15000)));
             Thread clientThread = new Thread(client);
             clients.add(client);
             clientThreads.add(clientThread);
