@@ -67,7 +67,6 @@ public class CacheServer implements Runnable {
     public void setPort(int _port) {
         port = _port;
     }
-
     /**
      * Method inherited from Runnable interface
      * Starts server and request monitor thread
@@ -89,8 +88,8 @@ public class CacheServer implements Runnable {
                 InetAddress host = InetAddress.getByName("127.0.0.1");
                 InetSocketAddress socketAddress = new InetSocketAddress(host, port);
                 server = HttpServer.create(socketAddress, 0);
-                server.createContext("/", clientReqHandler);
                 server.createContext("/capacity-factor", capacityFactorRequestHandler);
+                server.createContext("/", clientReqHandler);
                 server.setExecutor(threadPoolExecutor);
                 Logger.log(String.format("CacheServer | Server started on %s", socketAddress.toString()), Logger.LogType.CACHE_SERVER_STARTUP);
                 break;

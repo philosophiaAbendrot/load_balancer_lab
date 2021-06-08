@@ -22,8 +22,8 @@ public class ClientRequestHandlerServer implements Runnable {
         defaultPort = config.getClientHandlerServerDefaultPort();
     }
 
-    public ClientRequestHandlerServer( LoadBalancerClientRequestHandler _LoadBalancer_clientRequestHandler ) {
-        loadBalancerClientRequestHandler = _LoadBalancer_clientRequestHandler;
+    public ClientRequestHandlerServer( LoadBalancerClientRequestHandler loadBalancerClientRequestHandler ) {
+        this.loadBalancerClientRequestHandler = loadBalancerClientRequestHandler;
     }
 
     public int getPort() {

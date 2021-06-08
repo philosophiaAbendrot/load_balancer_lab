@@ -52,7 +52,8 @@ public class CacheServerClientRequestHandler implements HttpHandler {
 
         // generate response and send it back
         String responseString = generateResponse(requestParams);
-        System.out.println("responseString = " + responseString);
+        System.out.println("CacheServerClientRequestHandler | responseString = " + responseString);
+        System.out.println("CacheServerClientRequestHandler | sending back response to client");
         OutputStream outputStream = httpExchange.getResponseBody();
         httpExchange.sendResponseHeaders(200, responseString.length());
         outputStream.write(responseString.getBytes());

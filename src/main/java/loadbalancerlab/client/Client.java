@@ -113,9 +113,12 @@ public class Client implements Runnable {
         System.out.println("Client | sending request to loadbalancer at path = " + httpGet.getURI().toString());
         Logger.log(String.format("Client | path: %s", path), Logger.LogType.CLIENT_STARTUP);
         CloseableHttpClient httpClient = clientFactory.buildApacheClient();
-        System.out.println("Client | received response from loadbalancer");
         CloseableHttpResponse res = httpClient.execute(httpGet);
+        System.out.println("Client | received response from loadbalancer");
+        HttpEntity resEntity = res.getEntity();
+        System.out.println("Client | resEntity.toString() = " + resEntity.toString());
         JSONObject resJson = reqDecoder.extractJsonApacheResponse(res);
+        System.out.println("Client | resJson = " + resJson.toString());
         System.out.println("Client | resJson.keySet() = " + resJson.keySet());
         httpClient.close();
         return res;

@@ -3,6 +3,7 @@ package loadbalancerlab.loadbalancer;
 import loadbalancerlab.factory.HttpClientFactory;
 import loadbalancerlab.shared.Config;
 import loadbalancerlab.shared.Logger;
+import loadbalancerlab.shared.RequestDecoder;
 import org.apache.commons.text.StringEscapeUtils;
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpRequest;
@@ -55,18 +56,21 @@ public class LoadBalancerClientRequestHandler implements HttpRequestHandler {
         // record request incoming timestamp
         incomingRequestTimestamps.add((int)(System.currentTimeMillis() / 1000));
 
-        HttpGet getReq = new HttpGet("http://127.0.0.1:" + cacheServerPort);
+        HttpGet getReq = new HttpGet("http://127.0.0.1:" + cacheServerPort + "/" + resourceName);
 
         try {
             CloseableHttpResponse res = httpClient.execute(getReq);
             HttpEntity resBody = res.getEntity();
             httpResponse.setEntity(resBody);
-            EntityUtils.consume(resBody);
+//            EntityUtils.consume(resBody);
             httpResponse.setStatusCode(200);
         } catch (IOException e) {
             // if cache server failed
             e.printStackTrace();
             JSONObject outputJsonObj = new JSONObject();
+
+
+
             outputJsonObj.put("error_message", "Cache server failed to respond");
             String htmlResponse = StringEscapeUtils.escapeJson(outputJsonObj.toString());
             InputStream stream = new ByteArrayInputStream(htmlResponse.getBytes());
