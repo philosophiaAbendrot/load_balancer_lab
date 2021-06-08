@@ -19,7 +19,7 @@ public class RequestMonitor {
      */
     static int recordTTL = 10_000;
 
-    public void configure( Config config ) {
+    public static void configure( Config config ) {
         recordTTL = config.getRequestMonitorRecordTTL();
     }
 

@@ -24,6 +24,7 @@ public class Logger {
         LOAD_BALANCER_STARTUP,
         ALWAYS_PRINT,
         PRINT_NOTHING,
+        STARTUP_SEQUENCE,
     }
 
     public static void configure(LogType[] types) {
