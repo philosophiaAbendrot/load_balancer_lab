@@ -50,7 +50,7 @@ public class CacheRedistributorTest {
             // setup config
             config.setRequestDecoder(mockDecoder);
             config.setTargetCapacityFactor(targetCapacityFactor);
-            config.setClientFactory(mockClientFactory);
+            config.setHttpClientFactory(mockClientFactory);
             CacheRedistributor.configure(config);
 
             // setting up mocks

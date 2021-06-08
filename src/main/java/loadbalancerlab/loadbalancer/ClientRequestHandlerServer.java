@@ -16,14 +16,14 @@ import java.util.concurrent.TimeUnit;
 public class ClientRequestHandlerServer implements Runnable {
     volatile private static int defaultPort;
     volatile private int port = -1;
-    ClientRequestHandler clientRequestHandler;
+    LoadBalancerClientRequestHandler loadBalancerClientRequestHandler;
 
     public static void configure( Config config ) {
         defaultPort = config.getClientHandlerServerDefaultPort();
     }
 
-    public ClientRequestHandlerServer(ClientRequestHandler _clientRequestHandler) {
-        clientRequestHandler = _clientRequestHandler;
+    public ClientRequestHandlerServer( LoadBalancerClientRequestHandler _LoadBalancer_clientRequestHandler ) {
+        loadBalancerClientRequestHandler = _LoadBalancer_clientRequestHandler;
     }
 
     public int getPort() {
@@ -56,19 +56,21 @@ public class ClientRequestHandlerServer implements Runnable {
                     .setListenerPort(temporaryPort)
                     .setHttpProcessor(new ImmutableHttpProcessor(new ArrayList<>(), new ArrayList<>()))
                     .setSocketConfig(config)
-                    .registerHandler("/resource/*", clientRequestHandler)
+                    .registerHandler("/api/*", loadBalancerClientRequestHandler)
                     .create();
 
             try {
                 server.start();
             } catch (IOException e) {
-                System.out.println("LoadBalancer | Failed to start server on port " + temporaryPort);
+                e.printStackTrace();
+                System.out.println("ClientRequestHandler | Failed to start server on port " + temporaryPort);
                 temporaryPort++;
                 continue;
             }
 
             // if server successfully started, exit the loop
             this.port = temporaryPort;
+            System.out.println("ClientRequestHandler | Successfully started server on port " + temporaryPort);
             break;
         }
 
@@ -83,6 +85,7 @@ public class ClientRequestHandlerServer implements Runnable {
         try {
             server.awaitTermination(Long.MAX_VALUE, TimeUnit.SECONDS);
         } catch (InterruptedException e) {
+            e.printStackTrace();
             Logger.log("ClientRequestHandlerServer | Thread interrupted", Logger.LogType.THREAD_MANAGEMENT);
         } finally {
             Thread.currentThread().interrupt();

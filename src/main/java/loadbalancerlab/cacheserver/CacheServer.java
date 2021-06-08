@@ -77,7 +77,7 @@ public class CacheServer implements Runnable {
         Logger.log("CacheServer | Started CacheServer thread", Logger.LogType.THREAD_MANAGEMENT);
         // start server
         ThreadPoolExecutor threadPoolExecutor = (ThreadPoolExecutor) Executors.newFixedThreadPool(1);
-        HttpHandler clientReqHandler = new ClientRequestHandler(reqMonitor);
+        HttpHandler clientReqHandler = new CacheServerClientRequestHandler(reqMonitor);
         HttpHandler capacityFactorRequestHandler = new CapacityFactorRequestHandler(reqMonitor);
         HttpServer server = null;
 

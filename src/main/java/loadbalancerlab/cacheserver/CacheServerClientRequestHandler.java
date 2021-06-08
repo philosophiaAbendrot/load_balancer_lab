@@ -15,7 +15,7 @@ import java.io.OutputStream;
  * Serves requests which originate from the Client class.
  * Returns a dummy response indicating that the response was returned by the CacheServer.
  */
-public class ClientRequestHandler implements HttpHandler {
+public class CacheServerClientRequestHandler implements HttpHandler {
     /**
      * RequestMonitor which monitors load on the associated CacheServer instance
      */
@@ -26,7 +26,7 @@ public class ClientRequestHandler implements HttpHandler {
         processingTime = config.getCacheServerProcessingTime();
     }
 
-    public ClientRequestHandler( RequestMonitor _reqMonitor ) {
+    public CacheServerClientRequestHandler( RequestMonitor _reqMonitor ) {
         reqMonitor = _reqMonitor;
     }
 

@@ -22,11 +22,11 @@ import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 
-public class ClientRequestHandlerTest {
+public class CacheServerLoadBalancerClientRequestHandlerTest {
     TestServer testServer;
     Thread testServerThread;
     RequestMonitor mockReqMonitor = Mockito.mock(RequestMonitor.class);
-    ClientRequestHandler clientReqHandler;
+    CacheServerClientRequestHandler clientReqHandler;
     int testServerPort;
     String resourceName;
     RequestDecoder reqDecoder;
@@ -36,9 +36,9 @@ public class ClientRequestHandlerTest {
         int[] selectablePorts;
         RequestMonitor reqMonitor;
         volatile public int port;
-        ClientRequestHandler clientReqHandler;
+        CacheServerClientRequestHandler clientReqHandler;
 
-        public TestServer(RequestMonitor _reqMonitor, ClientRequestHandler _clientReqHandler) {
+        public TestServer(RequestMonitor _reqMonitor, CacheServerClientRequestHandler _clientReqHandler) {
             reqMonitor = _reqMonitor;
             clientReqHandler = _clientReqHandler;
         }
@@ -96,7 +96,7 @@ public class ClientRequestHandlerTest {
 
         reqDecoder = new RequestDecoder();
         resourceName = "Chooder_Bunny.jpg";
-        clientReqHandler = new ClientRequestHandler(mockReqMonitor);
+        clientReqHandler = new CacheServerClientRequestHandler(mockReqMonitor);
         testServer = new TestServer(mockReqMonitor, clientReqHandler);
         testServerThread = new Thread(testServer);
         testServerThread.start();

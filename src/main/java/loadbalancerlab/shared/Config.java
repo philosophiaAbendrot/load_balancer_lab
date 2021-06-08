@@ -12,7 +12,7 @@ public class Config {
     private HashFunction hashFunction;
     private double targetCapacityFactor;
     private RequestDecoder reqDecoder;
-    private HttpClientFactory clientFactory;
+    private HttpClientFactory httpClientFactory;
     private double[] serverLoadCutoffs;
     private int cacheRedisPingInterval;
     private int cacheRedisRemapInterval;
@@ -34,7 +34,7 @@ public class Config {
         hashFunction = new MurmurHashFunctionImpl();
         targetCapacityFactor = 0.5;
         reqDecoder = new RequestDecoder();
-        clientFactory = new HttpClientFactory();
+        httpClientFactory = new HttpClientFactory();
         serverLoadCutoffs = new double[] { 0.15, 0.35, 0.65, 0.85 };
         cacheRedisPingInterval = 1;
         cacheRedisRemapInterval = 3;
@@ -46,6 +46,12 @@ public class Config {
         requestMonitorRecordTTL = 10_000;
         cacheServerProcessingTime = 200;
         numClients = 20;
+
+        // factories
+        httpClientFactory = new HttpClientFactory();
+
+        // other services
+        reqDecoder = new RequestDecoder();
     }
 
     public int getMaxAnglesPerServer() {
@@ -76,8 +82,8 @@ public class Config {
         return reqDecoder;
     }
 
-    public HttpClientFactory getClientFactory() {
-        return clientFactory;
+    public HttpClientFactory getHttpClientFactory() {
+        return httpClientFactory;
     }
 
     public double[] getServerLoadCutoffs() {
@@ -138,8 +144,8 @@ public class Config {
         reqDecoder = _reqDecoder;
     }
 
-    public void setClientFactory( HttpClientFactory _clientFactory ) {
-        clientFactory = _clientFactory;
+    public void setHttpClientFactory( HttpClientFactory _clientFactory ) {
+        httpClientFactory = _clientFactory;
     }
 
     public void setServerLoadCutoffs( double[] cutoffs ) {

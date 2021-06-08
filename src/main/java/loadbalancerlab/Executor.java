@@ -1,7 +1,6 @@
 package loadbalancerlab;
 
-import loadbalancerlab.cacheserver.CacheServer;
-import loadbalancerlab.cacheserver.ClientRequestHandler;
+import loadbalancerlab.cacheserver.CacheServerClientRequestHandler;
 import loadbalancerlab.cacheserver.RequestMonitor;
 import loadbalancerlab.cacheservermanager.CacheInfoServerRunnable;
 import loadbalancerlab.cacheservermanager.CacheServerManagerRunnable;
@@ -9,7 +8,6 @@ import loadbalancerlab.client.ClientManagerRunnable;
 import loadbalancerlab.factory.ClientFactory;
 import loadbalancerlab.factory.HttpClientFactory;
 import loadbalancerlab.loadbalancer.*;
-import loadbalancerlab.client.ConstantDemandFunctionImpl;
 import loadbalancerlab.shared.Config;
 import loadbalancerlab.shared.RequestDecoder;
 import loadbalancerlab.vendor.Graph;
@@ -20,7 +18,6 @@ import loadbalancerlab.cacheservermanager.CacheServerManager;
 
 import javax.swing.*;
 import java.awt.*;
-import java.net.http.HttpClient;
 import java.util.*;
 import java.util.List;
 
@@ -44,24 +41,9 @@ public class Executor {
         Logger.configure(new Logger.LogType[] { Logger.LogType.CAPACITY_MODULATION });
         Logger.log("Run | started Run thread", Logger.LogType.ALWAYS_PRINT);
 
+        // configure classes
         Config config = new Config();
-
-        // CONFIGURATION
-        // configure CacheServer package
-        ClientRequestHandler.configure(config);
-        RequestMonitor.configure(config);
-        // configure CacheServerManager package
-        CacheInfoServerRunnable.configure(config);
-        CacheServerManager.configure(config);
-        CacheServerManager.configure(config);
-        // configure LoadBalancer package
-        CacheRedistributor.configure(config);
-        CacheRedistributorRunnable.configure(config);
-        ClientRequestHandler.configure(config);
-        ClientRequestHandlerServer.configure(config);
-        HashRing.configure(config);
-        // configure Client package
-        ClientManagerRunnable.configure(config);
+        configure(config);
 
         // instantiate factories and other shared services
         CacheServerFactory cacheServerFactory = new CacheServerFactory();
@@ -82,6 +64,7 @@ public class Executor {
             try {
                 Thread.sleep(10);
             } catch (InterruptedException e) {
+                e.printStackTrace();
                 Logger.log("Executor | CacheServerManager startup loop interrupted", Logger.LogType.STARTUP_SEQUENCE);
             }
         }
@@ -99,6 +82,7 @@ public class Executor {
             try {
                 Thread.sleep(10);
             } catch (InterruptedException e) {
+                e.printStackTrace();
                 Logger.log("Executor | LoadBalancer startup waiting loop interrupted", Logger.LogType.STARTUP_SEQUENCE);
             }
         }
@@ -119,6 +103,7 @@ public class Executor {
         try {
             Thread.sleep(CLIENT_REQUEST_SEND_TIME);
         } catch (InterruptedException e) {
+            e.printStackTrace();
             Logger.log("Executor | Simulation interrupted", Logger.LogType.THREAD_MANAGEMENT);
         }
 
@@ -205,5 +190,24 @@ public class Executor {
 
     public static void main(String[] args) {
         new Executor().start();
+    }
+
+    private void configure(Config config) {
+        // CONFIGURATION
+        // configure CacheServer package
+        RequestMonitor.configure(config);
+        // configure CacheServerManager package
+        CacheInfoServerRunnable.configure(config); // being called
+        CacheServerManager.configure(config); // being called
+        // configure LoadBalancer package
+        CacheRedistributor.configure(config); // being called
+        CacheRedistributorRunnable.configure(config); // being called
+
+        CacheServerClientRequestHandler.configure(config);
+        LoadBalancerClientRequestHandler.configure(config);
+        ClientRequestHandlerServer.configure(config);
+        HashRing.configure(config);
+        // configure Client package
+        ClientManagerRunnable.configure(config);
     }
 }

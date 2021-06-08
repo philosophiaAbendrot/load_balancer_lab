@@ -70,6 +70,7 @@ public class CacheServerManagerRunnable implements Runnable {
                 }
                 Thread.sleep(sleepInterval);
             } catch (InterruptedException e) {
+                e.printStackTrace();
                 Thread.currentThread().interrupt();
                 break;
             }

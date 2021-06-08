@@ -19,12 +19,12 @@ public class CacheRedistributor {
 
     private static RequestDecoder reqDecoder;
     private int cacheServerManagerPort;
-    private static HttpClientFactory clientFactory;
+    private static HttpClientFactory httpClientFactory;
     private static double[] serverLoadCutoffs;
 
     public static void configure( Config config ) {
         reqDecoder = config.getRequestDecoder();
-        clientFactory = config.getClientFactory();
+        httpClientFactory = config.getHttpClientFactory();
         serverLoadCutoffs = config.getServerLoadCutoffs();
     }
 
@@ -38,7 +38,7 @@ public class CacheRedistributor {
     // their capacity factors
     // updates the serverInfoTable field using the results
     public void requestServerInfo() {
-        CloseableHttpClient client = clientFactory.buildApacheClient();
+        CloseableHttpClient client = httpClientFactory.buildApacheClient();
         HttpGet getReq = new HttpGet("http://127.0.0.1:" + cacheServerManagerPort + "/cache-servers");
 
         try {
@@ -61,6 +61,7 @@ public class CacheRedistributor {
                 }
             }
         } catch (IOException e) {
+            e.printStackTrace();
             Logger.log("CacheRedistributorImpl | Failed to send request to cache info server", Logger.LogType.REQUEST_PASSING);
         }
     }

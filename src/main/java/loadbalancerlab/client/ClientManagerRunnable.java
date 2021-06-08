@@ -1,9 +1,11 @@
 package loadbalancerlab.client;
 
+import com.thoughtworks.qdox.model.expression.Constant;
 import loadbalancerlab.factory.ClientFactory;
 import loadbalancerlab.factory.HttpClientFactory;
 import loadbalancerlab.shared.Config;
 
+import java.util.ArrayList;
 import java.util.List;
 
 public class ClientManagerRunnable implements Runnable {
@@ -59,9 +61,13 @@ public class ClientManagerRunnable implements Runnable {
      */
     @Override
     public void run() {
+        clientThreads = new ArrayList<>();
+
         // generate client threads
         for (int i = 0; i < numClients; i++) {
-            clientThreads.add(new Thread(clientFactory.buildClient(maxDemandTime, new ConstantDemandFunctionImpl(restInterval), httpClientFactory, requestStartTime)));
+            Client client = clientFactory.buildClient(maxDemandTime, new ConstantDemandFunctionImpl(restInterval), httpClientFactory, requestStartTime);
+            Thread clientThread = new Thread(client);
+            clientThreads.add(clientThread);
         }
 
         // start threads
@@ -72,6 +78,7 @@ public class ClientManagerRunnable implements Runnable {
             try {
                 Thread.sleep(TICK_INTERVAL);
             } catch (InterruptedException e) {
+                e.printStackTrace();
                 Thread.currentThread().interrupt();
                 break;
             }

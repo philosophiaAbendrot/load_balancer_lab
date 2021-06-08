@@ -87,6 +87,7 @@ public class CacheInfoServerRunnable implements Runnable {
         try {
             server.awaitTermination(Long.MAX_VALUE, TimeUnit.SECONDS);
         } catch (InterruptedException e) {
+            e.printStackTrace();
             Logger.log("CacheInfoServer | CacheInfoServer thread interrupted", Logger.LogType.THREAD_MANAGEMENT);
         } finally {
             // shutdown server

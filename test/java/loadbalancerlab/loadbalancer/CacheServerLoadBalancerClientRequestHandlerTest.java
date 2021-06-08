@@ -39,9 +39,9 @@ import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.*;
 
 // tests client request handler and client request handler server together
-public class ClientRequestHandlerTest {
+public class CacheServerLoadBalancerClientRequestHandlerTest {
     CacheRedistributor cacheRedis;
-    ClientRequestHandler reqHandler;
+    LoadBalancerClientRequestHandler reqHandler;
     static int defaultPort = 3_000;
     Thread mockServerThread;
     MockServer mockServerRunnable;
@@ -58,11 +58,11 @@ public class ClientRequestHandlerTest {
 
 
     private class MockServer implements Runnable {
-        ClientRequestHandler reqHandler;
+        LoadBalancerClientRequestHandler reqHandler;
         CacheRedistributor cacheRedis;
         public volatile int port = -1;
 
-        public MockServer(ClientRequestHandler _reqHandler, CacheRedistributor _cacheRedis) {
+        public MockServer( LoadBalancerClientRequestHandler _reqHandler, CacheRedistributor _cacheRedis) {
             reqHandler = _reqHandler;
             cacheRedis = _cacheRedis;
         }
@@ -148,11 +148,11 @@ public class ClientRequestHandlerTest {
         // setup configuration
         Logger.configure(new Logger.LogType[] { Logger.LogType.PRINT_NOTHING });
         config = new Config();
-        config.setClientFactory(mockClientFactory);
-        ClientRequestHandler.configure(config);
+        config.setHttpClientFactory(mockClientFactory);
+        LoadBalancerClientRequestHandler.configure(config);
 
         // setup and start mock server thread
-        reqHandler = new ClientRequestHandler(cacheRedis);
+        reqHandler = new LoadBalancerClientRequestHandler(cacheRedis);
         mockServerRunnable = new MockServer(reqHandler, cacheRedis);
         mockServerThread = new Thread(mockServerRunnable);
         mockServerThread.start();

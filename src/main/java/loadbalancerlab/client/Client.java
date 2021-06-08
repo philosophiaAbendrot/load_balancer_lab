@@ -82,12 +82,14 @@ public class Client implements Runnable {
                 printResponse(res);
                 res.close();
             } catch (IOException e) {
+                e.printStackTrace();
                 System.out.println("Client | No response to request sent to load balancer by client server ");
             }
 
             try {
                 this.demandFunction.rest();
             } catch (InterruptedException e) {
+                e.printStackTrace();
                 Logger.log("Client | Client thread interrupted", Logger.LogType.THREAD_MANAGEMENT);
                 Thread.currentThread().interrupt();
                 Logger.log("Client | Terminated Client Thread", Logger.LogType.THREAD_MANAGEMENT);
@@ -100,6 +102,7 @@ public class Client implements Runnable {
     public CloseableHttpResponse sendResponse(String resourceName) throws IOException {
         String path = "/api/" + resourceName;
         HttpGet httpGet = new HttpGet("http://127.0.0.1:" + Client.loadBalancerPort + path);
+        System.out.println("Client | sending request to loadbalancer at path = " + httpGet.getURI().toString());
         Logger.log(String.format("Client | path: %s", path), Logger.LogType.CLIENT_STARTUP);
         CloseableHttpClient httpClient = clientFactory.buildApacheClient();
         CloseableHttpResponse res = httpClient.execute(httpGet);

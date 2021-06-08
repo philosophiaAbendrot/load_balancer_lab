@@ -26,8 +26,8 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.*;
 
-public class ClientRequestHandlerServerIntegrationTest {
-    static ClientRequestHandler mockClientReqHandler;
+public class CacheServerLoadBalancerClientRequestHandlerServerIntegrationTest {
+    static LoadBalancerClientRequestHandler mockClientReqHandler;
     static ClientRequestHandlerServer clientRequestHandlerServer;
     static CacheRedistributor mockCacheRedis;
     static Thread clientRequestHandlerServerThread;
@@ -52,7 +52,7 @@ public class ClientRequestHandlerServerIntegrationTest {
         mockCacheRedis = Mockito.mock(CacheRedistributor.class);
         when(mockCacheRedis.selectPort(anyString())).thenReturn(selectedPort);
 
-        mockClientReqHandler = new ClientRequestHandler(mockCacheRedis);
+        mockClientReqHandler = new LoadBalancerClientRequestHandler(mockCacheRedis);
         clientRequestHandlerServer = new ClientRequestHandlerServer(mockClientReqHandler);
         clientRequestHandlerServerThread = new Thread(clientRequestHandlerServer);
 
@@ -69,9 +69,9 @@ public class ClientRequestHandlerServerIntegrationTest {
 
         // passing config to ClientRequestHandler
         config = new Config();
-        config.setClientFactory(mockClientFactory);
+        config.setHttpClientFactory(mockClientFactory);
 
-        ClientRequestHandler.configure(config);
+        LoadBalancerClientRequestHandler.configure(config);
         ClientRequestHandlerServer.configure(config);
 
         clientRequestHandlerServerThread.start();

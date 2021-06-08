@@ -23,28 +23,33 @@ import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
 
-public class ClientRequestHandler implements HttpRequestHandler {
+public class LoadBalancerClientRequestHandler implements HttpRequestHandler {
+    volatile private static int defaultPort;
     private List<Integer> incomingRequestTimestamps;
     private CacheRedistributor cacheRedis;
-    private static HttpClientFactory clientFactory;
+    public static HttpClientFactory clientFactory;
 
     public static void configure( Config config ) {
-        clientFactory = config.getClientFactory();
+        clientFactory = config.getHttpClientFactory();
     }
 
-    public ClientRequestHandler( CacheRedistributor _cacheRedis) {
+    public LoadBalancerClientRequestHandler( CacheRedistributor _cacheRedis) {
         incomingRequestTimestamps = Collections.synchronizedList(new LinkedList<>());
         cacheRedis = _cacheRedis;
     }
 
     @Override
     public void handle( HttpRequest httpRequest, HttpResponse httpResponse, HttpContext httpContext) {
+        System.out.println("path 1");
+        System.out.println("clientFactory = " + clientFactory);
         CloseableHttpClient httpClient = clientFactory.buildApacheClient();
+        System.out.println("path 2");
         String uri = httpRequest.getRequestLine().getUri();
         String[] uriArr = uri.split("/", 0);
         String resourceName = uriArr[uriArr.length - 1];
         int cacheServerPort = cacheRedis.selectPort(resourceName);
 
+        System.out.println("ClientRequestHandler | relaying message to cache server at port %d" + cacheServerPort);
         Logger.log(String.format("ClientRequestHandler | relaying message to cache server at port %d", cacheServerPort), Logger.LogType.REQUEST_PASSING);
         // record request incoming timestamp
         incomingRequestTimestamps.add((int)(System.currentTimeMillis() / 1000));
@@ -59,6 +64,7 @@ public class ClientRequestHandler implements HttpRequestHandler {
             httpResponse.setStatusCode(200);
         } catch (IOException e) {
             // if cache server failed
+            e.printStackTrace();
             JSONObject outputJsonObj = new JSONObject();
             outputJsonObj.put("error_message", "Cache server failed to respond");
             String htmlResponse = StringEscapeUtils.escapeJson(outputJsonObj.toString());

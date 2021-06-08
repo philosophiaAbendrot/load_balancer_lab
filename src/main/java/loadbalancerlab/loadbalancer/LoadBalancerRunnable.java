@@ -3,10 +3,10 @@ package loadbalancerlab.loadbalancer;
 public class LoadBalancerRunnable implements Runnable {
     private int port;
     private int cacheServerManagerPort;
-    private Thread clientReqHandlerServer;
+    private Thread clientReqHandlerThread;
     private ClientRequestHandlerServer clientReqHandlerRunnable;
-    private ClientRequestHandler clientReqHandler;
-    private CacheRedistributor cacheRedisImpl;
+    private LoadBalancerClientRequestHandler clientReqHandler;
+    private CacheRedistributor cacheRedis;
     private Thread cacheRedisThread;
     private HashRing hashRing;
 
@@ -15,34 +15,35 @@ public class LoadBalancerRunnable implements Runnable {
 
         // prepare CacheRedistributor
         hashRing = new HashRing();
-        cacheRedisImpl = new CacheRedistributor(cacheServerManagerPort, hashRing);
-        CacheRedistributorRunnable cacheRedisRunnable = new CacheRedistributorRunnable(cacheRedisImpl);
+        cacheRedis = new CacheRedistributor(cacheServerManagerPort, hashRing);
+        CacheRedistributorRunnable cacheRedisRunnable = new CacheRedistributorRunnable(cacheRedis);
         cacheRedisThread = new Thread(cacheRedisRunnable);
 
         // prepare ClientRequestHandler server
-        clientReqHandler = new ClientRequestHandler(cacheRedisImpl);
+        clientReqHandler = new LoadBalancerClientRequestHandler(cacheRedis);
         clientReqHandlerRunnable = new ClientRequestHandlerServer(clientReqHandler);
-        clientReqHandlerServer = new Thread(clientReqHandlerRunnable);
+        clientReqHandlerThread = new Thread(clientReqHandlerRunnable);
     }
 
     @Override
     public void run() {
         // startup cache redistributor and client request handler
         cacheRedisThread.start();
-        clientReqHandlerServer.start();
+        clientReqHandlerThread.start();
 
         while (true) {
             try {
                 Thread.sleep(500);
             } catch (InterruptedException e) {
                 Thread.currentThread().interrupt();
+                e.printStackTrace();
                 break;
             }
         }
 
         // shutdown sub-threads
         cacheRedisThread.interrupt();
-        clientReqHandlerServer.interrupt();
+        clientReqHandlerThread.interrupt();
     }
 
     public int getPort() {
