@@ -42,6 +42,8 @@ public class ServerInfo {
     }
 
     public void updateCapacityFactor( int timestamp, double cf ) {
+        System.out.println("ServerInfo | updateCapacityFactor being called with timestamp = " + timestamp + " cf = " + cf);
+
         if (capFactorRecord.containsKey(timestamp)) {
             // do nothing if an entry already exists for this timestamp
             return;

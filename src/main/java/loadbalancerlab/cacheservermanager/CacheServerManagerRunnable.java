@@ -69,7 +69,7 @@ public class CacheServerManagerRunnable implements Runnable {
         while (true) {
             currentTime = (int)(System.currentTimeMillis() / 1_000);
             try {
-                if (capacityModulationInterval - currentTime >= capacityModulationInterval) {
+                if (currentTime - lastCapacityModulationTime >= capacityModulationInterval) {
                     lastCapacityModulationTime = currentTime;
                     cacheServerManager.modulateCapacity();
                 }

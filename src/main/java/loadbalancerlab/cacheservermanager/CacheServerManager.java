@@ -82,7 +82,9 @@ public class CacheServerManager {
     }
 
     public void modulateCapacity() {
+        System.out.println("CacheServerManager | modulateCapacity called");
         double averageCapacityFactor = serverMonitor.getAverageCf();
+        System.out.println("CacheServerManager | averageCapacityFactor = " + averageCapacityFactor);
         double diff = averageCapacityFactor - targetCf;
         int intDiff = (int)(Math.round(diff * growthRate));
 

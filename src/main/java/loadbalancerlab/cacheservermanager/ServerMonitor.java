@@ -73,12 +73,14 @@ public class ServerMonitor {
 
     // pings cache servers for updates on capacity factor and records the info
     public void pingCacheServers() {
+        System.out.println("ServerMonitor | pingCacheServers running");
         CloseableHttpClient httpClient = this.clientFactory.buildApacheClient();
         List<Integer> ports = new ArrayList<>(this.serverInfoTable.keySet());
 
         for (Map.Entry<Integer, ServerInfo> entry : this.serverInfoTable.entrySet()) {
             ServerInfo info = entry.getValue();
             HttpGet req = new HttpGet("http://127.0.0.1:" + info.getPort() + "/capacity-factor");
+            System.out.println("ServerMonitor | req = " + req.getURI().toString());
 
             try {
                 CloseableHttpResponse response = httpClient.execute(req);
@@ -97,11 +99,15 @@ public class ServerMonitor {
         int numEntries = 0;
 
         for (ServerInfo info : serverInfoTable.values()) {
+            System.out.println("ServerMonitor | info.getAverageCapacityFactor = " + info.getAverageCapacityFactor());
             if (info.getAverageCapacityFactor() != 0.0) {
                 cfSum += info.getAverageCapacityFactor();
                 numEntries++;
             }
         }
+
+        System.out.println("ServerMonitor | cfSum = " + cfSum);
+        System.out.println("numEntries = " + numEntries);
 
         // return average
         return cfSum / numEntries;
