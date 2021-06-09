@@ -121,7 +121,6 @@ public class CacheServerLoadBalancerClientRequestHandlerTest {
             } catch (InterruptedException e) {
                 server.shutdown(1, TimeUnit.SECONDS);
                 Thread.currentThread().interrupt();
-                Logger.log("ClientRequestHandlerTest | DummyServer thread terminated", Logger.LogType.THREAD_MANAGEMENT);
             }
         }
     }
@@ -146,7 +145,6 @@ public class CacheServerLoadBalancerClientRequestHandlerTest {
         when(cacheRedis.selectPort(anyString())).thenReturn(mockCacheServerPort);
 
         // setup configuration
-        Logger.configure(new Logger.LogType[] { Logger.LogType.PRINT_NOTHING });
         config = new Config();
         config.setHttpClientFactory(mockClientFactory);
         LoadBalancerClientRequestHandler.configure(config);

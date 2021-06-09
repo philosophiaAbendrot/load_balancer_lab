@@ -25,6 +25,7 @@ public class Executor {
     long maxDemandTime;
     static int simulationTime;
     Random rand;
+    Logger logger;
 
     public static void configure( Config config ) {
         simulationTime = config.getSimulationTime();
@@ -39,8 +40,10 @@ public class Executor {
      */
     public void start( Config config ) {
         this.rand = new Random();
-        Logger.configure(new Logger.LogType[] { Logger.LogType.ALWAYS_PRINT });
-        Logger.log("Run | started Run thread", Logger.LogType.STARTUP_SEQUENCE);
+        Logger.setPrintAll(true);
+        logger = new Logger("Executor");
+//        Logger.configure(new Logger.LogType[] {  });
+        logger.log("started Run thread", Logger.LogType.STARTUP_SEQUENCE);
 
         // configure classes
         configureComponents(config);
@@ -65,11 +68,11 @@ public class Executor {
                 Thread.sleep(10);
             } catch (InterruptedException e) {
                 e.printStackTrace();
-                Logger.log("Executor | CacheServerManager startup loop interrupted", Logger.LogType.STARTUP_SEQUENCE);
+                logger.log("CacheServerManager startup loop interrupted", Logger.LogType.STARTUP_SEQUENCE);
             }
         }
 
-        Logger.log("Executor | CacheServerManager running on port " + cacheServerManagerPort, Logger.LogType.STARTUP_SEQUENCE);
+        logger.log("CacheServerManager running on port " + cacheServerManagerPort, Logger.LogType.STARTUP_SEQUENCE);
 
         // instantiate and start load balancer
         LoadBalancerRunnable loadBalancer = new LoadBalancerRunnable(cacheServerManagerPort);
@@ -83,11 +86,11 @@ public class Executor {
                 Thread.sleep(10);
             } catch (InterruptedException e) {
                 e.printStackTrace();
-                Logger.log("Executor | LoadBalancer startup waiting loop interrupted", Logger.LogType.STARTUP_SEQUENCE);
+                logger.log("LoadBalancer startup waiting loop interrupted", Logger.LogType.STARTUP_SEQUENCE);
             }
         }
 
-        Logger.log("Executor | LoadBalancer running on port " + loadBalancerPort, Logger.LogType.STARTUP_SEQUENCE);
+        logger.log("LoadBalancer running on port " + loadBalancerPort, Logger.LogType.STARTUP_SEQUENCE);
 
         // set load balancer port on Client class
         Client.setLoadBalancerPort(loadBalancerPort);
@@ -104,11 +107,11 @@ public class Executor {
             Thread.sleep(simulationTime);
         } catch (InterruptedException e) {
             e.printStackTrace();
-            Logger.log("Executor | Simulation interrupted", Logger.LogType.THREAD_MANAGEMENT);
+            logger.log("Simulation interrupted", Logger.LogType.THREAD_MANAGEMENT);
         }
 
         // interrupt ClientManager class
-        Logger.log("Run | shutdown stage 1: shutdown client threads", Logger.LogType.THREAD_MANAGEMENT);
+        logger.log("shutdown stage 1: shutdown client threads", Logger.LogType.THREAD_MANAGEMENT);
         clientManagerRunnableThread.interrupt();
 
         // allow time to shut down client threads
@@ -123,7 +126,7 @@ public class Executor {
 //        SortedMap<Integer, Integer> loadBalancerRequestLog = loadBalancer.deliverData();
 
         // shutdown load balancer
-        Logger.log("Run | shutdown stage 2: Shutdown LoadBalancer thread", Logger.LogType.THREAD_MANAGEMENT);
+        logger.log("shutdown stage 2: Shutdown LoadBalancer thread", Logger.LogType.THREAD_MANAGEMENT);
         loadBalancerThread.interrupt();
 
         // allow time to shut down load balancer system
@@ -138,8 +141,8 @@ public class Executor {
 
         // shutdown CacheServerManager instance
         cacheServerManagerThread.interrupt();
-        Logger.log("Run | shutdown stage 3: Shutdown CacheServerManager thread", Logger.LogType.THREAD_MANAGEMENT);
-        Logger.log("Run | terminated Run thread", Logger.LogType.THREAD_MANAGEMENT);
+        logger.log("shutdown stage 3: Shutdown CacheServerManager thread", Logger.LogType.THREAD_MANAGEMENT);
+        logger.log("terminated Run thread", Logger.LogType.THREAD_MANAGEMENT);
 
         // Graph collected metrics
         List<Double> synthesizedClientRequestLogOutput = new ArrayList<>();

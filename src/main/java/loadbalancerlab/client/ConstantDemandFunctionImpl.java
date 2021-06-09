@@ -4,14 +4,16 @@ import loadbalancerlab.shared.Logger;
 
 public class ConstantDemandFunctionImpl implements DemandFunction {
     int restInterval;
+    private Logger logger;
 
     public ConstantDemandFunctionImpl(int restInterval) {
         this.restInterval = restInterval;
+        logger = new Logger("ConstantDemandFunctionImpl");
     }
 
     @Override
     public void rest() throws InterruptedException {
-        Logger.log("Client | restInterval = " + this.restInterval, Logger.LogType.LOAD_MODULATION);
+        logger.log("restInterval = " + this.restInterval, Logger.LogType.LOAD_MODULATION);
         Thread.sleep(this.restInterval);
     }
 

@@ -11,11 +11,16 @@ public class ServerMonitorRunnable implements Runnable {
     static int pingServerInterval = 1;
     int lastServerCountTime;
     int lastPingServerTime;
+    /**
+     * Used for logging
+     */
+    private Logger logger;
 
     public ServerMonitorRunnable( ServerMonitor _serverMonitor, CacheServerManager _cacheServerManager) {
         serverMonitor = _serverMonitor;
         cacheServerManager = _cacheServerManager;
         stopExecution = false;
+        logger = new Logger("ServerMonitorRunnable");
     }
 
     // Runnable Interface
@@ -25,7 +30,7 @@ public class ServerMonitorRunnable implements Runnable {
         lastPingServerTime = lastServerCountTime = currentTime;
 
 
-        Logger.log("ServerMonitorRunnable | Starting ServerMonitor", Logger.LogType.THREAD_MANAGEMENT);
+        logger.log("Starting ServerMonitor", Logger.LogType.THREAD_MANAGEMENT);
 
         while (!this.stopExecution) {
             tick();
@@ -49,7 +54,7 @@ public class ServerMonitorRunnable implements Runnable {
         } catch (InterruptedException e) {
             e.printStackTrace();
             Thread.currentThread().interrupt();
-            Logger.log("ServerMonitorRunnable | Shutting down ServerMonitorRunnable", Logger.LogType.THREAD_MANAGEMENT);
+            logger.log("Shutting down ServerMonitorRunnable", Logger.LogType.THREAD_MANAGEMENT);
             this.stopExecution = true;
         }
     }

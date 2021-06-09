@@ -13,8 +13,14 @@ class RequestMonitorRunnable implements Runnable {
      */
     RequestMonitor reqMonitor;
 
+    /**
+     * Used for logging
+     */
+    private Logger logger;
+
     public RequestMonitorRunnable( RequestMonitor _reqMonitor ) {
         reqMonitor = _reqMonitor;
+        logger = new Logger("RequestMonitorRunnable");
     }
 
     /**
@@ -22,7 +28,7 @@ class RequestMonitorRunnable implements Runnable {
      */
     @Override
     public void run() {
-        Logger.log("CacheServer | Started TelemetryCurator thread", Logger.LogType.THREAD_MANAGEMENT);
+        logger.log("Started TelemetryCurator thread", Logger.LogType.THREAD_MANAGEMENT);
 
         while (true) {
             try {
@@ -35,6 +41,6 @@ class RequestMonitorRunnable implements Runnable {
             }
         }
 
-        Logger.log("CacheServer | Terminated TelemetryCurator thread", Logger.LogType.THREAD_MANAGEMENT);
+        logger.log("Terminated TelemetryCurator thread", Logger.LogType.THREAD_MANAGEMENT);
     }
 }

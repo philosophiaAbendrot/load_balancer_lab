@@ -16,6 +16,10 @@ import java.util.concurrent.TimeUnit;
 public class ClientRequestHandlerServer implements Runnable {
     volatile private static int defaultPort;
     volatile private int port = -1;
+    public int getPort() {
+        return port;
+    }
+    private Logger logger;
     LoadBalancerClientRequestHandler loadBalancerClientRequestHandler;
 
     public static void configure( Config config ) {
@@ -24,15 +28,12 @@ public class ClientRequestHandlerServer implements Runnable {
 
     public ClientRequestHandlerServer( LoadBalancerClientRequestHandler loadBalancerClientRequestHandler ) {
         this.loadBalancerClientRequestHandler = loadBalancerClientRequestHandler;
-    }
-
-    public int getPort() {
-        return port;
+        logger = new Logger("ClientRequestHandlerServer");
     }
 
     @Override
     public void run() {
-        Logger.log("ClientRequestHandlerServer | ClientRequestHandlerServer thread started", Logger.LogType.THREAD_MANAGEMENT);
+        logger.log("ClientRequestHandlerServer thread started", Logger.LogType.THREAD_MANAGEMENT);
         InetAddress hostAddress = null;
 
         try {
@@ -85,13 +86,13 @@ public class ClientRequestHandlerServer implements Runnable {
             server.awaitTermination(Long.MAX_VALUE, TimeUnit.SECONDS);
         } catch (InterruptedException e) {
             e.printStackTrace();
-            Logger.log("ClientRequestHandlerServer | Thread interrupted", Logger.LogType.THREAD_MANAGEMENT);
+            logger.log("Thread interrupted", Logger.LogType.THREAD_MANAGEMENT);
         } finally {
             Thread.currentThread().interrupt();
             server.shutdown(5, TimeUnit.SECONDS);
             // shut down capacity factor monitor thread
             // shut down this thread
-            Logger.log("ClientRequestHandlerServer | Thread shutdown", Logger.LogType.THREAD_MANAGEMENT);
+            logger.log("Thread shutdown", Logger.LogType.THREAD_MANAGEMENT);
         }
     }
 }

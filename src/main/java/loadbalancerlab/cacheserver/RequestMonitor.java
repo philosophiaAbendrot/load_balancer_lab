@@ -19,12 +19,18 @@ public class RequestMonitor {
      */
     static int recordTTL = 10_000;
 
+    /**
+     * Used for logging
+     */
+    private Logger logger;
+
     public static void configure( Config config ) {
         recordTTL = config.getRequestMonitorRecordTTL();
     }
 
     public RequestMonitor() {
         requestData = Collections.synchronizedList(new ArrayList<>());
+        logger = new Logger("RequestMonitor");
     }
 
     /**
@@ -43,7 +49,7 @@ public class RequestMonitor {
      * @param currentTime: the time which is used to calculate whether the records are old enough to be deleted
      */
     public void clearOutData(long currentTime) {
-        Logger.log("RequestMonitor | clearOutTelemetry running", Logger.LogType.TELEMETRY_UPDATE);
+        logger.log("clearOutTelemetry running", Logger.LogType.TELEMETRY_UPDATE);
         // delete request data which are out of date
         Iterator<RequestDatum> iterator = requestData.iterator();
         int deleteCount = 0;
@@ -58,7 +64,7 @@ public class RequestMonitor {
             }
         }
 
-        Logger.log("RequestMonitor | " + deleteCount + " data deleted.", Logger.LogType.TELEMETRY_UPDATE);
+        logger.log(deleteCount + " data deleted.", Logger.LogType.TELEMETRY_UPDATE);
     }
 
     /**
@@ -78,7 +84,7 @@ public class RequestMonitor {
                 runningTime += datum.processingTime;
 
             double capacityFactor = runningTime / (double)(currentTime - startTime);
-            Logger.log(String.format("CacheServer | capacityFactor = %f", capacityFactor), Logger.LogType.REQUEST_PASSING);
+            logger.log(String.format("CacheServer | capacityFactor = %f", capacityFactor), Logger.LogType.REQUEST_PASSING);
 
             return capacityFactor;
         }

@@ -21,6 +21,10 @@ public class CacheServerClientRequestHandler implements HttpHandler {
      */
     RequestMonitor reqMonitor;
     static int processingTime;
+    /**
+     * Used for logging
+     */
+    private Logger logger;
 
     public static void configure( Config config ) {
         processingTime = config.getCacheServerProcessingTime();
@@ -28,6 +32,7 @@ public class CacheServerClientRequestHandler implements HttpHandler {
 
     public CacheServerClientRequestHandler( RequestMonitor _reqMonitor ) {
         reqMonitor = _reqMonitor;
+        logger = new Logger("CacheServerClientRequestHandler");
     }
 
     /**
@@ -37,7 +42,7 @@ public class CacheServerClientRequestHandler implements HttpHandler {
     @Override
     public void handle( HttpExchange httpExchange ) throws IOException {
         long startTime = System.currentTimeMillis();
-        Logger.log("CacheServer | received request from load balancer", Logger.LogType.REQUEST_PASSING);
+        logger.log("received request from load balancer", Logger.LogType.REQUEST_PASSING);
         // extract parameters from request uri
         String requestParams = extractParams(httpExchange);
 
@@ -56,7 +61,7 @@ public class CacheServerClientRequestHandler implements HttpHandler {
         outputStream.write(responseString.getBytes());
         outputStream.flush();
         outputStream.close();
-        Logger.log("CacheServer | sent request back to load balancer", Logger.LogType.REQUEST_PASSING);
+        logger.log("sent request back to load balancer", Logger.LogType.REQUEST_PASSING);
 
         long endTime = System.currentTimeMillis();
         // record request

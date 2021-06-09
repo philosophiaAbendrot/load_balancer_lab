@@ -50,6 +50,11 @@ public class Client implements Runnable {
      */
     RequestDecoder reqDecoder;
 
+    /**
+     * used for logging
+     */
+    private Logger logger;
+
     public Client( long maxDemandTime, DemandFunction demandFunction, HttpClientFactory clientFactory, long requestStartTime, RequestDecoder reqDecoder ) {
         this.maxDemandTime = maxDemandTime;
         // first request is sent up to 15 seconds after initialization to stagger the incoming requests
@@ -57,6 +62,7 @@ public class Client implements Runnable {
         this.demandFunction = demandFunction;
         this.reqDecoder = reqDecoder;
         this.clientFactory = clientFactory;
+        logger = new Logger("Client");
     }
 
     /**
@@ -74,12 +80,12 @@ public class Client implements Runnable {
      */
     @Override
     public void run() {
-        Logger.log("Client | Started Client thread", Logger.LogType.THREAD_MANAGEMENT);
+        logger.log("Started Client thread", Logger.LogType.THREAD_MANAGEMENT);
         int count = 0;
         while (true) {
             if (System.currentTimeMillis() < requestStartTime) {
                 // dummy printout used to force thread scheduling and thus even out client request load at beginning
-//                Logger.log("", "alwaysPrint");
+//                logger.log("", Logger.LogType.ALWAYS_PRINT);
                 count++;
                 continue;
             }
@@ -98,19 +104,19 @@ public class Client implements Runnable {
                 this.demandFunction.rest();
             } catch (InterruptedException e) {
                 e.printStackTrace();
-                Logger.log("Client | Client thread interrupted", Logger.LogType.THREAD_MANAGEMENT);
+                logger.log("Client thread interrupted", Logger.LogType.THREAD_MANAGEMENT);
                 Thread.currentThread().interrupt();
-                Logger.log("Client | Terminated Client Thread", Logger.LogType.THREAD_MANAGEMENT);
+                logger.log("Terminated Client Thread", Logger.LogType.THREAD_MANAGEMENT);
                 break;
             }
         }
-        Logger.log("Client | Terminated Client thread", Logger.LogType.THREAD_MANAGEMENT);
+        logger.log("Terminated Client thread", Logger.LogType.THREAD_MANAGEMENT);
     }
 
     public CloseableHttpResponse sendResponse(String resourceName) throws IOException {
         String path = "/api/" + resourceName;
         HttpGet httpGet = new HttpGet("http://127.0.0.1:" + Client.loadBalancerPort + path);
-        Logger.log(String.format("Client | path: %s", path), Logger.LogType.CLIENT_STARTUP);
+        logger.log(String.format("path: %s", path), Logger.LogType.CLIENT_STARTUP);
         CloseableHttpClient httpClient = clientFactory.buildApacheClient();
         CloseableHttpResponse res = httpClient.execute(httpGet);
         HttpEntity resEntity = res.getEntity();
@@ -128,7 +134,7 @@ public class Client implements Runnable {
         HttpEntity responseBody = response.getEntity();
         InputStream bodyStream = responseBody.getContent();
         String responseString = IOUtils.toString(bodyStream, StandardCharsets.UTF_8.name());
-        Logger.log(String.format("Client | response body: %s", responseString), Logger.LogType.REQUEST_PASSING);
+        logger.log(String.format("response body: %s", responseString), Logger.LogType.REQUEST_PASSING);
         bodyStream.close();
     }
 }

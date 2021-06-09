@@ -1,6 +1,5 @@
 package loadbalancerlab.client;
 
-import com.thoughtworks.qdox.model.expression.Constant;
 import loadbalancerlab.factory.ClientFactory;
 import loadbalancerlab.factory.HttpClientFactory;
 import loadbalancerlab.shared.Config;

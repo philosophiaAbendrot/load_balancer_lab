@@ -11,6 +11,10 @@ public class Logger {
     // recordingData = recording simulation data and synthesizing it
 
     private static Set<LogType> displayedLogTypes;
+    private static boolean printAll;
+    private String className;
+
+    static {  printAll = false; }
 
     public enum LogType {
         THREAD_MANAGEMENT,
@@ -27,14 +31,27 @@ public class Logger {
         STARTUP_SEQUENCE,
     }
 
+    public static void setPrintAll(boolean setting) {
+        printAll = setting;
+    }
+
     public static void configure(LogType[] types) {
         displayedLogTypes = new HashSet<>(Arrays.asList(types));
     }
-    public static void log(String msg, LogType type) {
+
+    public Logger(String className) {
+        // initialize a logger instance
+        this.className = className;
+    }
+
+    public void log(String msg, LogType type) {
         if (type == LogType.PRINT_NOTHING)
             return;
 
-        if (displayedLogTypes.contains(type) || type == LogType.ALWAYS_PRINT)
-            System.out.printf("%s | %s\n", msg, java.time.ZonedDateTime.now());
+        if (printAll) {
+            System.out.printf("%s | %s | %s\n", className, msg, java.time.ZonedDateTime.now());
+        } else if (displayedLogTypes.contains(type) || type == LogType.ALWAYS_PRINT) {
+            System.out.printf("%s | %s | %s\n", className, msg, java.time.ZonedDateTime.now());
+        }
     }
 }

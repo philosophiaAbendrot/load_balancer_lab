@@ -19,9 +19,14 @@ public class CapacityFactorRequestHandler implements HttpHandler {
      * @param _reqMonitor the associated CacheServer instance's associated RequestMonitor instance
      */
     RequestMonitor reqMonitor;
+    /**
+     * Used for logging
+     */
+    Logger logger;
 
     public CapacityFactorRequestHandler( RequestMonitor _reqMonitor ) {
         reqMonitor = _reqMonitor;
+        logger = new Logger("CapacityFactorRequestHandler");
     }
 
     /**
@@ -34,13 +39,13 @@ public class CapacityFactorRequestHandler implements HttpHandler {
 
         // receive capacity factor from the CacheServer instance's RequestMonitor instance.
         double capacityFactor = reqMonitor.getCapacityFactor(System.currentTimeMillis());
-        Logger.log(String.format("CacheServer | capacityFactor = %f", capacityFactor), Logger.LogType.REQUEST_PASSING);
+        logger.log(String.format("capacityFactor = %f", capacityFactor), Logger.LogType.REQUEST_PASSING);
 
         // generate JSON object for response
         JSONObject outputJsonObj = new JSONObject();
         outputJsonObj.put("capacity_factor", capacityFactor);
         String htmlResponse = StringEscapeUtils.escapeJson(outputJsonObj.toString());
-        Logger.log("CacheServer | CapacityFactorRequestHandler processed request", Logger.LogType.REQUEST_PASSING);
+        logger.log("CapacityFactorRequestHandler processed request", Logger.LogType.REQUEST_PASSING);
         // send out response
         httpExchange.sendResponseHeaders(200, htmlResponse.length());
         // insert JSON object into response

@@ -1,5 +1,6 @@
 package loadbalancerlab.cacheservermanager;
 
+import loadbalancerlab.shared.Logger;
 import org.apache.commons.text.StringEscapeUtils;
 import org.apache.http.HttpRequest;
 import org.apache.http.HttpResponse;
@@ -13,6 +14,7 @@ import java.util.Map;
 
 public class CacheInfoRequestHandler implements HttpRequestHandler {
     private ServerMonitor serverMonitor;
+
     public CacheInfoRequestHandler( ServerMonitor _serverMonitor) {
         serverMonitor = _serverMonitor;
     }

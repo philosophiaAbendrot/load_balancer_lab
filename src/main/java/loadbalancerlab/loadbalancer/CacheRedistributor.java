@@ -21,6 +21,7 @@ public class CacheRedistributor {
     private int cacheServerManagerPort;
     private static HttpClientFactory httpClientFactory;
     private static double[] serverLoadCutoffs;
+    private Logger logger;
 
     public static void configure( Config config ) {
         reqDecoder = config.getRequestDecoder();
@@ -32,6 +33,7 @@ public class CacheRedistributor {
         serverInfoTable = new HashMap<>();
         cacheServerManagerPort = _cacheServerManagerPort;
         hashRing = _hashRing;
+        logger = new Logger("CacheRedistributor");
     }
 
     // sends request to cache server manager for an update on which cache servers are running on which ports and
@@ -64,7 +66,7 @@ public class CacheRedistributor {
             }
         } catch (IOException e) {
             e.printStackTrace();
-            Logger.log("CacheRedistributorImpl | Failed to send request to cache info server", Logger.LogType.REQUEST_PASSING);
+            logger.log("Failed to send request to cache info server", Logger.LogType.REQUEST_PASSING);
         }
     }
 

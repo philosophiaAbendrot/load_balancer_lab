@@ -17,9 +17,14 @@ public class CacheInfoServerRunnable implements Runnable {
     volatile private int port;
     CacheInfoRequestHandler cacheInfoRequestHandler;
     private static int defaultPort = -1;
+    /**
+     * Used for logging
+     */
+    private Logger logger;
 
     public CacheInfoServerRunnable(CacheInfoRequestHandler _cacheInfoRequestHandler) {
         cacheInfoRequestHandler = _cacheInfoRequestHandler;
+        logger = new Logger("CacheInfoServerRunnable");
     }
 
     public static void configure( Config config ) {
@@ -33,7 +38,7 @@ public class CacheInfoServerRunnable implements Runnable {
     @Override
     public void run() {
         int chosenPort = defaultPort;
-        Logger.log("CacheServerManager.CacheInfoServer | Started CacheInfoServer thread", Logger.LogType.THREAD_MANAGEMENT);
+        logger.log("Started CacheInfoServer thread", Logger.LogType.THREAD_MANAGEMENT);
         InetAddress hostAddress = null;
 
         try {
@@ -86,13 +91,13 @@ public class CacheInfoServerRunnable implements Runnable {
             server.awaitTermination(Long.MAX_VALUE, TimeUnit.SECONDS);
         } catch (InterruptedException e) {
             e.printStackTrace();
-            Logger.log("CacheInfoServer | CacheInfoServer thread interrupted", Logger.LogType.THREAD_MANAGEMENT);
+            logger.log("CacheInfoServerRunnable thread interrupted", Logger.LogType.THREAD_MANAGEMENT);
         } finally {
             // shutdown server
             Thread.currentThread().interrupt();
             server.shutdown(5, TimeUnit.SECONDS);
         }
 
-        Logger.log("CacheInfoServer | Shut down CacheInfoServer", Logger.LogType.THREAD_MANAGEMENT);
+        logger.log("Shut down CacheInfoServerRunnable thread", Logger.LogType.THREAD_MANAGEMENT);
     }
 }
