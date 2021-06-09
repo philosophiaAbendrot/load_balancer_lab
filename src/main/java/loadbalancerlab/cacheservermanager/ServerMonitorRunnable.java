@@ -8,7 +8,9 @@ public class ServerMonitorRunnable implements Runnable {
     boolean stopExecution;
     CacheServerManager cacheServerManager;
     static int serverCountInterval = 1;
+    static int pingServerInterval = 1;
     int lastServerCountTime;
+    int lastPingServerTime;
 
     public ServerMonitorRunnable( ServerMonitor _serverMonitor, CacheServerManager _cacheServerManager) {
         serverMonitor = _serverMonitor;
@@ -20,7 +22,8 @@ public class ServerMonitorRunnable implements Runnable {
     @Override
     public void run() {
         int currentTime = (int)(System.currentTimeMillis() / 1_000);
-        lastServerCountTime = currentTime;
+        lastPingServerTime = lastServerCountTime = currentTime;
+
 
         Logger.log("ServerMonitorRunnable | Starting ServerMonitor", Logger.LogType.THREAD_MANAGEMENT);
 
@@ -36,9 +39,13 @@ public class ServerMonitorRunnable implements Runnable {
             int currentSecond = (int)(System.currentTimeMillis() / 1_000);
 
             // updates record of active number of servers for a particular second
-            if (currentSecond - lastServerCountTime >= serverCountInterval) {
+            if (currentSecond - lastServerCountTime >= serverCountInterval)
                 serverMonitor.updateServerCount(currentSecond, cacheServerManager.numServers());
-            }
+
+            // server monitor pings cache servers for checkup
+            if (currentSecond - lastPingServerTime >= pingServerInterval)
+                serverMonitor.pingCacheServers();
+
         } catch (InterruptedException e) {
             e.printStackTrace();
             Thread.currentThread().interrupt();

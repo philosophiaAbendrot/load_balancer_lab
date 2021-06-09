@@ -21,6 +21,8 @@ public class ServerInfo {
     }
 
     public double getAverageCapacityFactor() {
+        System.out.println("ServerInfo | capFactorRecord.size = " + capFactorRecord.size());
+
         if (capFactorRecord.isEmpty())
             return 0.0;
 

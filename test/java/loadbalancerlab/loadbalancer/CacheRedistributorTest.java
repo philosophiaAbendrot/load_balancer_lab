@@ -49,7 +49,7 @@ public class CacheRedistributorTest {
             config = new Config();
             // setup config
             config.setRequestDecoder(mockDecoder);
-            config.setTargetCapacityFactor(targetCapacityFactor);
+            config.setTargetCf(targetCapacityFactor);
             config.setHttpClientFactory(mockClientFactory);
             CacheRedistributor.configure(config);
 

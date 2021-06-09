@@ -10,7 +10,6 @@ public class Config {
     private int defaultAnglesPerServer;
     private int ringSize;
     private HashFunction hashFunction;
-    private double targetCapacityFactor;
     private RequestDecoder reqDecoder;
     private HttpClientFactory httpClientFactory;
     private double[] serverLoadCutoffs;
@@ -33,7 +32,7 @@ public class Config {
         defaultAnglesPerServer = 20;
         ringSize = 10_000;
         hashFunction = new MurmurHashFunctionImpl();
-        targetCapacityFactor = 0.5;
+        targetCf = 0.5;
         reqDecoder = new RequestDecoder();
         httpClientFactory = new HttpClientFactory();
         serverLoadCutoffs = new double[] { 0.15, 0.35, 0.65, 0.85 };
@@ -41,8 +40,7 @@ public class Config {
         cacheRedisRemapInterval = 3;
         clientHandlerServerDefaultPort = 3_000;
         cacheInfoServerDefaultPort = 5_500;
-        targetCf = 0.75;
-        cacheServerGrowthRate = 25;
+        cacheServerGrowthRate = 50;
         capacityModulationInterval = 5;
         requestMonitorRecordTTL = 10_000;
         cacheServerProcessingTime = 200;
@@ -74,10 +72,6 @@ public class Config {
 
     public HashFunction getHashFunction() {
         return hashFunction;
-    }
-
-    public double getTargetCapacityFactor() {
-        return targetCapacityFactor;
     }
 
     public RequestDecoder getRequestDecoder() {
@@ -138,10 +132,6 @@ public class Config {
 
     public void setHashFunction( HashFunction _hashFunction ) {
         hashFunction = _hashFunction;
-    }
-
-    public void setTargetCapacityFactor( double _targetCapacityFactor ) {
-        targetCapacityFactor = _targetCapacityFactor;
     }
 
     public void setRequestDecoder( RequestDecoder _reqDecoder ) {
