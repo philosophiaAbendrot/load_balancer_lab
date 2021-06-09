@@ -39,7 +39,7 @@ public class Executor {
      */
     public void start( Config config ) {
         this.rand = new Random();
-        Logger.configure(new Logger.LogType[] { Logger.LogType.CAPACITY_MODULATION });
+        Logger.configure(new Logger.LogType[] { Logger.LogType.ALWAYS_PRINT });
         Logger.log("Run | started Run thread", Logger.LogType.STARTUP_SEQUENCE);
 
         // configure classes
@@ -69,7 +69,6 @@ public class Executor {
             }
         }
 
-        System.out.println("Executor | CacheServerManager running on port " + cacheServerManagerPort);
         Logger.log("Executor | CacheServerManager running on port " + cacheServerManagerPort, Logger.LogType.STARTUP_SEQUENCE);
 
         // instantiate and start load balancer
@@ -131,7 +130,6 @@ public class Executor {
         try {
             Thread.sleep(2_000);
         } catch(InterruptedException e) {
-            System.out.println(e.getMessage());
             e.printStackTrace();
         }
 

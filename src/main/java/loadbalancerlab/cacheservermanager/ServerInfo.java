@@ -21,8 +21,6 @@ public class ServerInfo {
     }
 
     public double getAverageCapacityFactor() {
-        System.out.println("ServerInfo | capFactorRecord.size = " + capFactorRecord.size());
-
         if (capFactorRecord.isEmpty())
             return 0.0;
 
@@ -44,8 +42,6 @@ public class ServerInfo {
     }
 
     public void updateCapacityFactor( int timestamp, double cf ) {
-        System.out.println("ServerInfo | updateCapacityFactor being called with timestamp = " + timestamp + " cf = " + cf);
-
         if (capFactorRecord.containsKey(timestamp)) {
             // do nothing if an entry already exists for this timestamp
             return;

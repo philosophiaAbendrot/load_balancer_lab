@@ -36,7 +36,6 @@ public class CacheServerManager {
     }
 
     public CacheServerManager( CacheServerFactory cacheServerFactory, HttpClientFactory clientFactory, RequestDecoder reqDecoder ) {
-        System.out.println("CacheServerManager initializer called");
         port = -1;
         this.cacheServerFactory = cacheServerFactory;
         this.clientFactory = clientFactory;
@@ -59,7 +58,6 @@ public class CacheServerManager {
     }
 
     public void startupCacheServer(int num) {
-        System.out.println("CacheServerManager | startupCacheServer running | num = " + num);
         for (int i = 0; i < num; i++) {
             CacheServer cacheServer = cacheServerFactory.produceCacheServer(new RequestMonitor());
             Thread cacheServerThread = cacheServerFactory.produceCacheServerThread(cacheServer);
@@ -77,18 +75,13 @@ public class CacheServerManager {
 
             serverMonitor.addServer(cacheServerIdCounter, cacheServer.getPort());
             cacheServerIdCounter++;
-            System.out.println("CacheServerManager | adding cacheServer i = " + i);
         }
     }
 
     public void modulateCapacity() {
-        System.out.println("CacheServerManager | modulateCapacity called");
         double averageCapacityFactor = serverMonitor.getAverageCf();
-        System.out.println("CacheServerManager | modulateCapacity:averageCapacityFactor = " + averageCapacityFactor);
         double diff = averageCapacityFactor - targetCf;
-        System.out.println("CacheServerManager | modulateCapacity:diff = " + diff);
         int intDiff = (int)(Math.round(diff * (growthRate / 100) * serverThreadTable.size()));
-        System.out.println("CacheServerManager | modulateCapacity:intDiff = " + intDiff);
 
         if (diff == 0) {
             return;

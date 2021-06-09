@@ -37,7 +37,6 @@ public class CacheServerClientRequestHandler implements HttpHandler {
     @Override
     public void handle( HttpExchange httpExchange ) throws IOException {
         long startTime = System.currentTimeMillis();
-        System.out.println("CacheServer | received request from load balancer");
         Logger.log("CacheServer | received request from load balancer", Logger.LogType.REQUEST_PASSING);
         // extract parameters from request uri
         String requestParams = extractParams(httpExchange);
@@ -52,8 +51,6 @@ public class CacheServerClientRequestHandler implements HttpHandler {
 
         // generate response and send it back
         String responseString = generateResponse(requestParams);
-        System.out.println("CacheServerClientRequestHandler | responseString = " + responseString);
-        System.out.println("CacheServerClientRequestHandler | sending back response to client");
         OutputStream outputStream = httpExchange.getResponseBody();
         httpExchange.sendResponseHeaders(200, responseString.length());
         outputStream.write(responseString.getBytes());
@@ -73,7 +70,6 @@ public class CacheServerClientRequestHandler implements HttpHandler {
      */
     private String generateResponse(String requestParams) {
         JSONObject jsonOutput = new JSONObject();
-        System.out.println("requestParams = " + requestParams);
         jsonOutput.put("resourceName", requestParams);
         jsonOutput.put("resourceContents", "here it is");
         // encode html content

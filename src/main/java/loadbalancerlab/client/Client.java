@@ -110,16 +110,11 @@ public class Client implements Runnable {
     public CloseableHttpResponse sendResponse(String resourceName) throws IOException {
         String path = "/api/" + resourceName;
         HttpGet httpGet = new HttpGet("http://127.0.0.1:" + Client.loadBalancerPort + path);
-        System.out.println("Client | sending request to loadbalancer at path = " + httpGet.getURI().toString());
         Logger.log(String.format("Client | path: %s", path), Logger.LogType.CLIENT_STARTUP);
         CloseableHttpClient httpClient = clientFactory.buildApacheClient();
         CloseableHttpResponse res = httpClient.execute(httpGet);
-        System.out.println("Client | received response from loadbalancer");
         HttpEntity resEntity = res.getEntity();
-        System.out.println("Client | resEntity.toString() = " + resEntity.toString());
         JSONObject resJson = reqDecoder.extractJsonApacheResponse(res);
-        System.out.println("Client | resJson = " + resJson.toString());
-        System.out.println("Client | resJson.keySet() = " + resJson.keySet());
         httpClient.close();
         return res;
     }

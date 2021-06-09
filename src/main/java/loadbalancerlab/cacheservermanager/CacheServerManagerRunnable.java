@@ -56,7 +56,6 @@ public class CacheServerManagerRunnable implements Runnable {
 
     @Override
     public void run() {
-        System.out.println("CacheServerManagerRunnable | starting thread");
         // start sub-threads
         serverMonitorThread.start();
         cacheInfoServerThread.start();
@@ -72,7 +71,6 @@ public class CacheServerManagerRunnable implements Runnable {
             try {
                 if (currentTime - lastCapacityModulationTime >= capacityModulationInterval) {
                     lastCapacityModulationTime = currentTime;
-                    System.out.println("CacheServerManagerRunnable | Calling modulate capacity");
                     cacheServerManager.modulateCapacity();
                 }
                 Thread.sleep(sleepInterval);

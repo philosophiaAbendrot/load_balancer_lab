@@ -33,12 +33,10 @@ public class ServerMonitor {
     // params: id: id of the server
     //         port: port that the server is running on
     public void addServer( int id, int port ) {
-        System.out.println("ServerMonitor | addServer being called - id = " + id + " | port = " + port);
         if (serverInfoTable.containsKey(id)) {
             throw new IllegalArgumentException("serverInfoTable already contains an entry for id " + id);
         }
         serverInfoTable.put(id, new ServerInfo(id, port));
-        System.out.println("ServerMonitor | serverInfoTable.size() = " + serverInfoTable.size());
     }
 
     // removes server from record
@@ -64,8 +62,6 @@ public class ServerMonitor {
 
     // returns server info table
     public Map<Integer, ServerInfo> getServerInfo() {
-        System.out.println("ServerMonitor | getServerInfo called");
-        System.out.println("ServerMonitor | serverInfoTable.size() = " + serverInfoTable.size());
         Map<Integer, ServerInfo> copyMap = new HashMap<>();
         copyMap.putAll(serverInfoTable);
         return copyMap;
@@ -73,14 +69,12 @@ public class ServerMonitor {
 
     // pings cache servers for updates on capacity factor and records the info
     public void pingCacheServers() {
-        System.out.println("ServerMonitor | pingCacheServers running");
         CloseableHttpClient httpClient = this.clientFactory.buildApacheClient();
         List<Integer> ports = new ArrayList<>(this.serverInfoTable.keySet());
 
         for (Map.Entry<Integer, ServerInfo> entry : this.serverInfoTable.entrySet()) {
             ServerInfo info = entry.getValue();
             HttpGet req = new HttpGet("http://127.0.0.1:" + info.getPort() + "/capacity-factor");
-            System.out.println("ServerMonitor | req = " + req.getURI().toString());
 
             try {
                 CloseableHttpResponse response = httpClient.execute(req);
@@ -99,15 +93,11 @@ public class ServerMonitor {
         int numEntries = 0;
 
         for (ServerInfo info : serverInfoTable.values()) {
-            System.out.println("ServerMonitor | info.getAverageCapacityFactor = " + info.getAverageCapacityFactor());
             if (info.getAverageCapacityFactor() != 0.0) {
                 cfSum += info.getAverageCapacityFactor();
                 numEntries++;
             }
         }
-
-        System.out.println("ServerMonitor | cfSum = " + cfSum);
-        System.out.println("numEntries = " + numEntries);
 
         // return average
         return cfSum / numEntries;

@@ -24,8 +24,6 @@ public class CacheInfoRequestHandler implements HttpRequestHandler {
         // create output json object
         JSONObject outputJson = new JSONObject();
 
-        System.out.println("CacheInfoRequestHandler | serverInfo.size = " + serverInfo.size());
-
         for (Map.Entry<Integer, ServerInfo> entry : serverInfo.entrySet()) {
             ServerInfo info = entry.getValue();
             JSONObject jsonElement = new JSONObject();

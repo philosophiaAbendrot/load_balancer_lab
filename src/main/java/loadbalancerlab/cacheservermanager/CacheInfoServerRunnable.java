@@ -33,7 +33,6 @@ public class CacheInfoServerRunnable implements Runnable {
     @Override
     public void run() {
         int chosenPort = defaultPort;
-        System.out.println("started CacheInfoServerRunnable");
         Logger.log("CacheServerManager.CacheInfoServer | Started CacheInfoServer thread", Logger.LogType.THREAD_MANAGEMENT);
         InetAddress hostAddress = null;
 
@@ -52,7 +51,6 @@ public class CacheInfoServerRunnable implements Runnable {
         HttpServer server;
 
         while (true) {
-            System.out.println("Attempting to start server on port " + chosenPort);
             try {
                 server = ServerBootstrap.bootstrap()
                         .setLocalAddress(hostAddress)
@@ -70,7 +68,6 @@ public class CacheInfoServerRunnable implements Runnable {
                 continue;
             }
 
-            System.out.println("CacheInfoServerRunnable | Server successfully started on port " + chosenPort);
             // break out of loop if server successfully started
             break;
         }

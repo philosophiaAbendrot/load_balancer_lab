@@ -70,7 +70,6 @@ public class ClientRequestHandlerServer implements Runnable {
 
             // if server successfully started, exit the loop
             this.port = temporaryPort;
-            System.out.println("ClientRequestHandler | Successfully started server on port " + temporaryPort);
             break;
         }
 

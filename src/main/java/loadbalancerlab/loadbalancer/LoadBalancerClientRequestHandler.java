@@ -44,14 +44,9 @@ public class LoadBalancerClientRequestHandler implements HttpRequestHandler {
     public void handle( HttpRequest httpRequest, HttpResponse httpResponse, HttpContext httpContext) {
         CloseableHttpClient httpClient = clientFactory.buildApacheClient();
         String uri = httpRequest.getRequestLine().getUri();
-        System.out.println("uri = " + uri);
         String[] uriArr = uri.split("/");
-        System.out.println("uriArr = " + Arrays.toString(uriArr));
         String resourceName = uriArr[uriArr.length - 1];
-        System.out.println("resourceName = " + resourceName);
         int cacheServerPort = cacheRedis.selectPort(resourceName);
-        System.out.println("cacheServerPort = " + cacheServerPort);
-        System.out.println("ClientRequestHandler | relaying message to cache server at port %d" + cacheServerPort);
         Logger.log(String.format("ClientRequestHandler | relaying message to cache server at port %d", cacheServerPort), Logger.LogType.REQUEST_PASSING);
         // record request incoming timestamp
         incomingRequestTimestamps.add((int)(System.currentTimeMillis() / 1000));
