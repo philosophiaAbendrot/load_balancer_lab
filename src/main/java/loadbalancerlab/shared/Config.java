@@ -24,6 +24,7 @@ public class Config {
     private int cacheServerProcessingTime;
     private int numClients;
     private int numCacheServersOnStartup;
+    private int simulationTime;
 
     public Config() {
         // default configurations
@@ -46,6 +47,7 @@ public class Config {
         cacheServerProcessingTime = 200;
         numClients = 20;
         numCacheServersOnStartup = 5;
+        simulationTime = 80_000;
 
         // factories
         httpClientFactory = new HttpClientFactory();
@@ -114,6 +116,8 @@ public class Config {
 
     public int getNumCacheServersOnStartup() { return numCacheServersOnStartup; }
 
+    public int getSimulationTime() { return simulationTime; }
+
     public void setMaxAnglesPerServer( int _maxAnglesPerServer ) {
         maxAnglesPerServer = _maxAnglesPerServer;
     }
@@ -173,6 +177,8 @@ public class Config {
     public void setCacheServerProcessingTime( int processingTime ) { cacheServerProcessingTime = processingTime; }
 
     public void setNumClients(int numClients) { this.numClients = numClients; }
+
+    public void setSimulationTime(int simulationTime) { this.simulationTime = simulationTime; }
 
     public void setNumCacheServersOnStartup( int numCacheServersOnStartup ) {
         this.numCacheServersOnStartup = numCacheServersOnStartup;

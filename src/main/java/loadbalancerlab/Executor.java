@@ -22,12 +22,13 @@ import java.util.*;
 import java.util.List;
 
 public class Executor {
-    final static int NUM_CLIENTS = 50;
     long maxDemandTime;
-    final static int CLIENT_REQUEST_SEND_TIME = 40_000;
-    final static int STARTUP_SERVER_COUNT = 10;
-    final static int CONSTANT_DEMAND_REST_INTERVAL = 1_000;
+    static int simulationTime;
     Random rand;
+
+    public static void configure( Config config ) {
+        simulationTime = config.getSimulationTime();
+    }
 
     public Executor() {
         maxDemandTime = System.currentTimeMillis() + 20_000;
@@ -36,14 +37,13 @@ public class Executor {
     /**
      * Starts, runs and shuts down entire simulation system
      */
-    public void start() {
+    public void start( Config config ) {
         this.rand = new Random();
         Logger.configure(new Logger.LogType[] { Logger.LogType.CAPACITY_MODULATION });
         Logger.log("Run | started Run thread", Logger.LogType.STARTUP_SEQUENCE);
 
         // configure classes
-        Config config = new Config();
-        configure(config);
+        configureComponents(config);
 
         // instantiate factories and other shared services
         CacheServerFactory cacheServerFactory = new CacheServerFactory();
@@ -102,7 +102,7 @@ public class Executor {
 
         // let simulation run
         try {
-            Thread.sleep(CLIENT_REQUEST_SEND_TIME);
+            Thread.sleep(simulationTime);
         } catch (InterruptedException e) {
             e.printStackTrace();
             Logger.log("Executor | Simulation interrupted", Logger.LogType.THREAD_MANAGEMENT);
@@ -190,10 +190,12 @@ public class Executor {
     }
 
     public static void main(String[] args) {
-        new Executor().start();
+        Config config = new Config();
+        Executor.configure(config);
+        new Executor().start(config);
     }
 
-    private void configure(Config config) {
+    private void configureComponents(Config config) {
         // CONFIGURATION
         // configure CacheServer package
         RequestMonitor.configure(config);
