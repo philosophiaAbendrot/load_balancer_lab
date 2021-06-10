@@ -14,7 +14,10 @@ public class Logger {
     private static boolean printAll;
     private String className;
 
-    static {  printAll = false; }
+    static {
+        printAll = false;
+        displayedLogTypes = new HashSet<>();
+    }
 
     public enum LogType {
         THREAD_MANAGEMENT,

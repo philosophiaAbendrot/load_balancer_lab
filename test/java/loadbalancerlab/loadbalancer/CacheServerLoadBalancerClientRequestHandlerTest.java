@@ -2,7 +2,6 @@ package loadbalancerlab.loadbalancer;
 
 import loadbalancerlab.factory.HttpClientFactory;
 import loadbalancerlab.shared.Config;
-import loadbalancerlab.shared.Logger;
 import org.apache.commons.io.IOUtils;
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpStatus;
@@ -17,10 +16,7 @@ import org.apache.http.impl.bootstrap.ServerBootstrap;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.message.BasicStatusLine;
 import org.apache.http.protocol.ImmutableHttpProcessor;
-import org.junit.jupiter.api.AfterEach;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.DisplayName;
-import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.*;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mockito;
 
@@ -40,24 +36,23 @@ import static org.mockito.Mockito.*;
 
 // tests client request handler and client request handler server together
 public class CacheServerLoadBalancerClientRequestHandlerTest {
-    CacheRedistributor cacheRedis;
-    LoadBalancerClientRequestHandler reqHandler;
+    static CacheRedistributor cacheRedis;
+    static LoadBalancerClientRequestHandler reqHandler;
     static int defaultPort = 3_000;
-    Thread mockServerThread;
-    MockServer mockServerRunnable;
-    Config config;
-    HttpClientFactory clientFactory;
-    int mockServerPort;
+    static Thread mockServerThread;
+    static MockServer mockServerRunnable;
+    static Config config;
+    static HttpClientFactory clientFactory;
+    static int mockServerPort;
 
-    CloseableHttpClient mockClient;
-    CloseableHttpResponse mockResponse;
-    HttpEntity resEntity;
-    String mockEntityContent = "resource_content.jpg";
+    static CloseableHttpClient mockClient;
+    static CloseableHttpResponse mockResponse;
+    static HttpEntity resEntity;
+    static String mockEntityContent = "resource_content.jpg";
 
-    int mockCacheServerPort = 5_846;
+    static int mockCacheServerPort = 5_846;
 
-
-    private class MockServer implements Runnable {
+    private static class MockServer implements Runnable {
         LoadBalancerClientRequestHandler reqHandler;
         CacheRedistributor cacheRedis;
         public volatile int port = -1;
@@ -125,28 +120,14 @@ public class CacheServerLoadBalancerClientRequestHandlerTest {
         }
     }
 
-    @BeforeEach
-    public void setup() throws IOException {
-        // setup mock http client
-        mockClient = Mockito.mock(CloseableHttpClient.class);
-        HttpClientFactory mockClientFactory = Mockito.mock(HttpClientFactory.class);
-        when(mockClientFactory.buildApacheClient()).thenReturn(mockClient);
-
-        // setting up mocks for mock response
-        mockResponse = Mockito.mock(CloseableHttpResponse.class);
-        StatusLine mockResponseStatus = new BasicStatusLine(HttpVersion.HTTP_1_1, HttpStatus.SC_OK, "OK");
-        when(mockResponse.getStatusLine()).thenReturn(mockResponseStatus);
-        resEntity = new StringEntity(mockEntityContent);
-        when(mockResponse.getEntity()).thenReturn(resEntity);
-        when(mockClient.execute(any(HttpGet.class))).thenReturn(mockResponse);
-
+    @BeforeAll
+    public static void setupServer() throws IOException {
         // setup mock CacheRedistributor Impl
         cacheRedis = Mockito.mock(CacheRedistributor.class);
         when(cacheRedis.selectPort(anyString())).thenReturn(mockCacheServerPort);
 
         // setup configuration
         config = new Config();
-        config.setHttpClientFactory(mockClientFactory);
         LoadBalancerClientRequestHandler.configure(config);
 
         // setup and start mock server thread
@@ -160,11 +141,31 @@ public class CacheServerLoadBalancerClientRequestHandlerTest {
         while (true) {
             if (mockServerRunnable.port != -1) {
                 mockServerPort = mockServerRunnable.port;
-                System.out.println("mockServerPort = " + mockServerPort);
                 break;
-
             }
         }
+    }
+
+    @AfterAll
+    public static void shutdown() {
+        mockServerThread.interrupt();
+    }
+
+    @BeforeEach
+    public void setup() throws IOException {
+        // setup mock http client
+        mockClient = Mockito.mock(CloseableHttpClient.class);
+        HttpClientFactory mockClientFactory = Mockito.mock(HttpClientFactory.class);
+        when(mockClientFactory.buildApacheClient()).thenReturn(mockClient);
+        reqHandler.clientFactory = mockClientFactory;
+
+        // setting up mocks for mock response
+        mockResponse = Mockito.mock(CloseableHttpResponse.class);
+        StatusLine mockResponseStatus = new BasicStatusLine(HttpVersion.HTTP_1_1, HttpStatus.SC_OK, "OK");
+        when(mockResponse.getStatusLine()).thenReturn(mockResponseStatus);
+        resEntity = new StringEntity(mockEntityContent);
+        when(mockResponse.getEntity()).thenReturn(resEntity);
+        when(mockClient.execute(any(HttpGet.class))).thenReturn(mockResponse);
     }
 
     @Test
@@ -183,11 +184,11 @@ public class CacheServerLoadBalancerClientRequestHandlerTest {
         CloseableHttpClient client = clientFactory.buildApacheClient();
         String resourceName = "Grumpy_Spooky.jpg";
         HttpGet getReq = new HttpGet("http://127.0.0.1:" + mockServerPort + "/resource/" + resourceName);
-        CloseableHttpResponse res = client.execute(getReq);
+        client.execute(getReq);
         ArgumentCaptor<HttpGet> argCaptor = ArgumentCaptor.forClass(HttpGet.class);
         verify(mockClient, times(1)).execute(argCaptor.capture());
         URI reqUri = argCaptor.getValue().getURI();
-        String expectedPath = "http://127.0.0.1:" + mockCacheServerPort;
+        String expectedPath = "http://127.0.0.1:" + mockCacheServerPort + "/" + resourceName;
         assertEquals(expectedPath, reqUri.toString());
     }
 
@@ -201,10 +202,5 @@ public class CacheServerLoadBalancerClientRequestHandlerTest {
         InputStream contentFromMockServer = res.getEntity().getContent();
         String stringFromMockServer = IOUtils.toString(contentFromMockServer, StandardCharsets.UTF_8.name());
         assertEquals(mockEntityContent, stringFromMockServer);
-    }
-
-    @AfterEach
-    public void shutdown() {
-        mockServerThread.interrupt();
     }
 }

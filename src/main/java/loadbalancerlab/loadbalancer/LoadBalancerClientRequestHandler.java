@@ -23,7 +23,6 @@ import java.util.LinkedList;
 import java.util.List;
 
 public class LoadBalancerClientRequestHandler implements HttpRequestHandler {
-    volatile private static int defaultPort;
     private List<Integer> incomingRequestTimestamps;
     private CacheRedistributor cacheRedis;
     public static HttpClientFactory clientFactory;
@@ -49,22 +48,17 @@ public class LoadBalancerClientRequestHandler implements HttpRequestHandler {
         logger.log(String.format("relaying message to cache server at port %d", cacheServerPort), Logger.LogType.REQUEST_PASSING);
         // record request incoming timestamp
         incomingRequestTimestamps.add((int)(System.currentTimeMillis() / 1000));
-
         HttpGet getReq = new HttpGet("http://127.0.0.1:" + cacheServerPort + "/" + resourceName);
 
         try {
             CloseableHttpResponse res = httpClient.execute(getReq);
             HttpEntity resBody = res.getEntity();
             httpResponse.setEntity(resBody);
-//            EntityUtils.consume(resBody);
             httpResponse.setStatusCode(200);
         } catch (IOException e) {
             // if cache server failed
             e.printStackTrace();
             JSONObject outputJsonObj = new JSONObject();
-
-
-
             outputJsonObj.put("error_message", "Cache server failed to respond");
             String htmlResponse = StringEscapeUtils.escapeJson(outputJsonObj.toString());
             InputStream stream = new ByteArrayInputStream(htmlResponse.getBytes());
