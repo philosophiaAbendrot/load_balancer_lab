@@ -26,8 +26,8 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.*;
 
-public class CacheServerLoadBalancerClientRequestHandlerServerIntegrationTest {
-    static LoadBalancerClientRequestHandler mockClientReqHandler;
+public class LoadBalancerClientRequestHandlerServerIntegrationTest {
+    static LoadBalancerClientRequestHandler clientReqHandler;
     static ClientRequestHandlerServer clientRequestHandlerServer;
     static CacheRedistributor mockCacheRedis;
     static Thread clientRequestHandlerServerThread;
@@ -35,7 +35,7 @@ public class CacheServerLoadBalancerClientRequestHandlerServerIntegrationTest {
     static int clientRequestHandlerServerPort;
     static CloseableHttpClient httpClient;
     static HttpClientFactory mockClientFactory;
-    static CloseableHttpClient mockClient;
+    static CloseableHttpClient mockHttpClient;
     static CloseableHttpResponse mockResponse;
     static Config config;
     static String resourceName = "Chooder_Bunny.jpg";
@@ -52,28 +52,29 @@ public class CacheServerLoadBalancerClientRequestHandlerServerIntegrationTest {
         mockCacheRedis = Mockito.mock(CacheRedistributor.class);
         when(mockCacheRedis.selectPort(anyString())).thenReturn(selectedPort);
 
-        mockClientReqHandler = new LoadBalancerClientRequestHandler(mockCacheRedis);
-        clientRequestHandlerServer = new ClientRequestHandlerServer(mockClientReqHandler);
-        clientRequestHandlerServerThread = new Thread(clientRequestHandlerServer);
-
-        mockClient = Mockito.mock(CloseableHttpClient.class);
+        // create a mock Http Client and replicate behaviour with mock responses
+        mockHttpClient = Mockito.mock(CloseableHttpClient.class);
         mockResponse = Mockito.mock(CloseableHttpResponse.class);
         StatusLine mockResponseStatus = new BasicStatusLine(HttpVersion.HTTP_1_1, HttpStatus.SC_OK, "OK");
         when(mockResponse.getStatusLine()).thenReturn(mockResponseStatus);
         HttpEntity resEntity = new StringEntity(expectedResponseContent);
-
         when(mockResponse.getEntity()).thenReturn(resEntity);
-        when(mockClient.execute(any(HttpGet.class))).thenReturn(mockResponse);
+        when(mockHttpClient.execute(any(HttpGet.class))).thenReturn(mockResponse);
         mockClientFactory = Mockito.mock(HttpClientFactory.class);
-        when(mockClientFactory.buildApacheClient()).thenReturn(mockClient);
+        when(mockClientFactory.buildApacheClient()).thenReturn(mockHttpClient);
 
-        // passing config to ClientRequestHandler
+        // passing configs to ClientRequestHandler
         config = new Config();
         config.setHttpClientFactory(mockClientFactory);
-
         LoadBalancerClientRequestHandler.configure(config);
         ClientRequestHandlerServer.configure(config);
 
+        // start up ClientRequestHandler
+        clientReqHandler = new LoadBalancerClientRequestHandler(mockCacheRedis);
+        clientRequestHandlerServer = new ClientRequestHandlerServer(clientReqHandler);
+        clientRequestHandlerServerThread = new Thread(clientRequestHandlerServer);
+
+        // start client request handler server
         clientRequestHandlerServerThread.start();
 
         while (clientRequestHandlerServer.getPort() == -1) {
@@ -87,7 +88,7 @@ public class CacheServerLoadBalancerClientRequestHandlerServerIntegrationTest {
         clientRequestHandlerServerPort = clientRequestHandlerServer.getPort();
         httpClient = HttpClients.createDefault();
 
-        reqPath = "http://127.0.0.1:" + clientRequestHandlerServerPort + "/resource/" + resourceName;
+        reqPath = "http://127.0.0.1:" + clientRequestHandlerServerPort + "/api/" + resourceName;
     }
 
     @BeforeEach
