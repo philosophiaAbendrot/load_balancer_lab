@@ -58,14 +58,21 @@ public class CacheServerManager {
     }
 
     public void startupCacheServer(int num) {
+        System.out.println("startupCacheServer called");
         for (int i = 0; i < num; i++) {
+            System.out.println("path o");
             CacheServer cacheServer = cacheServerFactory.produceCacheServer(new RequestMonitor());
+            System.out.println("path p");
             Thread cacheServerThread = cacheServerFactory.produceCacheServerThread(cacheServer);
+            System.out.println("path q");
             cacheServerThread.start();
+            System.out.println("path r");
             serverThreadTable.put(cacheServerIdCounter, cacheServerThread);
+            System.out.println("path s");
 
             // wait for cache server to startup and set its port
             while (cacheServer.getPort() == 0) {
+                System.out.println("path t");
                 try {
                     Thread.sleep(10);
                 } catch (InterruptedException e) {
@@ -73,21 +80,33 @@ public class CacheServerManager {
                 }
             }
 
+            System.out.println("path u");
+
             serverMonitor.addServer(cacheServerIdCounter, cacheServer.getPort());
+            System.out.println("path v");
             cacheServerIdCounter++;
+            System.out.println("path w");
         }
     }
 
     public void modulateCapacity() {
+        System.out.println("path a");
         double averageCapacityFactor = serverMonitor.getAverageCf();
+        System.out.println("path b");
         double diff = averageCapacityFactor - targetCf;
+        System.out.println("path c");
         int intDiff = (int)(Math.round(diff * (growthRate / 100) * serverThreadTable.size()));
+        System.out.println("path d");
 
         if (diff == 0) {
+            System.out.println("path e");
             return;
         } else if (diff > 0) {
+            System.out.println("path f");
+            System.out.println("intDiff = " + intDiff);
             startupCacheServer(intDiff);
         } else {
+            System.out.println("path g");
             shutdownCacheServer(-intDiff);
         }
     }
