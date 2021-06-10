@@ -34,7 +34,7 @@ public class CacheServerManagerTest {
     public void setup() {
         mockFactory = Mockito.mock(CacheServerFactory.class);
         mockCacheServer = Mockito.mock(CacheServer.class);
-        mockCacheServer.setPort((int)Math.round(Math.random() * 50_000));
+        when(mockCacheServer.getPort()).thenReturn(37_100);
         mockCacheServerThread = Mockito.mock(Thread.class);
 
         when(mockFactory.produceCacheServer(any(RequestMonitor.class))).thenReturn(mockCacheServer);
@@ -187,41 +187,33 @@ public class CacheServerManagerTest {
         @Nested
         @DisplayName("when average capacity factor exceeds target by 20%")
         class WhenAverageCapacityFactorExceedsThreshold {
-            double targetCf;
+            double averageCf;
+            double diff = 0.2;
 
             @BeforeEach
             public void setup() {
-                System.out.println("path 1");
                 cacheServerManager.serverThreadTable = new ConcurrentHashMap<>();
-                System.out.println("path 2");
-                targetCf = config.getTargetCf() + 0.2f;
-                System.out.println("path 3");
+                averageCf = config.getTargetCf() + diff;
 
                 for (int i = 0; i < initialServerCount; i++) {
-                    System.out.println("path 4");
                     Thread mockThread = Mockito.mock(Thread.class);
                     cacheServerManager.serverThreadTable.put(i, mockThread);
                 }
-                System.out.println("path 5");
 
                 CacheServerManager.cacheServerIdCounter = initialServerCount;
-
-                System.out.println("path 6");
                 mockServerMonitor = Mockito.mock(ServerMonitor.class);
-
-                System.out.println("path 7");
-                when(mockServerMonitor.getAverageCf()).thenReturn(targetCf);
-                System.out.println("path 8");
+                when(mockServerMonitor.getAverageCf()).thenReturn(averageCf);
                 cacheServerManager.serverMonitor = mockServerMonitor;
-                System.out.println("path 9");
                 cacheServerManager.modulateCapacity();
-                System.out.println("path 10");
             }
 
             @Test
-            @DisplayName("number of servers should be increased by 5%")
+            @DisplayName("number of servers should be increased")
             public void numServersShouldIncrease() {
-                assertEquals(Math.round(initialServerCount * 1.05), cacheServerManager.serverThreadTable.size());
+                double cacheServerGrowthRate = config.getCacheServerGrowthRate();
+                int intDiff = (int)Math.round(diff * (cacheServerGrowthRate / 100) * initialServerCount);
+                int expectedServers = initialServerCount + intDiff;
+                assertEquals(expectedServers, cacheServerManager.serverThreadTable.size());
             }
         }
 
@@ -258,13 +250,13 @@ public class CacheServerManagerTest {
         @Nested
         @DisplayName("when average capacity factor is lower than the target by 20%")
         class WhenAverageCapacityFactorIsBelowThreshold {
-            double currentCf;
+            double averageCf;
             double diff = -0.2;
 
             @BeforeEach
             public void setup() {
                 cacheServerManager.serverThreadTable = new ConcurrentHashMap<>();
-                currentCf = config.getTargetCf() + diff;
+                averageCf = config.getTargetCf() + diff;
 
                 for (int i = 0; i < initialServerCount; i++) {
                     Thread mockThread = Mockito.mock(Thread.class);
@@ -274,7 +266,7 @@ public class CacheServerManagerTest {
                 CacheServerManager.cacheServerIdCounter = initialServerCount;
                 mockServerMonitor = Mockito.mock(ServerMonitor.class);
 
-                when(mockServerMonitor.getAverageCf()).thenReturn(currentCf);
+                when(mockServerMonitor.getAverageCf()).thenReturn(averageCf);
                 cacheServerManager.serverMonitor = mockServerMonitor;
                 cacheServerManager.modulateCapacity();
             }
