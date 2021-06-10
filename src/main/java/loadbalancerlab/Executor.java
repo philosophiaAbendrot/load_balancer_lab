@@ -15,9 +15,13 @@ import loadbalancerlab.shared.Logger;
 import loadbalancerlab.factory.CacheServerFactory;
 import loadbalancerlab.client.Client;
 import loadbalancerlab.cacheservermanager.CacheServerManager;
+import org.apache.commons.csv.CSVFormat;
+import org.apache.commons.csv.CSVPrinter;
 
 import javax.swing.*;
 import java.awt.*;
+import java.io.FileWriter;
+import java.io.IOException;
 import java.util.*;
 import java.util.List;
 
@@ -158,6 +162,17 @@ public class Executor {
         for (Map.Entry<Integer, Integer> entry : serverCountLog.entrySet())
             serverCountLogOutput.add((double) entry.getValue());
 
+        try {
+            FileWriter out = new FileWriter("csv_output/num_servers_vs_time.csv");
+            String[] headers = { "time", "cache servers active" };
+            try (CSVPrinter printer = new CSVPrinter(out, CSVFormat.DEFAULT.withHeader(headers))) {
+                for (Map.Entry<Integer, Integer> entry : serverCountLog.entrySet()) {
+                    printer.printRecord(entry.getKey(), entry.getValue());
+                }
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
 
         // graph client request requests sent vs time
 //        Graph mainPanel = new Graph(synthesizedClientRequestLogOutput);
