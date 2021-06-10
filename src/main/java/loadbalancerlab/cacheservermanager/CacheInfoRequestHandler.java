@@ -1,6 +1,5 @@
 package loadbalancerlab.cacheservermanager;
 
-import loadbalancerlab.shared.Logger;
 import org.apache.commons.text.StringEscapeUtils;
 import org.apache.http.HttpRequest;
 import org.apache.http.HttpResponse;
@@ -19,13 +18,22 @@ public class CacheInfoRequestHandler implements HttpRequestHandler {
         serverMonitor = _serverMonitor;
     }
 
+    /**
+     * method for HttpRequestHandler interface
+     * @param httpRequest: representation of request received by server
+     * @param httpResponse: representation of response to be made by server
+     * @param httpContext: represents execution state of an HTTP process
+     * @throws IOException: thrown in case of an IO error
+     */
     @Override
     public void handle( HttpRequest httpRequest, HttpResponse httpResponse, HttpContext httpContext ) throws IOException {
+        // get info on CacheServers from ServerMonitor
         Map<Integer, ServerInfo> serverInfo = serverMonitor.getServerInfo();
 
         // create output json object
         JSONObject outputJson = new JSONObject();
 
+        // Add info on CacheServers to json object
         for (Map.Entry<Integer, ServerInfo> entry : serverInfo.entrySet()) {
             ServerInfo info = entry.getValue();
             JSONObject jsonElement = new JSONObject();
@@ -34,7 +42,7 @@ public class CacheInfoRequestHandler implements HttpRequestHandler {
             outputJson.put(String.valueOf(info.getServerId()), jsonElement);
         }
 
-        // send out json in response
+        // insert the json object into the response
         String htmlResponse = StringEscapeUtils.escapeJson(outputJson.toString());
         httpResponse.setEntity(new StringEntity(htmlResponse));
     }

@@ -30,6 +30,17 @@ public class Executor {
     static int simulationTime;
     Random rand;
     Logger logger;
+    CacheServerFactory cacheServerFactory;
+    HttpClientFactory httpClientFactory;
+    RequestDecoder reqDecoder;
+    ClientFactory clientFactory;
+    CacheServerManager cacheServerManager;
+    CacheServerManagerRunnable cacheServerManagerRunnable;
+    Thread cacheServerManagerThread;
+    LoadBalancerRunnable loadBalancer;
+    Thread loadBalancerThread;
+    ClientManagerRunnable clientManagerRunnable;
+    Thread clientManagerThread;
 
     public static void configure( Config config ) {
         simulationTime = config.getSimulationTime();
@@ -53,58 +64,10 @@ public class Executor {
         configureComponents(config);
 
         // instantiate factories and other shared services
-        CacheServerFactory cacheServerFactory = new CacheServerFactory();
-        HttpClientFactory httpClientFactory = new HttpClientFactory();
-        RequestDecoder reqDecoder = new RequestDecoder();
-        ClientFactory clientFactory = new ClientFactory();
+        instantiateFactories();
 
-        // start cache server manager thread
-        CacheServerManager cacheServerManager = new CacheServerManager(cacheServerFactory, httpClientFactory, reqDecoder);
-        CacheServerManagerRunnable cacheServerManagerRunnable = new CacheServerManagerRunnable(cacheServerFactory, httpClientFactory, reqDecoder, cacheServerManager);
-        Thread cacheServerManagerThread = new Thread(cacheServerManagerRunnable);
-        cacheServerManagerThread.start();
-
-        int cacheServerManagerPort;
-
-        // wait for cache server manager to start up and record the port it's running on
-        while ((cacheServerManagerPort = cacheServerManagerRunnable.getPort()) == 0) {
-            try {
-                Thread.sleep(10);
-            } catch (InterruptedException e) {
-                e.printStackTrace();
-                logger.log("CacheServerManager startup loop interrupted", Logger.LogType.STARTUP_SEQUENCE);
-            }
-        }
-
-        logger.log("CacheServerManager running on port " + cacheServerManagerPort, Logger.LogType.STARTUP_SEQUENCE);
-
-        // instantiate and start load balancer
-        LoadBalancerRunnable loadBalancer = new LoadBalancerRunnable(cacheServerManagerPort);
-        Thread loadBalancerThread = new Thread(loadBalancer);
-        loadBalancerThread.start();
-        int loadBalancerPort;
-
-        // wait for load balancer to start and port to be set
-        while ((loadBalancerPort = loadBalancer.getPort()) == -1) {
-            try {
-                Thread.sleep(10);
-            } catch (InterruptedException e) {
-                e.printStackTrace();
-                logger.log("LoadBalancer startup waiting loop interrupted", Logger.LogType.STARTUP_SEQUENCE);
-            }
-        }
-
-        logger.log("LoadBalancer running on port " + loadBalancerPort, Logger.LogType.STARTUP_SEQUENCE);
-
-        // set load balancer port on Client class
-        Client.setLoadBalancerPort(loadBalancerPort);
-
-        long requestStartTime = System.currentTimeMillis() + 1_000;
-
-        // startup ClientManager class
-        ClientManagerRunnable clientManagerRunnable = new ClientManagerRunnable(clientFactory, maxDemandTime, requestStartTime, httpClientFactory, reqDecoder);
-        Thread clientManagerRunnableThread = new Thread(clientManagerRunnable);
-        clientManagerRunnableThread.start();
+        // startup threads
+        startupThreads();
 
         // let simulation run
         try {
@@ -114,39 +77,11 @@ public class Executor {
             logger.log("Simulation interrupted", Logger.LogType.THREAD_MANAGEMENT);
         }
 
-        // interrupt ClientManager class
-        logger.log("shutdown stage 1: shutdown client threads", Logger.LogType.THREAD_MANAGEMENT);
-        clientManagerRunnableThread.interrupt();
-
-        // allow time to shut down client threads
-        try {
-            Thread.sleep(2_000);
-        } catch (InterruptedException e) {
-            e.printStackTrace();
-        }
-
-        // collect data from load balancer
-//        Logger.log("collecting request log data from load balancer", Logger.LogType.RECORDING_DATA);
-//        SortedMap<Integer, Integer> loadBalancerRequestLog = loadBalancer.deliverData();
-
-        // shutdown load balancer
-        logger.log("shutdown stage 2: Shutdown LoadBalancer thread", Logger.LogType.THREAD_MANAGEMENT);
-        loadBalancerThread.interrupt();
-
-        // allow time to shut down load balancer system
-        try {
-            Thread.sleep(2_000);
-        } catch(InterruptedException e) {
-            e.printStackTrace();
-        }
+        // interrupt threads
+        shutdownThreads();
 
         // collect data from CacheServerManager instance about how many cache servers were active at each second
         SortedMap<Integer, Integer> serverCountLog = cacheServerManager.deliverData();
-
-        // shutdown CacheServerManager instance
-        cacheServerManagerThread.interrupt();
-        logger.log("shutdown stage 3: Shutdown CacheServerManager thread", Logger.LogType.THREAD_MANAGEMENT);
-        logger.log("terminated Run thread", Logger.LogType.THREAD_MANAGEMENT);
 
         // Graph collected metrics
         List<Double> synthesizedClientRequestLogOutput = new ArrayList<>();
@@ -229,5 +164,97 @@ public class Executor {
         HashRing.configure(config);
         // configure Client package
         ClientManagerRunnable.configure(config);
+    }
+
+    private void instantiateFactories() {
+        cacheServerFactory = new CacheServerFactory();
+        httpClientFactory = new HttpClientFactory();
+        reqDecoder = new RequestDecoder();
+        clientFactory = new ClientFactory();
+    }
+
+    private void startupThreads() {
+        // start cache server manager thread
+        cacheServerManager = new CacheServerManager(cacheServerFactory, httpClientFactory, reqDecoder);
+        cacheServerManagerRunnable = new CacheServerManagerRunnable(cacheServerFactory, httpClientFactory, reqDecoder, cacheServerManager);
+        cacheServerManagerThread = new Thread(cacheServerManagerRunnable);
+
+        cacheServerManagerThread.start();
+
+        int cacheServerManagerPort;
+
+        // wait for cache server manager to start up and record the port it's running on
+        while ((cacheServerManagerPort = cacheServerManagerRunnable.getPort()) == 0) {
+            try {
+                Thread.sleep(10);
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+                logger.log("CacheServerManager startup loop interrupted", Logger.LogType.STARTUP_SEQUENCE);
+            }
+        }
+
+        logger.log("CacheServerManager running on port " + cacheServerManagerPort, Logger.LogType.STARTUP_SEQUENCE);
+
+        // instantiate and start load balancer
+        loadBalancer = new LoadBalancerRunnable(cacheServerManagerPort);
+        loadBalancerThread = new Thread(loadBalancer);
+        loadBalancerThread.start();
+        int loadBalancerPort;
+
+        // wait for load balancer to start and port to be set
+        while ((loadBalancerPort = loadBalancer.getPort()) == -1) {
+            try {
+                Thread.sleep(10);
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+                logger.log("LoadBalancer startup waiting loop interrupted", Logger.LogType.STARTUP_SEQUENCE);
+            }
+        }
+
+        logger.log("LoadBalancer running on port " + loadBalancerPort, Logger.LogType.STARTUP_SEQUENCE);
+
+        // set load balancer port on Client class
+        Client.setLoadBalancerPort(loadBalancerPort);
+
+        long requestStartTime = System.currentTimeMillis() + 1_000;
+
+        // startup ClientManager class
+        clientManagerRunnable = new ClientManagerRunnable(clientFactory, maxDemandTime, requestStartTime, httpClientFactory, reqDecoder);
+        clientManagerThread = new Thread(clientManagerRunnable);
+        clientManagerThread.start();
+    }
+
+    private void shutdownThreads() {
+        // interrupt ClientManager class
+        logger.log("shutdown stage 1: shutdown client threads", Logger.LogType.THREAD_MANAGEMENT);
+        clientManagerThread.interrupt();
+
+
+        // allow time to shut down client threads
+        try {
+            Thread.sleep(2_000);
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
+
+        // collect data from load balancer
+//        Logger.log("collecting request log data from load balancer", Logger.LogType.RECORDING_DATA);
+//        SortedMap<Integer, Integer> loadBalancerRequestLog = loadBalancer.deliverData();
+
+        // shutdown load balancer
+        logger.log("shutdown stage 2: Shutdown LoadBalancer thread", Logger.LogType.THREAD_MANAGEMENT);
+        loadBalancerThread.interrupt();
+
+        // allow time to shut down load balancer system
+        try {
+            Thread.sleep(2_000);
+        } catch(InterruptedException e) {
+            e.printStackTrace();
+        }
+
+        // shutdown CacheServerManager instance
+        cacheServerManagerThread.interrupt();
+        logger.log("shutdown stage 3: Shutdown CacheServerManager thread", Logger.LogType.THREAD_MANAGEMENT);
+        logger.log("terminated Run thread", Logger.LogType.THREAD_MANAGEMENT);
     }
 }

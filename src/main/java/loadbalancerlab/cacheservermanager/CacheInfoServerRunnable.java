@@ -13,9 +13,21 @@ import java.net.UnknownHostException;
 import java.util.ArrayList;
 import java.util.concurrent.TimeUnit;
 
+/**
+ * A server which handles requests for CacheInfo analytics using the CacheInfoRequestHandler class.
+ */
 public class CacheInfoServerRunnable implements Runnable {
+    /**
+     * stores the port that the CacheInfoServer is running on
+     */
     volatile private int port;
+    /**
+     * The associated request handler which is employed by the server to handle requests
+     */
     CacheInfoRequestHandler cacheInfoRequestHandler;
+    /**
+     * The default port that the server attempts to start on
+     */
     private static int defaultPort = -1;
     /**
      * Used for logging
@@ -27,14 +39,25 @@ public class CacheInfoServerRunnable implements Runnable {
         logger = new Logger("CacheInfoServerRunnable");
     }
 
+    /**
+     * Used to configure class fields
+     * @param config: An Object used to store configurations
+     */
     public static void configure( Config config ) {
         defaultPort = config.getCacheInfoServerDefaultPort();
     }
 
+    /**
+     * @return the port the server is currently running on
+     */
     public int getPort() {
         return port;
     }
 
+    /**
+     * Method from Runnable interface
+     * Runs and manages lifecycle of CacheInfoServer
+     */
     @Override
     public void run() {
         int chosenPort = defaultPort;

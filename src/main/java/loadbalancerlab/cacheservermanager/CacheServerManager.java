@@ -11,11 +11,30 @@ import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 
+/**
+ * A server which manages the lifecycle of CacheServer instances
+ * Modulates the number of CacheServers to match the request load
+ */
 public class CacheServerManager {
+    /**
+     * used to control the rate at which servers are spawned or shutdown
+     */
     static double growthRate;
+    /**
+     * The average capacity factor for CacheServers which the CacheServerManager aims to meet
+     */
     static double targetCf;
+    /**
+     * A concurrent hash map which maps cache servers by id to the threads that they are running on
+     */
     volatile ConcurrentMap<Integer, Thread> serverThreadTable = new ConcurrentHashMap<>();
+    /**
+     * The Associated ServerMonitor instance which records and updates info on the CacheServer instances
+     */
     ServerMonitor serverMonitor;
+    /**
+     * Static variable which is used to determine the id of the next CacheServer to be started
+     */
     static int cacheServerIdCounter;
     int[] selectablePorts = new int[100];
     CacheInfoRequestHandler cacheInfoRequestHandler;
@@ -45,6 +64,7 @@ public class CacheServerManager {
         for (int i = 0; i < selectablePorts.length; i++)
             selectablePorts[i] = 37100 + i;
 
+        // server monitor is set
         serverMonitor = new ServerMonitor(clientFactory, reqDecoder, this);
         cacheInfoRequestHandler = new CacheInfoRequestHandler(serverMonitor);
     }
