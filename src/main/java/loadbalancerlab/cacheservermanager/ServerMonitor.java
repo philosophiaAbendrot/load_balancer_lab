@@ -54,7 +54,7 @@ public class ServerMonitor {
     }
 
     // outputs data about number of active servers vs. time
-    public SortedMap<Integer, Integer> deliverData() {
+    public SortedMap<Integer, Integer> deliverServerCountData() {
         SortedMap<Integer, Integer> copyMap = new TreeMap<>();
         copyMap.putAll(serverCount);
         return copyMap;

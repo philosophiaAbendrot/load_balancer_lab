@@ -7,7 +7,6 @@ import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.methods.HttpUriRequest;
 import org.apache.http.impl.client.CloseableHttpClient;
-import org.apache.maven.settings.Server;
 import org.json.JSONObject;
 import org.junit.jupiter.api.*;
 import org.mockito.ArgumentCaptor;
@@ -18,7 +17,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
 import java.util.SortedMap;
-import java.util.concurrent.ConcurrentHashMap;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
@@ -60,7 +58,7 @@ public class ServerMonitorTest {
             serverMonitor.updateServerCount(currentTime + 1, 10);
             serverMonitor.updateServerCount(currentTime + 2, 12);
             serverMonitor.updateServerCount(currentTime + 3, 15);
-            SortedMap<Integer, Integer> serverData = serverMonitor.deliverData();
+            SortedMap<Integer, Integer> serverData = serverMonitor.deliverServerCountData();
 
             assertTrue(serverData.containsKey(currentTime + 1));
             assertTrue(serverData.containsKey(currentTime + 2));
@@ -78,7 +76,7 @@ public class ServerMonitorTest {
             serverMonitor.updateServerCount(currentTime + 2, 12);
             serverMonitor.updateServerCount(currentTime + 2, 16);
             serverMonitor.updateServerCount(currentTime + 3, 15);
-            SortedMap<Integer, Integer> serverData = serverMonitor.deliverData();
+            SortedMap<Integer, Integer> serverData = serverMonitor.deliverServerCountData();
 
             assertTrue(serverData.containsKey(currentTime + 2));
             assertEquals(serverData.get(currentTime + 2), 12);

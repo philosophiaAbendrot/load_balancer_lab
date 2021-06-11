@@ -81,7 +81,7 @@ public class Executor {
         shutdownThreads();
 
         // collect data from CacheServerManager instance about how many cache servers were active at each second
-        SortedMap<Integer, Integer> serverCountLog = cacheServerManager.deliverData();
+        SortedMap<Integer, Integer> serverCountLog = cacheServerManager.deliverServerCountData();
 
         // Graph collected metrics
         List<Double> synthesizedClientRequestLogOutput = new ArrayList<>();

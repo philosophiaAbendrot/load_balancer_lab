@@ -73,8 +73,8 @@ public class CacheServerManager {
         return this.port;
     }
 
-    public SortedMap<Integer, Integer> deliverData() {
-        return this.serverMonitor.deliverData();
+    public SortedMap<Integer, Integer> deliverServerCountData() {
+        return this.serverMonitor.deliverServerCountData();
     }
 
     public void startupCacheServer(int num) {
