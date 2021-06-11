@@ -7,7 +7,6 @@ public class ServerInfo {
     private int serverId;
     private int port;
     private SortedMap<Integer, Double> capFactorRecord;
-    static int cfRecordSize = 10;
 
     public ServerInfo( int _serverId, int _port ) {
         this.serverId = _serverId;
@@ -21,16 +20,12 @@ public class ServerInfo {
     }
 
     public double getAverageCapacityFactor() {
-        if (capFactorRecord.isEmpty())
+        if (capFactorRecord.isEmpty()) {
             return 0.0;
-
-        double totalCf = 0;
-
-        for (Double cf : capFactorRecord.values()) {
-            totalCf += cf;
         }
 
-        return totalCf / capFactorRecord.size();
+        int lastTimestamp = capFactorRecord.lastKey();
+        return capFactorRecord.get(lastTimestamp);
     }
 
     public int getServerId() {
@@ -45,12 +40,6 @@ public class ServerInfo {
         if (capFactorRecord.containsKey(timestamp)) {
             // do nothing if an entry already exists for this timestamp
             return;
-        }
-
-        // prevent cap factor record size from increasing past cfRecordSize
-        if (capFactorRecord.size() >= cfRecordSize) {
-            int lowestKey = capFactorRecord.firstKey();
-            capFactorRecord.remove(lowestKey);
         }
 
         // add new entry
