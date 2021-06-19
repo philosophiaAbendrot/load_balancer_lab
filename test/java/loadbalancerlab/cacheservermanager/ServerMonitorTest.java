@@ -17,6 +17,8 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
 import java.util.SortedMap;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentMap;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
@@ -216,6 +218,67 @@ public class ServerMonitorTest {
 
             double expectedCf = expectedCfSum / 3;
             assertTrue(Math.abs(expectedCf - serverMonitor.getAverageCf()) < 0.001);
+        }
+    }
+
+    @Nested
+    @DisplayName("Tests deliverCfData()")
+    class TestsDeliverCfData {
+        String[][] result;
+        int serverId1 = 10691, serverId2 = 10805;
+        int port1 = 69205, port2 = 80290;
+        ServerInfo info1, info2;
+        int indexTime;
+
+        @BeforeEach
+        public void setup() {
+            ConcurrentMap<Integer, ServerInfo> serverInfoTable = new ConcurrentHashMap<>();
+            info1 = new ServerInfo(serverId1, port1);
+            info2 = new ServerInfo(serverId2, port2);
+            indexTime = (int)(System.currentTimeMillis() / 1_000);
+
+            // setup capacity factor history
+            info1.updateCapacityFactor( indexTime - 5, 0.65 );
+            info1.updateCapacityFactor(indexTime - 4, 0.95);
+            info1.updateCapacityFactor(indexTime - 3, 0.26);
+            info1.updateCapacityFactor(indexTime - 2, 0.74);
+            info1.updateCapacityFactor(indexTime - 1, 0.58);
+
+            // setup capacity factor history
+            info2.updateCapacityFactor(indexTime - 5, 0.59);
+            info2.updateCapacityFactor(indexTime - 4, 0.84);
+            info2.updateCapacityFactor(indexTime - 3, 0.39);
+            info2.updateCapacityFactor(indexTime - 2, 0.62);
+            info2.updateCapacityFactor(indexTime - 1, 0.51);
+
+            serverInfoTable.put(serverId1, info1);
+            serverInfoTable.put(serverId2, info2);
+            serverMonitor.serverInfoTable = serverInfoTable;
+
+            result = serverMonitor.deliverCfData();
+        }
+
+        @Test
+        @DisplayName("topmost row should contain all server ids")
+        public void topRowShouldContainServerIds() {
+            assertEquals(String.valueOf(serverId1), result[0][0]);
+            assertEquals(String.valueOf(serverId2), result[0][1]);
+        }
+
+        @Test
+        @DisplayName("leftmost column should contain all timestamps")
+        public void leftColumnShouldContainTimestamps() {
+            assertEquals(String.valueOf(indexTime - 5), result[1][0]);
+            assertEquals(String.valueOf(indexTime - 4), result[2][0]);
+            assertEquals(String.valueOf(indexTime - 3), result[3][0]);
+            assertEquals(String.valueOf(indexTime - 2), result[4][0]);
+            assertEquals(String.valueOf(indexTime - 1), result[5][0]);
+        }
+
+        @Test
+        @DisplayName("Should return data on capacity factor of cache servers at each moment in time")
+        public void shouldReturnDataOnCapacityFactorOfCacheServers() {
+            assertEquals(String.valueOf(0.26), result[3][0]);
         }
     }
 }

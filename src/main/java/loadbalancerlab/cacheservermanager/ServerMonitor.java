@@ -139,4 +139,15 @@ public class ServerMonitor {
         // return average
         return cfSum / numEntries;
     }
+
+    /**
+     * Returns data on the capacity factor of each server at each moment in time
+     * @return returns data on cap factor at each moment in time in the format of a 2d string array, which is
+     * well suited to conversion to csv format
+     */
+    public String[][] deliverCfData() {
+
+
+        return new String[0][0];
+    }
 }
