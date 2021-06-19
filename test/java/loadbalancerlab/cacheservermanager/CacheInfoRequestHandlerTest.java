@@ -48,8 +48,8 @@ public class CacheInfoRequestHandlerTest {
         mockServerInfoTable = new HashMap<>();
         ServerInfo mockServerInfo1 = Mockito.mock(ServerInfo.class);
         ServerInfo mockServerInfo2 = Mockito.mock(ServerInfo.class);
-        when(mockServerInfo1.getAverageCapacityFactor()).thenReturn(cf1);
-        when(mockServerInfo2.getAverageCapacityFactor()).thenReturn(cf2);
+        when(mockServerInfo1.getCurrentCapacityFactor()).thenReturn(cf1);
+        when(mockServerInfo2.getCurrentCapacityFactor()).thenReturn(cf2);
         when(mockServerInfo1.getPort()).thenReturn(port1);
         when(mockServerInfo2.getPort()).thenReturn(port2);
         when(mockServerInfo1.getServerId()).thenReturn(serverId1);

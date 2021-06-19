@@ -13,11 +13,31 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 
 public class ServerMonitor {
+    /**
+     * A hash table which maps server id to a ServerInfo instance which holds info about the server
+     * holds info about the port and the record of capacity factor over time
+     */
     ConcurrentMap<Integer, ServerInfo> serverInfoTable;
+    /**
+     * A factory which is used to generate CloseableHttpClient instances
+     */
     HttpClientFactory clientFactory;
+    /**
+     * Used to extract information from CloseableHttpResponse objects
+     */
     RequestDecoder reqDecoder;
+    /**
+     * Used to store information about how many servers were active at each moment in time
+     */
     SortedMap<Integer, Integer> serverCount;
+    /**
+     * Associated CacheServerManager instance which manages lifecycle of cache servers and modulates number of
+     * cache servers to meet request load
+     */
     CacheServerManager cacheServerManager;
+    /**
+     * variable which is used to control when ServerMonitor thread stops execution
+     */
     boolean stopExecution;
 
     public ServerMonitor( HttpClientFactory _clientFactory, RequestDecoder _reqDecoder, CacheServerManager _cacheServerManager ) {
@@ -29,9 +49,11 @@ public class ServerMonitor {
         stopExecution = false;
     }
 
-    // adds new cache server to record of servers
-    // params: id: id of the server
-    //         port: port that the server is running on
+    /**
+     * Adds new cache server to the record of servers 'serverInfoTable' field
+     * @param id: the id of the server
+     * @param port: the port that the server is running on
+     */
     public void addServer( int id, int port ) {
         if (serverInfoTable.containsKey(id)) {
             throw new IllegalArgumentException("serverInfoTable already contains an entry for id " + id);
@@ -39,35 +61,47 @@ public class ServerMonitor {
         serverInfoTable.put(id, new ServerInfo(id, port));
     }
 
-    // removes server from record
-    // params: id: id of the server
+    /**
+     * Removes info about server from serverInfoTable field
+     * @param id: the id of the server
+     */
     public void removeServer(int id) {
         if (serverInfoTable.containsKey(id)) {
             serverInfoTable.remove(id);
         }
     }
 
-    // updates record of active number at a particular second in time
+    /**
+     * Updates the number of active servers at a particular moment in time in 'serverCount' field
+     * @param currentSecond: the current second, in seconds since 1-Jan-1970
+     * @param numServers: the number of active servers at the time indicated by currentSecond
+     */
     public void updateServerCount( int currentSecond, int numServers ) {
         if (!serverCount.containsKey(currentSecond))
             serverCount.put(currentSecond, numServers);
     }
 
-    // outputs data about number of active servers vs. time
+    /**
+     * @return info about the number of active cache servers as a function of time
+     */
     public SortedMap<Integer, Integer> deliverServerCountData() {
         SortedMap<Integer, Integer> copyMap = new TreeMap<>();
         copyMap.putAll(serverCount);
         return copyMap;
     }
 
-    // returns server info table
+    /**
+     * @return a copy of serverInfoTable
+     */
     public Map<Integer, ServerInfo> getServerInfo() {
         Map<Integer, ServerInfo> copyMap = new HashMap<>();
         copyMap.putAll(serverInfoTable);
         return copyMap;
     }
 
-    // pings cache servers for updates on capacity factor and records the info
+    /**
+     * Pings every active cache server and updates capacity factor information in serverInfoTable
+     */
     public void pingCacheServers() {
         CloseableHttpClient httpClient = this.clientFactory.buildApacheClient();
         List<Integer> ports = new ArrayList<>(this.serverInfoTable.keySet());
@@ -87,14 +121,17 @@ public class ServerMonitor {
         }
     }
 
+    /**
+     * @return average capacity factor of every cache server as a double
+     */
     // returns the average capacity factor of every cache server
     public double getAverageCf() {
         double cfSum = 0;
         int numEntries = 0;
 
         for (ServerInfo info : serverInfoTable.values()) {
-            if (info.getAverageCapacityFactor() != 0.0) {
-                cfSum += info.getAverageCapacityFactor();
+            if (info.getCurrentCapacityFactor() != 0.0) {
+                cfSum += info.getCurrentCapacityFactor();
                 numEntries++;
             }
         }

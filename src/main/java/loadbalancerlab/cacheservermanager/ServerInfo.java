@@ -19,7 +19,7 @@ public class ServerInfo {
         return copyMap;
     }
 
-    public double getAverageCapacityFactor() {
+    public double getCurrentCapacityFactor() {
         if (capFactorRecord.isEmpty()) {
             return 0.0;
         }

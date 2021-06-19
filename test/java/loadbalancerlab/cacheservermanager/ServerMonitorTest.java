@@ -146,7 +146,7 @@ public class ServerMonitorTest {
         @DisplayName("Should update its server info based on received capacity factor information")
         public void shouldUpdateInfo() throws IOException {
             List<ServerInfo> infoList = new ArrayList<>(serverMonitor.serverInfoTable.values());
-            assertEquals(0.5, infoList.get(0).getAverageCapacityFactor());
+            assertEquals(0.5, infoList.get(0).getCurrentCapacityFactor());
         }
     }
 
@@ -211,7 +211,7 @@ public class ServerMonitorTest {
             double expectedCfSum = 0;
 
             for (int i = 1; i < 4; i++) {
-                expectedCfSum += serverMonitor.serverInfoTable.get(i).getAverageCapacityFactor();
+                expectedCfSum += serverMonitor.serverInfoTable.get(i).getCurrentCapacityFactor();
             }
 
             double expectedCf = expectedCfSum / 3;

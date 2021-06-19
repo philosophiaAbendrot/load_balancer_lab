@@ -26,7 +26,7 @@ public class ServerInfoTest {
             @Test
             @DisplayName("should return an average capacity factor of 0.0")
             public void shouldReturnZeroCapFactor() {
-                assertEquals(0.0, serverInfo.getAverageCapacityFactor());
+                assertEquals(0.0, serverInfo.getCurrentCapacityFactor());
             }
         }
 
@@ -66,7 +66,7 @@ public class ServerInfoTest {
             @Test
             @DisplayName("average should be updated")
             public void averageShouldBeUpdated() {
-                assertEquals(lastCfEntry, serverInfo.getAverageCapacityFactor());
+                assertEquals(lastCfEntry, serverInfo.getCurrentCapacityFactor());
             }
         }
     }

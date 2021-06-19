@@ -38,7 +38,7 @@ public class CacheInfoRequestHandler implements HttpRequestHandler {
             ServerInfo info = entry.getValue();
             JSONObject jsonElement = new JSONObject();
             jsonElement.put("port", info.getPort());
-            jsonElement.put("capacityFactor", info.getAverageCapacityFactor());
+            jsonElement.put("capacityFactor", info.getCurrentCapacityFactor());
             outputJson.put(String.valueOf(info.getServerId()), jsonElement);
         }
 
