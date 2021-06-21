@@ -42,6 +42,13 @@ public class Executor {
     ClientManagerRunnable clientManagerRunnable;
     Thread clientManagerThread;
 
+    // execution data
+    List<Double> synthesizedClientRequestLogOutput;
+    List<Double> loadBalancerRequestLogOutput;
+    List<Double> serverCountLogOutput;
+    String[][] cacheServerCfOutput;
+    SortedMap<Integer, Integer> serverCountLog;
+
     public static void configure( Config config ) {
         simulationTime = config.getSimulationTime();
     }
@@ -80,64 +87,14 @@ public class Executor {
         // interrupt threads
         shutdownThreads();
 
-        // collect data from CacheServerManager instance about how many cache servers were active at each second
-        SortedMap<Integer, Integer> serverCountLog = cacheServerManager.deliverServerCountData();
+        // collect simulation data
+        collectData();
 
-        // Graph collected metrics
-        List<Double> synthesizedClientRequestLogOutput = new ArrayList<>();
-        List<Double> loadBalancerRequestLogOutput = new ArrayList<>();
-        List<Double> serverCountLogOutput = new ArrayList<>();
-
-//        for (Integer value : synthesizedClientRequestLog.values())
-//            synthesizedClientRequestLogOutput.add((double)value);
-
-//        for (Integer value : loadBalancerRequestLog.values())
-//            loadBalancerRequestLogOutput.add((double)value);
-
-        for (Map.Entry<Integer, Integer> entry : serverCountLog.entrySet())
-            serverCountLogOutput.add((double) entry.getValue());
-
-        try {
-            FileWriter out = new FileWriter("csv_output/num_servers_vs_time.csv");
-            String[] headers = { "time", "cache servers active" };
-            try (CSVPrinter printer = new CSVPrinter(out, CSVFormat.DEFAULT.withHeader(headers))) {
-                for (Map.Entry<Integer, Integer> entry : serverCountLog.entrySet()) {
-                    printer.printRecord(entry.getKey(), entry.getValue());
-                }
-            }
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-
-        // graph client request requests sent vs time
-//        Graph mainPanel = new Graph(synthesizedClientRequestLogOutput);
-//        mainPanel.setPreferredSize(new Dimension(800, 600));
-//        JFrame frame = new JFrame("Client request output");
-//        frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-//        frame.getContentPane().add(mainPanel);
-//        frame.pack();
-//        frame.setLocationRelativeTo(null);
-//        frame.setVisible(true);
-
-        // graph load balancer requests received vs time
-//        Graph secondPanel = new Graph(loadBalancerRequestLogOutput);
-//        secondPanel.setPreferredSize(new Dimension(800, 600));
-//        JFrame secondFrame = new JFrame("Load Balancer requests received");
-//        secondFrame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-//        secondFrame.getContentPane().add(secondPanel);
-//        secondFrame.pack();
-//        secondFrame.setLocationRelativeTo(null);
-//        secondFrame.setVisible(true);
+        // print data to csv
+        printData();
 
         // graph cacheServerManager cache server count vs time
-        Graph thirdPanel = new Graph(serverCountLogOutput);
-        thirdPanel.setPreferredSize((new Dimension(800, 600)));
-        JFrame thirdFrame = new JFrame("Cache servers active vs time");
-        thirdFrame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-        thirdFrame.getContentPane().add(thirdPanel);
-        thirdFrame.pack();
-        thirdFrame.setLocationRelativeTo(null);
-        thirdFrame.setVisible(true);
+        graphData();
     }
 
     public static void main(String[] args) {
@@ -171,6 +128,31 @@ public class Executor {
         httpClientFactory = new HttpClientFactory();
         reqDecoder = new RequestDecoder();
         clientFactory = new ClientFactory();
+    }
+
+    /**
+     * Compiles data from simulation
+     */
+    private void collectData() {
+        // collect data from CacheServerManager instance about how many cache servers were active at each second
+        serverCountLog = cacheServerManager.deliverServerCountData();
+
+        // Graph collected metrics
+        synthesizedClientRequestLogOutput = new ArrayList<>();
+        loadBalancerRequestLogOutput = new ArrayList<>();
+        serverCountLogOutput = new ArrayList<>();
+
+//        for (Integer value : synthesizedClientRequestLog.values())
+//            synthesizedClientRequestLogOutput.add((double)value);
+
+//        for (Integer value : loadBalancerRequestLog.values())
+//            loadBalancerRequestLogOutput.add((double)value);
+
+        // add collected data
+        for (Map.Entry<Integer, Integer> entry : serverCountLog.entrySet())
+            serverCountLogOutput.add((double) entry.getValue());
+
+        cacheServerCfOutput = cacheServerManager.deliverCfData();
     }
 
     private void startupThreads() {
@@ -222,6 +204,58 @@ public class Executor {
         clientManagerRunnable = new ClientManagerRunnable(clientFactory, maxDemandTime, requestStartTime, httpClientFactory, reqDecoder);
         clientManagerThread = new Thread(clientManagerRunnable);
         clientManagerThread.start();
+    }
+
+    /**
+     * Prints simulation data to csv
+     */
+    private void printData() {
+        try {
+            FileWriter out = new FileWriter("csv_output/num_servers_vs_time.csv");
+            String[] headers = { "time", "cache servers active" };
+            try (CSVPrinter printer = new CSVPrinter(out, CSVFormat.DEFAULT.withHeader(headers))) {
+                for (Map.Entry<Integer, Integer> entry : serverCountLog.entrySet()) {
+                    printer.printRecord(entry.getKey(), entry.getValue());
+                }
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+    /**
+     * Graphs simulation data
+     */
+    private void graphData() {
+        // graph client request requests sent vs time
+//        Graph mainPanel = new Graph(synthesizedClientRequestLogOutput);
+//        mainPanel.setPreferredSize(new Dimension(800, 600));
+//        JFrame frame = new JFrame("Client request output");
+//        frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+//        frame.getContentPane().add(mainPanel);
+//        frame.pack();
+//        frame.setLocationRelativeTo(null);
+//        frame.setVisible(true);
+
+        // graph load balancer requests received vs time
+//        Graph secondPanel = new Graph(loadBalancerRequestLogOutput);
+//        secondPanel.setPreferredSize(new Dimension(800, 600));
+//        JFrame secondFrame = new JFrame("Load Balancer requests received");
+//        secondFrame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+//        secondFrame.getContentPane().add(secondPanel);
+//        secondFrame.pack();
+//        secondFrame.setLocationRelativeTo(null);
+//        secondFrame.setVisible(true);
+
+
+        Graph thirdPanel = new Graph(serverCountLogOutput);
+        thirdPanel.setPreferredSize((new Dimension(800, 600)));
+        JFrame thirdFrame = new JFrame("Cache servers active vs time");
+        thirdFrame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+        thirdFrame.getContentPane().add(thirdPanel);
+        thirdFrame.pack();
+        thirdFrame.setLocationRelativeTo(null);
+        thirdFrame.setVisible(true);
     }
 
     private void shutdownThreads() {

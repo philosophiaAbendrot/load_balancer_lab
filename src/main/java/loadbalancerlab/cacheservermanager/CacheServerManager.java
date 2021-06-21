@@ -131,4 +131,8 @@ public class CacheServerManager {
     public int numServers() {
         return this.serverThreadTable.size();
     }
+
+    public String[][] deliverCfData() {
+        return serverMonitor.deliverCfData();
+    }
 }
