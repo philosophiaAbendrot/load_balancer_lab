@@ -222,61 +222,191 @@ public class ServerMonitorTest {
     @DisplayName("Tests deliverCfData()")
     class TestsDeliverCfData {
         String[][] result;
-        int serverId1 = 10691, serverId2 = 10805;
-        int port1 = 69205, port2 = 80290;
-        ServerInfo info1, info2;
-        int indexTime;
 
         @BeforeEach
         public void setup() {
             serverMonitor = new ServerMonitor(clientFactory, mockDecoder, mockCacheServerManager);
-
-            ConcurrentMap<Integer, ServerInfo> serverInfoTable = new ConcurrentHashMap<>();
-            info1 = new ServerInfo(serverId1, port1);
-            info2 = new ServerInfo(serverId2, port2);
-            indexTime = (int)(System.currentTimeMillis() / 1_000);
-
-            // setup capacity factor history
-            info1.updateCapacityFactor( indexTime - 5, 0.65 );
-            info1.updateCapacityFactor(indexTime - 4, 0.95);
-            info1.updateCapacityFactor(indexTime - 3, 0.26);
-            info1.updateCapacityFactor(indexTime - 2, 0.74);
-            info1.updateCapacityFactor(indexTime - 1, 0.58);
-
-            // setup capacity factor history
-            info2.updateCapacityFactor(indexTime - 5, 0.59);
-            info2.updateCapacityFactor(indexTime - 4, 0.84);
-            info2.updateCapacityFactor(indexTime - 3, 0.39);
-            info2.updateCapacityFactor(indexTime - 2, 0.62);
-            info2.updateCapacityFactor(indexTime - 1, 0.51);
-
-            serverInfoTable.put(serverId1, info1);
-            serverInfoTable.put(serverId2, info2);
-            serverMonitor.serverInfoTable = serverInfoTable;
-
-            result = serverMonitor.deliverCfData();
         }
 
-        @Test
-        @DisplayName("topmost row should contain all server ids")
-        public void topRowShouldContainServerIds() {
-            assertEquals(String.valueOf(serverId1), result[0][1]);
-            assertEquals(String.valueOf(serverId2), result[0][2]);
+        @Nested
+        @DisplayName("When all servers are started and end at the same time")
+        class WhenAllServersStartAndEndSameTime {
+            int indexTime;
+            ServerInfo info1, info2;
+            int serverId1 = 10691;
+            int serverId2 = 10805;
+            int port1 = 69205;
+            int port2 = 80290;
+
+            @BeforeEach
+            public void setup() {
+                ConcurrentMap<Integer, ServerInfo> serverInfoTable = new ConcurrentHashMap<>();
+
+                info1 = new ServerInfo(serverId1, port1);
+                info2 = new ServerInfo(serverId2, port2);
+                indexTime = (int)(System.currentTimeMillis() / 1_000);
+
+                // setup capacity factor history
+                info1.updateCapacityFactor(indexTime - 5, 0.65);
+                info1.updateCapacityFactor(indexTime - 4, 0.95);
+                info1.updateCapacityFactor(indexTime - 3, 0.26);
+                info1.updateCapacityFactor(indexTime - 2, 0.74);
+                info1.updateCapacityFactor(indexTime - 1, 0.58);
+
+                // setup capacity factor history
+                info2.updateCapacityFactor(indexTime - 5, 0.59);
+                info2.updateCapacityFactor(indexTime - 4, 0.84);
+                info2.updateCapacityFactor(indexTime - 3, 0.39);
+                info2.updateCapacityFactor(indexTime - 2, 0.62);
+                info2.updateCapacityFactor(indexTime - 1, 0.51);
+
+                serverInfoTable.put(serverId1, info1);
+                serverInfoTable.put(serverId2, info2);
+                serverMonitor.serverInfoTable = serverInfoTable;
+
+                result = serverMonitor.deliverCfData();
+            }
+
+            @Test
+            @DisplayName("topmost row should contain all server ids")
+            public void topRowShouldContainServerIds() {
+                assertEquals(String.valueOf(serverId1), result[0][1]);
+                assertEquals(String.valueOf(serverId2), result[0][2]);
+            }
+
+            @Test
+            @DisplayName("leftmost column should contain all timestamps")
+            public void leftColumnShouldContainTimestamps() {
+                assertEquals(String.valueOf(indexTime - 5), result[1][0]);
+                assertEquals(String.valueOf(indexTime - 4), result[2][0]);
+                assertEquals(String.valueOf(indexTime - 3), result[3][0]);
+                assertEquals(String.valueOf(indexTime - 2), result[4][0]);
+                assertEquals(String.valueOf(indexTime - 1), result[5][0]);
+            }
+
+            @Test
+            @DisplayName("Should return data on capacity factor of cache servers at each moment in time")
+            public void shouldReturnDataOnCapacityFactorOfCacheServers() {
+                assertEquals(String.valueOf(0.26), result[3][1]);
+            }
         }
 
-        @Test
-        @DisplayName("leftmost column should contain all timestamps")
-        public void leftColumnShouldContainTimestamps() {
-            assertEquals(String.valueOf(indexTime - 5), result[1][0]);
-            assertEquals(String.valueOf(indexTime - 4), result[2][0]);
-            assertEquals(String.valueOf(indexTime - 3), result[3][0]);
-            assertEquals(String.valueOf(indexTime - 2), result[4][0]);
+        @Nested
+        @DisplayName("When there is a server which was started afterwards")
+        class WhenServerStartedAfterwards {
+            int serverId1 = 5956;
+            int serverId2 = 6582;
+            int port1 = 6849;
+            int port2 = 61054;
+            int indexTime;
+
+            @BeforeEach
+            public void setup() {
+                ConcurrentMap<Integer, ServerInfo> serverInfoTable = new ConcurrentHashMap<>();
+
+                ServerInfo info1 = new ServerInfo(serverId1, port1);
+                ServerInfo info2 = new ServerInfo(serverId2, port2);
+                indexTime = (int)(System.currentTimeMillis() / 1_000);
+
+                // setup capacity factor history
+                info1.updateCapacityFactor(indexTime - 5, 0.39);
+                info1.updateCapacityFactor(indexTime - 4, 0.79);
+                info1.updateCapacityFactor(indexTime - 3, 0.85);
+                info1.updateCapacityFactor(indexTime - 2, 0.66);
+                info1.updateCapacityFactor(indexTime - 1, 0.50);
+
+                info2.updateCapacityFactor(indexTime - 3, 0.95);
+                info2.updateCapacityFactor(indexTime - 2, 0.11);
+                info2.updateCapacityFactor(indexTime - 1, 0.58);
+
+                serverInfoTable.put(serverId2, info2);
+                serverInfoTable.put(serverId1, info1);
+                serverMonitor.serverInfoTable = serverInfoTable;
+
+                result = serverMonitor.deliverCfData();
+            }
+
+            @Test
+            @DisplayName("topmost row should contain all server ids")
+            public void topRowShouldContainServerIds() {
+                assertEquals(String.valueOf(serverId1), result[0][1]);
+                assertEquals(String.valueOf(serverId2), result[0][2]);
+            }
+
+            @Test
+            @DisplayName("leftmost column should contain all timestamps")
+            public void leftColumnShouldContainTimestamps() {
+                assertEquals(String.valueOf(indexTime - 5), result[1][0]);
+                assertEquals(String.valueOf(indexTime - 4), result[2][0]);
+                assertEquals(String.valueOf(indexTime - 3), result[3][0]);
+                assertEquals(String.valueOf(indexTime - 2), result[4][0]);
+                assertEquals(String.valueOf(indexTime - 1), result[5][0]);
+            }
+
+            @Test
+            @DisplayName("Should return data on capacity factor of cache servers at each moment in time")
+            public void shouldReturnDataOnCapacityFactorOfCacheServers() {
+                assertEquals(String.valueOf(0.85), result[3][1]);
+            }
         }
 
-        @Test
-        @DisplayName("Should return data on capacity factor of cache servers at each moment in time")
-        public void shouldReturnDataOnCapacityFactorOfCacheServers() {
-            assertEquals(String.valueOf(0.26), result[3][1]);
+
+        @Nested
+        @DisplayName("When there is a server which was started afterwards and shutdown before the end")
+        class WhenServerStartedAfterwardsAndEndsBefore {
+            int serverId1 = 5956;
+            int serverId2 = 6582;
+            int port1 = 6849;
+            int port2 = 61054;
+            int indexTime;
+
+            @BeforeEach
+            public void setup() {
+                ConcurrentMap<Integer, ServerInfo> serverInfoTable = new ConcurrentHashMap<>();
+
+                ServerInfo info1 = new ServerInfo(serverId1, port1);
+                ServerInfo info2 = new ServerInfo(serverId2, port2);
+                indexTime = (int)(System.currentTimeMillis() / 1_000);
+
+                // setup capacity factor history
+                info1.updateCapacityFactor(indexTime - 5, 0.39);
+                info1.updateCapacityFactor(indexTime - 4, 0.79);
+                info1.updateCapacityFactor(indexTime - 3, 0.85);
+                info1.updateCapacityFactor(indexTime - 2, 0.66);
+                info1.updateCapacityFactor(indexTime - 1, 0.50);
+
+                info2.updateCapacityFactor(indexTime - 3, 0.95);
+                info2.updateCapacityFactor(indexTime - 2, 0.11);
+
+                serverInfoTable.put(serverId2, info2);
+                serverInfoTable.put(serverId1, info1);
+                serverMonitor.serverInfoTable = serverInfoTable;
+
+                result = serverMonitor.deliverCfData();
+            }
+
+            @Test
+            @DisplayName("topmost row should contain all server ids")
+            public void topRowShouldContainServerIds() {
+                assertEquals(String.valueOf(serverId1), result[0][1]);
+                assertEquals(String.valueOf(serverId2), result[0][2]);
+            }
+
+            @Test
+            @DisplayName("leftmost column should contain all timestamps")
+            public void leftColumnShouldContainTimestamps() {
+                assertEquals(String.valueOf(indexTime - 5), result[1][0]);
+                assertEquals(String.valueOf(indexTime - 4), result[2][0]);
+                assertEquals(String.valueOf(indexTime - 3), result[3][0]);
+                assertEquals(String.valueOf(indexTime - 2), result[4][0]);
+                assertEquals(String.valueOf(indexTime - 1), result[5][0]);
+            }
+
+            @Test
+            @DisplayName("Should return data on capacity factor of cache servers at each moment in time")
+            public void shouldReturnDataOnCapacityFactorOfCacheServers() {
+                assertEquals(String.valueOf(0.85), result[3][1]);
+            }
         }
     }
 }
