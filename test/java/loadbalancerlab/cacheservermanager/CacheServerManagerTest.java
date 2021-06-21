@@ -13,6 +13,7 @@ import org.mockito.Mockito;
 
 import java.util.ArrayList;
 import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -102,7 +103,9 @@ public class CacheServerManagerTest {
         @DisplayName("should update server monitor runnable")
         public void serverMonitorRunnableShouldBeUpdated() {
             cacheServerManager.shutdownCacheServer(num);
-            assertEquals(0, cacheServerManager.serverMonitor.serverInfoTable.size());
+            Set<Integer> keySet = cacheServerManager.serverMonitor.serverInfoTable.keySet();
+            Integer key = new ArrayList<>(keySet).get(0);
+            assertEquals(false, cacheServerManager.serverMonitor.serverInfoTable.get(key).getActive());
         }
 
         @Nested
@@ -131,7 +134,9 @@ public class CacheServerManagerTest {
             @DisplayName("should update server monitor runnable")
             public void serverMonitorRunnableShouldBeUpdated() {
                 cacheServerManager.shutdownCacheServer(numShutdown);
-                assertEquals(0, cacheServerManager.serverMonitor.serverInfoTable.size());
+                Set<Integer> keySet = cacheServerManager.serverMonitor.serverInfoTable.keySet();
+                Integer key = new ArrayList<>(keySet).get(0);
+                assertEquals(false, cacheServerManager.serverMonitor.serverInfoTable.get(key).getActive());
             }
         }
 
@@ -162,10 +167,18 @@ public class CacheServerManagerTest {
             }
 
             @Test
-            @DisplayName("should remove correct number of entries in ServerMonitor server info table")
+            @DisplayName("should remove correct number of active entries in ServerMonitor server info table")
             public void serverMonitorRunnableShouldBeUpdated() {
                 cacheServerManager.shutdownCacheServer(numShutdown);
-                assertEquals(num - numShutdown, cacheServerManager.serverMonitor.serverInfoTable.size());
+
+                int numActiveServers = 0;
+
+                for (ServerInfo info : cacheServerManager.serverMonitor.serverInfoTable.values()) {
+                    if (info.getActive())
+                        numActiveServers++;
+                }
+
+                assertEquals(num - numShutdown, numActiveServers);
             }
         }
     }
