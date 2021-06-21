@@ -62,13 +62,12 @@ public class ServerMonitor {
     }
 
     /**
-     * Removes info about server from serverInfoTable field
+     * Records that a certain server is no longer active
      * @param id: the id of the server
      */
-    public void removeServer(int id) {
-        if (serverInfoTable.containsKey(id)) {
-            serverInfoTable.remove(id);
-        }
+    public void deactivateServer(int id) {
+        if (serverInfoTable.containsKey(id))
+            serverInfoTable.get(id).setActive(false);
     }
 
     /**
@@ -104,10 +103,14 @@ public class ServerMonitor {
      */
     public void pingCacheServers() {
         CloseableHttpClient httpClient = this.clientFactory.buildApacheClient();
-        List<Integer> ports = new ArrayList<>(this.serverInfoTable.keySet());
 
         for (Map.Entry<Integer, ServerInfo> entry : this.serverInfoTable.entrySet()) {
             ServerInfo info = entry.getValue();
+
+            // don't ping an inactive server
+            if (!info.getActive())
+                continue;
+
             HttpGet req = new HttpGet("http://127.0.0.1:" + info.getPort() + "/capacity-factor");
 
             try {

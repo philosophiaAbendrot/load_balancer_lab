@@ -123,7 +123,7 @@ public class CacheServerManager {
             Thread selectedThread = serverThreadTable.get(selectedId);
             selectedThread.interrupt();
             serverThreadTable.remove(selectedId);
-            serverMonitor.removeServer(selectedId);
+            serverMonitor.deactivateServer(selectedId);
             serverIds.remove(randIdx);
         }
     }

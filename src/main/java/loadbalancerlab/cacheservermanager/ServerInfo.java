@@ -7,11 +7,13 @@ public class ServerInfo {
     private int serverId;
     private int port;
     private SortedMap<Integer, Double> capFactorRecord;
+    private boolean active;
 
-    public ServerInfo( int _serverId, int _port ) {
-        this.serverId = _serverId;
-        this.port = _port;
+    public ServerInfo( int serverId, int port ) {
+        this.serverId = serverId;
+        this.port = port;
         capFactorRecord = new TreeMap<>();
+        active = true;
     }
 
     public SortedMap<Integer, Double> getCapacityFactorRecord() {
@@ -31,6 +33,10 @@ public class ServerInfo {
     public int getServerId() {
         return serverId;
     }
+
+    public boolean getActive() { return active; }
+
+    public void setActive(boolean active) { this.active = active; }
 
     public int getPort() {
         return port;
