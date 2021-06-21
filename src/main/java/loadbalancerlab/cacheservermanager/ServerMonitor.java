@@ -146,8 +146,56 @@ public class ServerMonitor {
      * well suited to conversion to csv format
      */
     public String[][] deliverCfData() {
+        // figure out dimensions of data
+        SortedMap<Integer, ServerInfo> serverInfoTableCopy = new TreeMap<>();
 
+        // copy server Info table
+        for (Map.Entry<Integer, ServerInfo> entry : serverInfoTable.entrySet()) {
+            serverInfoTableCopy.put(entry.getKey(), entry.getValue());
+        }
 
-        return new String[0][0];
+        int earliestTime = Integer.MAX_VALUE;
+        int latestTime = Integer.MIN_VALUE;
+        Integer[] serverIds = serverInfoTableCopy.keySet().stream().toArray(Integer[]::new);
+        Arrays.sort(serverIds);
+        int numServers = serverIds.length;
+
+        // find the earliest and latest timestamps
+        for (ServerInfo info : serverInfoTableCopy.values()) {
+            SortedMap<Integer, Double> capFactorRecord = info.getCapacityFactorRecord();
+
+            if (!capFactorRecord.isEmpty()) {
+                earliestTime = Math.min(earliestTime, capFactorRecord.firstKey());
+                latestTime = Math.max(latestTime, capFactorRecord.lastKey());
+            }
+        }
+
+        // initialize 2d String array
+        String[][] outputGrid = new String[latestTime - earliestTime + 2][numServers + 1];
+
+        // fill out output grid
+        // fill out first row
+        for (int col = 1; col < outputGrid[0].length; col++) {
+            outputGrid[0][col] = String.valueOf(serverIds[col - 1]);
+        }
+
+        int currentTime = earliestTime;
+
+        // add timestamps to leftmost column
+        for (int row = 1; row < outputGrid.length; row++)
+            outputGrid[row][0] = String.valueOf(currentTime++);
+
+        // fill out other rows
+        for (int i = 0; i < serverIds.length; i++) {
+            int serverId = serverIds[i];
+            ServerInfo info = serverInfoTableCopy.get(serverId);
+            SortedMap<Integer, Double> cfRecord = info.getCapacityFactorRecord();
+
+            for (Integer timestamp : cfRecord.keySet()) {
+                outputGrid[timestamp - earliestTime + 1][i + 1] = String.valueOf(cfRecord.get(timestamp));
+            }
+        }
+
+        return outputGrid;
     }
 }

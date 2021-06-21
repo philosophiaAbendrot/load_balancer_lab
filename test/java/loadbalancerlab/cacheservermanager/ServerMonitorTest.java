@@ -13,10 +13,7 @@ import org.mockito.ArgumentCaptor;
 import org.mockito.Mockito;
 
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Random;
-import java.util.SortedMap;
+import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 
@@ -232,6 +229,8 @@ public class ServerMonitorTest {
 
         @BeforeEach
         public void setup() {
+            serverMonitor = new ServerMonitor(clientFactory, mockDecoder, mockCacheServerManager);
+
             ConcurrentMap<Integer, ServerInfo> serverInfoTable = new ConcurrentHashMap<>();
             info1 = new ServerInfo(serverId1, port1);
             info2 = new ServerInfo(serverId2, port2);
@@ -261,8 +260,8 @@ public class ServerMonitorTest {
         @Test
         @DisplayName("topmost row should contain all server ids")
         public void topRowShouldContainServerIds() {
-            assertEquals(String.valueOf(serverId1), result[0][0]);
-            assertEquals(String.valueOf(serverId2), result[0][1]);
+            assertEquals(String.valueOf(serverId1), result[0][1]);
+            assertEquals(String.valueOf(serverId2), result[0][2]);
         }
 
         @Test
@@ -272,13 +271,12 @@ public class ServerMonitorTest {
             assertEquals(String.valueOf(indexTime - 4), result[2][0]);
             assertEquals(String.valueOf(indexTime - 3), result[3][0]);
             assertEquals(String.valueOf(indexTime - 2), result[4][0]);
-            assertEquals(String.valueOf(indexTime - 1), result[5][0]);
         }
 
         @Test
         @DisplayName("Should return data on capacity factor of cache servers at each moment in time")
         public void shouldReturnDataOnCapacityFactorOfCacheServers() {
-            assertEquals(String.valueOf(0.26), result[3][0]);
+            assertEquals(String.valueOf(0.26), result[3][1]);
         }
     }
 }
