@@ -322,6 +322,7 @@ public class ServerMonitorTest {
                 serverInfoTable.put(serverId2, info2);
                 serverInfoTable.put(serverId1, info1);
                 serverMonitor.serverInfoTable = serverInfoTable;
+                serverMonitor.deactivateServer(serverId2);
 
                 result = serverMonitor.deliverCfData();
             }
@@ -381,6 +382,8 @@ public class ServerMonitorTest {
                 serverInfoTable.put(serverId2, info2);
                 serverInfoTable.put(serverId1, info1);
                 serverMonitor.serverInfoTable = serverInfoTable;
+
+                serverMonitor.deactivateServer(serverId2);
 
                 result = serverMonitor.deliverCfData();
             }
