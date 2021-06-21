@@ -153,25 +153,16 @@ public class ServerMonitor {
         SortedMap<Integer, ServerInfo> serverInfoTableCopy = new TreeMap<>();
 
         // copy server Info table
-        for (Map.Entry<Integer, ServerInfo> entry : serverInfoTable.entrySet()) {
+        for (Map.Entry<Integer, ServerInfo> entry : serverInfoTable.entrySet())
             serverInfoTableCopy.put(entry.getKey(), entry.getValue());
-        }
 
-        int earliestTime = Integer.MAX_VALUE;
-        int latestTime = Integer.MIN_VALUE;
         Integer[] serverIds = serverInfoTableCopy.keySet().stream().toArray(Integer[]::new);
         Arrays.sort(serverIds);
         int numServers = serverIds.length;
 
-        // find the earliest and latest timestamps
-        for (ServerInfo info : serverInfoTableCopy.values()) {
-            SortedMap<Integer, Double> capFactorRecord = info.getCapacityFactorRecord();
-
-            if (!capFactorRecord.isEmpty()) {
-                earliestTime = Math.min(earliestTime, capFactorRecord.firstKey());
-                latestTime = Math.max(latestTime, capFactorRecord.lastKey());
-            }
-        }
+        int[] timeRange = findTimeRange(serverInfoTableCopy);
+        int earliestTime = timeRange[0];
+        int latestTime = timeRange[1];
 
         // initialize 2d String array
         String[][] outputGrid = new String[latestTime - earliestTime + 2][numServers + 1];
@@ -200,5 +191,22 @@ public class ServerMonitor {
         }
 
         return outputGrid;
+    }
+
+    private int[] findTimeRange(SortedMap<Integer, ServerInfo> serverInfoTableCopy) {
+        int earliestTime = Integer.MAX_VALUE;
+        int latestTime = Integer.MIN_VALUE;
+
+        // find the earliest and latest timestamps
+        for (ServerInfo info : serverInfoTableCopy.values()) {
+            SortedMap<Integer, Double> capFactorRecord = info.getCapacityFactorRecord();
+
+            if (!capFactorRecord.isEmpty()) {
+                earliestTime = Math.min(earliestTime, capFactorRecord.firstKey());
+                latestTime = Math.max(latestTime, capFactorRecord.lastKey());
+            }
+        }
+
+        return new int[] { earliestTime, latestTime };
     }
 }
