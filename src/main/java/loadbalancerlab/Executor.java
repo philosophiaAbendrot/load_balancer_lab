@@ -62,9 +62,9 @@ public class Executor {
      */
     public void start( Config config ) {
         this.rand = new Random();
-        Logger.setPrintAll(true);
+//        Logger.setPrintAll(true);
         logger = new Logger("Executor");
-//        Logger.configure(new Logger.LogType[] {  });
+        Logger.configure(new Logger.LogType[] {  });
         logger.log("started Run thread", Logger.LogType.STARTUP_SEQUENCE);
 
         // configure classes

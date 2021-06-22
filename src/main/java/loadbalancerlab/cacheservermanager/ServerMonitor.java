@@ -102,26 +102,22 @@ public class ServerMonitor {
      * Pings every active cache server and updates capacity factor information in serverInfoTable
      */
     public void pingCacheServers() {
-        CloseableHttpClient httpClient = this.clientFactory.buildApacheClient();
+        serverInfoTable.forEach((serverId, info) -> {
+            CloseableHttpClient httpClient = this.clientFactory.buildApacheClient();
+            if (info.getActive()) {
+                HttpGet req = new HttpGet("http://127.0.0.1:" + info.getPort() + "/capacity-factor");
 
-        for (Map.Entry<Integer, ServerInfo> entry : this.serverInfoTable.entrySet()) {
-            ServerInfo info = entry.getValue();
-
-            // don't ping an inactive server
-            if (!info.getActive())
-                continue;
-
-            HttpGet req = new HttpGet("http://127.0.0.1:" + info.getPort() + "/capacity-factor");
-
-            try {
-                CloseableHttpResponse response = httpClient.execute(req);
-                JSONObject responseJson = this.reqDecoder.extractJsonApacheResponse(response);
-                info.updateCapacityFactor((int) (System.currentTimeMillis() / 1_000), responseJson.getDouble("capacity_factor"));
-            } catch (IOException e) {
-                System.out.println("IOException thrown in ServerMonitorImpl#pingCacheServer");
-                e.printStackTrace();
+                try {
+                    CloseableHttpResponse res = httpClient.execute(req);
+                    JSONObject resJson = reqDecoder.extractJsonApacheResponse(res);
+                    info.updateCapacityFactor((int)(System.currentTimeMillis() / 1_000), resJson.getDouble("capacity_factor"));
+                    httpClient.close();
+                } catch (IOException e) {
+                    System.out.println("IOException throws in ServerMonitorImpl#pingCacheServer");
+                    e.printStackTrace();
+                }
             }
-        }
+        });
     }
 
     /**
