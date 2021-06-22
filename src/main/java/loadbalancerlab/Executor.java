@@ -46,7 +46,7 @@ public class Executor {
     List<Double> synthesizedClientRequestLogOutput;
     List<Double> loadBalancerRequestLogOutput;
     List<Double> serverCountLogOutput;
-    String[][] cacheServerCfOutput;
+    String[][] cacheServerCfData;
     SortedMap<Integer, Integer> serverCountLog;
 
     public static void configure( Config config ) {
@@ -152,7 +152,7 @@ public class Executor {
         for (Map.Entry<Integer, Integer> entry : serverCountLog.entrySet())
             serverCountLogOutput.add((double) entry.getValue());
 
-        cacheServerCfOutput = cacheServerManager.deliverCfData();
+        cacheServerCfData = cacheServerManager.deliverCfData();
     }
 
     private void startupThreads() {
@@ -210,14 +210,45 @@ public class Executor {
      * Prints simulation data to csv
      */
     private void printData() {
+        System.out.println("printing num servers vs time");
+
         try {
+            // write data on server count vs time
             FileWriter out = new FileWriter("csv_output/num_servers_vs_time.csv");
             String[] headers = { "time", "cache servers active" };
             try (CSVPrinter printer = new CSVPrinter(out, CSVFormat.DEFAULT.withHeader(headers))) {
+                System.out.println("printer started 1");
                 for (Map.Entry<Integer, Integer> entry : serverCountLog.entrySet()) {
+                    System.out.println("key = " + entry.getKey() + " | value = " + entry.getValue());
                     printer.printRecord(entry.getKey(), entry.getValue());
                 }
             }
+
+            out.close();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
+        System.out.println("printing cf vs time");
+
+        try {
+            // write data on cf vs time
+            FileWriter out = new FileWriter("csv_output/cf_vs_time.csv");
+            String[] headers = cacheServerCfData[0];
+            String[][] content = new String[cacheServerCfData.length - 1][cacheServerCfData[0].length];
+
+            for (int i = 1; i < cacheServerCfData.length; i++) {
+                content[i - 1] = cacheServerCfData[i];
+            }
+
+            try (CSVPrinter printer = new CSVPrinter(out, CSVFormat.DEFAULT.withHeader(headers))) {
+                for (int i = 0; i < content.length; i++) {
+                    System.out.println("content = " + Arrays.toString(content[i]));
+                    printer.printRecord(content[i]);
+                }
+            }
+
+            out.close();
         } catch (IOException e) {
             e.printStackTrace();
         }
