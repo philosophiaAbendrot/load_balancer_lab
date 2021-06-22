@@ -163,30 +163,132 @@ public class ServerMonitor {
         // initialize 2d String array
         String[][] outputGrid = new String[latestTime - earliestTime + 2][numServers + 1];
 
-        // fill out output grid
-        // fill out first row
-        for (int col = 1; col < outputGrid[0].length; col++) {
-            outputGrid[0][col] = String.valueOf(serverIds[col - 1]);
-        }
-
+        double[][] entryRowsDouble = new double[latestTime - earliestTime + 1][numServers];
+        String[] headerRow = new String[numServers + 1];
+        String[] timestampColumn = new String[latestTime - earliestTime + 1];
         int currentTime = earliestTime;
 
         // add timestamps to leftmost column
-        for (int row = 1; row < outputGrid.length; row++)
-            outputGrid[row][0] = String.valueOf(currentTime++);
+        for (int row = 0; row < timestampColumn.length; row++) {
+            timestampColumn[row] = String.valueOf(currentTime++);
+        }
 
-        // fill out other rows
+        // fill out header row
+        for (int col = 1; col < outputGrid[0].length; col++) {
+            headerRow[col] = String.valueOf(serverIds[col - 1]);
+        }
+
         for (int i = 0; i < serverIds.length; i++) {
             int serverId = serverIds[i];
             ServerInfo info = serverInfoTableCopy.get(serverId);
             SortedMap<Integer, Double> cfRecord = info.getCapacityFactorRecord();
 
-            for (Integer timestamp : cfRecord.keySet()) {
-                outputGrid[timestamp - earliestTime + 1][i + 1] = String.valueOf(cfRecord.get(timestamp));
-            }
+            for (Integer timestamp : cfRecord.keySet())
+                entryRowsDouble[timestamp - earliestTime + 1][i + 1] = cfRecord.get(timestamp);
+        }
+
+//        // fill out other rows
+//        for (int i = 0; i < serverIds.length; i++) {
+//            int serverId = serverIds[i];
+//            ServerInfo info = serverInfoTableCopy.get(serverId);
+//            SortedMap<Integer, Double> cfRecord = info.getCapacityFactorRecord();
+//
+//            for (Integer timestamp : cfRecord.keySet()) {
+//                outputGrid[timestamp - earliestTime + 1][i + 1] = String.valueOf(cfRecord.get(timestamp));
+//            }
+//        }
+
+        // run interpolation logic on entries
+
+        interpolateMissingEntries(entryRowsDouble);
+
+        System.out.println("entry rows double:");
+
+        for (int i = 0; i < entryRowsDouble.length; i++) {
+            System.out.println(Arrays.toString(entryRowsDouble));
         }
 
         return outputGrid;
+    }
+
+    private void interpolateMissingEntries(double[][] entryFields) {
+        for (int col = 0; col < entryFields.length; col++) {
+            // iterate through columns and interpolate
+
+            int prevEntryIdx = 0;
+            int nextEntryIdx;
+            double nextEntry;
+
+            while (true) {
+                nextEntryIdx = findNextEntryIdx(entryFields, col, prevEntryIdx);
+                nextEntry = entryFields[nextEntryIdx][col];
+
+                if (prevEntryIdx == 0) {
+                    // fill in all entries between earliest entry and first non-null entry
+                    double fillInValue = round_two_digits(nextEntry);
+
+                    for (int row = 0; row < nextEntryIdx; row++) {
+                        entryFields[row][col] = fillInValue;
+                    }
+
+                    prevEntryIdx = nextEntryIdx;
+                } else if (nextEntryIdx == -1) {
+                    // fill in all entries between current entry and last entry if there are no subsequent filled entries
+
+                    double fillInValue = round_two_digits(entryFields[prevEntryIdx][col]);
+
+                    for (int row = prevEntryIdx; row < entryFields.length; row++) {
+                        entryFields[row][col] = fillInValue;
+                    }
+
+                    // terminate since all entries up to the last have been filled
+                    break;
+                } else {
+                    // for entries between two points, use interpolation
+                    double dist = nextEntryIdx - prevEntryIdx;
+                    double delta = entryFields[nextEntryIdx][col] - entryFields[prevEntryIdx][col];
+                    double slope = (delta / dist);
+
+                    for (int row = prevEntryIdx; row < entryFields.length; row++) {
+                        double res = (row - prevEntryIdx) * slope + entryFields[prevEntryIdx][col];
+                        // round to 2 decimal places
+                        entryFields[row][col] = round_two_digits(res);
+                    }
+
+                    prevEntryIdx = nextEntryIdx;
+                }
+            }
+        }
+    }
+
+    private double round_two_digits(double num) {
+        return Math.round(num * 100) / 100.0;
+    }
+
+    /**
+     * Helper method for finding the column index of the next entry which is non-null
+     * @param entryFields: the 2d capacity factor array
+     * @param col: the column on which the interpolation logic is being run
+     * @param startRow: the row after which the next entry is found
+     * @return the next entry index which is not null. -1 is returned if there is no next entry which is non-null.
+     */
+    private int findNextEntryIdx(double[][] entryFields, int col, int startRow) {
+         int row = startRow;
+
+         while (true) {
+             row++;
+
+             if (entryFields[row][col] != 0.0d) {
+                 // if a non-null row is found, return the index
+                 return row;
+             }
+
+             if (row == entryFields.length) {
+                 // return -1 if there is no next non-null entry
+                 return -1;
+             }
+         }
+
     }
 
     private int[] findTimeRange(SortedMap<Integer, ServerInfo> serverInfoTableCopy) {
