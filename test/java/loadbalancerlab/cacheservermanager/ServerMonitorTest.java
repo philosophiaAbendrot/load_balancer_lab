@@ -411,5 +411,60 @@ public class ServerMonitorTest {
                 assertEquals(String.valueOf(0.85), result[3][1]);
             }
         }
+
+        @Nested
+        @DisplayName("Test Interpolation logic")
+        class TestInterpolationLogic {
+            int serverId1 = 5956;
+            int serverId2 = 6582;
+            int port1 = 6849;
+            int port2 = 61054;
+            int indexTime;
+
+            @BeforeEach
+            public void setup() {
+                ConcurrentMap<Integer, ServerInfo> serverInfoTable = new ConcurrentHashMap<>();
+
+                ServerInfo info1 = new ServerInfo(serverId1, port1);
+                ServerInfo info2 = new ServerInfo(serverId2, port2);
+                indexTime = (int)(System.currentTimeMillis() / 1_000);
+
+                // setup capacity factor history
+                info1.updateCapacityFactor(indexTime - 5, 0.39);
+                info1.updateCapacityFactor(indexTime - 2, 0.66);
+                info1.updateCapacityFactor(indexTime - 1, 0.50);
+
+                info2.updateCapacityFactor(indexTime - 3, 0.95);
+                info2.updateCapacityFactor(indexTime - 2, 0.11);
+
+                serverInfoTable.put(serverId2, info2);
+                serverInfoTable.put(serverId1, info1);
+                serverMonitor.serverInfoTable = serverInfoTable;
+
+                serverMonitor.deactivateServer(serverId2);
+
+                result = serverMonitor.deliverCfData();
+            }
+
+            @Test
+            @DisplayName("Between a data point and earliest time, cf should be interpolated as if the earliest time had the same cf as that point")
+            public void betweenEarliestTimeAndDataPoint() {
+                assertEquals("0.95", result[1][1]);
+                assertEquals("0.95", result[2][1]);
+            }
+
+            @Test
+            @DisplayName("Between a data point and the latest time, cf should be interpolated as if the latest time had the same cf as that point")
+            public void betweenLatestTimeAndDataPoint() {
+                assertEquals("0.11", result[5][2]);
+            }
+
+            @Test
+            @DisplayName("Between two cf data points, the points in between should have cf values that are interpolated")
+            public void betweenTwoDataPoints() {
+                assertEquals("0.48", result[2][1]);
+                assertEquals("0.57", result[3][1]);
+            }
+        }
     }
 }
