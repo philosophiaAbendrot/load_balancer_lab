@@ -183,33 +183,8 @@ public class ServerMonitor {
             }
         }
 
-//        // fill out other rows
-//        for (int i = 0; i < serverIds.length; i++) {
-//            int serverId = serverIds[i];
-//            ServerInfo info = serverInfoTableCopy.get(serverId);
-//            SortedMap<Integer, Double> cfRecord = info.getCapacityFactorRecord();
-//
-//            for (Integer timestamp : cfRecord.keySet()) {
-//                outputGrid[timestamp - earliestTime + 1][i + 1] = String.valueOf(cfRecord.get(timestamp));
-//            }
-//        }
-
-        // run interpolation logic on entries
-
-//        System.out.println("entry rows double before interpolation:");
-//
-//        for (int i = 0; i < entryRowsDouble.length; i++)
-//            System.out.println(Arrays.toString(entryRowsDouble[i]));
-
         interpolateMissingEntries(entryRowsDouble);
 
-//        System.out.println("entry rows double after interpolation:");
-//
-//        for (int i = 0; i < entryRowsDouble.length; i++)
-//            System.out.println(Arrays.toString(entryRowsDouble[i]));
-
-        // construct output by piecing together headerRow, timestampColumn and entryRowsDouble
-//        String[][] outputGrid = new String[latestTime - earliestTime + 2][numServers + 1];
         return constructOutputGrid(headerRow, timestampColumn, entryRowsDouble);
     }
 
@@ -274,16 +249,16 @@ public class ServerMonitor {
         outputGrid[0][0] = "";
 
         // fill out header row
-        for (int col = 1; col < entryRowsDouble[0].length; col++)
+        for (int col = 1; col < outputGrid[0].length; col++)
             outputGrid[0][col] = headerRow[col - 1];
 
         // fill out leftmost column using timestampColumn
-        for (int row = 1; row < entryRowsDouble.length; row++)
+        for (int row = 1; row < outputGrid.length; row++)
             outputGrid[row][0] = timestampColumn[row - 1];
 
         // fill out rest of output grid using entryRowsDouble
-        for (int row = 1; row < entryRowsDouble.length; row++) {
-            for (int col = 1; col < entryRowsDouble[0].length; col++) {
+        for (int row = 1; row < outputGrid.length; row++) {
+            for (int col = 1; col < outputGrid[0].length; col++) {
                 outputGrid[row][col] = String.valueOf(entryRowsDouble[row - 1][col - 1]);
             }
         }
