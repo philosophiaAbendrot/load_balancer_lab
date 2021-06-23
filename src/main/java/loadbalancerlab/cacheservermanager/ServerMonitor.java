@@ -195,8 +195,10 @@ public class ServerMonitor {
             int prevEntryIdx = -1;
             int nextEntryIdx;
 
+
             while (true) {
                 nextEntryIdx = findNextEntryIdx(entryFields, col, prevEntryIdx);
+
                 if (prevEntryIdx == -1) {
                     double nextEntry = entryFields[nextEntryIdx][col];
                     // fill in all entries between earliest entry and first non-null entry
@@ -224,7 +226,7 @@ public class ServerMonitor {
                     double delta = entryFields[nextEntryIdx][col] - entryFields[prevEntryIdx][col];
                     double slope = (delta / dist);
 
-                    for (int row = prevEntryIdx; row < entryFields.length; row++) {
+                    for (int row = prevEntryIdx; row < nextEntryIdx; row++) {
                         double res = (row - prevEntryIdx) * slope + entryFields[prevEntryIdx][col];
                         // round to 2 decimal places
                         entryFields[row][col] = round_two_digits(res);
@@ -279,21 +281,25 @@ public class ServerMonitor {
      */
     private int findNextEntryIdx(double[][] entryFields, int col, int startRow) {
          int row = startRow;
+         int nextIdx;
 
          while (true) {
              row++;
 
              if (row == entryFields.length) {
                  // return -1 if there is no next non-null entry
-                 return -1;
+                 nextIdx = -1;
+                 break;
              }
 
              if (entryFields[row][col] != 0.0d) {
                  // if a non-null row is found, return the index
-                 return row;
+                 nextIdx = row;
+                 break;
              }
          }
 
+         return nextIdx;
     }
 
     private int[] findTimeRange(SortedMap<Integer, ServerInfo> serverInfoTableCopy) {

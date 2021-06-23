@@ -456,11 +456,6 @@ public class ServerMonitorTest {
             @Test
             @DisplayName("Between a data point and the latest time, cf should be interpolated as if the latest time had the same cf as that point")
             public void betweenLatestTimeAndDataPoint() {
-                System.out.println("result:");
-                for (int i = 0; i < result.length; i++) {
-                    System.out.println(Arrays.toString(result[i]));
-                }
-
                 assertEquals("0.11", result[5][2]);
             }
 
