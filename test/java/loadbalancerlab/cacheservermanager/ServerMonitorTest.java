@@ -449,8 +449,13 @@ public class ServerMonitorTest {
             @Test
             @DisplayName("Between a data point and earliest time, cf should be interpolated as if the earliest time had the same cf as that point")
             public void betweenEarliestTimeAndDataPoint() {
-                assertEquals("0.95", result[1][1]);
-                assertEquals("0.95", result[2][1]);
+                System.out.println("result:");
+                for (int i = 0; i < result.length; i++) {
+                    System.out.println(Arrays.toString(result[i]));
+                }
+
+                assertEquals("0.95", result[1][2]);
+                assertEquals("0.95", result[2][2]);
             }
 
             @Test

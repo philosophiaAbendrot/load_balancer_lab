@@ -160,31 +160,27 @@ public class ServerMonitor {
         int earliestTime = timeRange[0];
         int latestTime = timeRange[1];
 
-        // initialize 2d String array
-        String[][] outputGrid = new String[latestTime - earliestTime + 2][numServers + 1];
-
         double[][] entryRowsDouble = new double[latestTime - earliestTime + 1][numServers];
-        String[] headerRow = new String[numServers + 1];
+        String[] headerRow = new String[numServers];
         String[] timestampColumn = new String[latestTime - earliestTime + 1];
         int currentTime = earliestTime;
 
         // add timestamps to leftmost column
-        for (int row = 0; row < timestampColumn.length; row++) {
+        for (int row = 0; row < timestampColumn.length; row++)
             timestampColumn[row] = String.valueOf(currentTime++);
-        }
 
         // fill out header row
-        for (int col = 1; col < outputGrid[0].length; col++) {
-            headerRow[col] = String.valueOf(serverIds[col - 1]);
-        }
+        for (int col = 0; col < numServers; col++)
+            headerRow[col] = String.valueOf(serverIds[col]);
 
         for (int i = 0; i < serverIds.length; i++) {
             int serverId = serverIds[i];
             ServerInfo info = serverInfoTableCopy.get(serverId);
             SortedMap<Integer, Double> cfRecord = info.getCapacityFactorRecord();
 
-            for (Integer timestamp : cfRecord.keySet())
-                entryRowsDouble[timestamp - earliestTime + 1][i + 1] = cfRecord.get(timestamp);
+            for (Integer timestamp : cfRecord.keySet()) {
+                entryRowsDouble[timestamp - earliestTime][i] = cfRecord.get(timestamp);
+            }
         }
 
 //        // fill out other rows
@@ -200,30 +196,34 @@ public class ServerMonitor {
 
         // run interpolation logic on entries
 
+//        System.out.println("entry rows double before interpolation:");
+//
+//        for (int i = 0; i < entryRowsDouble.length; i++)
+//            System.out.println(Arrays.toString(entryRowsDouble[i]));
+
         interpolateMissingEntries(entryRowsDouble);
 
-        System.out.println("entry rows double:");
+//        System.out.println("entry rows double after interpolation:");
+//
+//        for (int i = 0; i < entryRowsDouble.length; i++)
+//            System.out.println(Arrays.toString(entryRowsDouble[i]));
 
-        for (int i = 0; i < entryRowsDouble.length; i++) {
-            System.out.println(Arrays.toString(entryRowsDouble));
-        }
-
-        return outputGrid;
+        // construct output by piecing together headerRow, timestampColumn and entryRowsDouble
+//        String[][] outputGrid = new String[latestTime - earliestTime + 2][numServers + 1];
+        return constructOutputGrid(headerRow, timestampColumn, entryRowsDouble);
     }
 
     private void interpolateMissingEntries(double[][] entryFields) {
-        for (int col = 0; col < entryFields.length; col++) {
+        for (int col = 0; col < entryFields[0].length; col++) {
             // iterate through columns and interpolate
 
             int prevEntryIdx = 0;
             int nextEntryIdx;
-            double nextEntry;
 
             while (true) {
                 nextEntryIdx = findNextEntryIdx(entryFields, col, prevEntryIdx);
-                nextEntry = entryFields[nextEntryIdx][col];
-
                 if (prevEntryIdx == 0) {
+                    double nextEntry = entryFields[nextEntryIdx][col];
                     // fill in all entries between earliest entry and first non-null entry
                     double fillInValue = round_two_digits(nextEntry);
 
@@ -261,6 +261,36 @@ public class ServerMonitor {
         }
     }
 
+    /**
+     * A helper method for deliverCfData which Constructs a 2d String grid by stiching together a header row, a timestamp column and a grid of capacity factors
+     * @param headerRow: a String array holding server ids
+     * @param timestampColumn: a String array holding timestamps
+     * @param entryRowsDouble: a 2d double array holding capacity factors
+     * @return: returns a 2d String grid for output by the deliverCfData function, which is meant to be printed to csv.
+     */
+    private String[][] constructOutputGrid(String[] headerRow, String[] timestampColumn, double[][] entryRowsDouble) {
+        String[][] outputGrid = new String[entryRowsDouble.length + 1][entryRowsDouble[0].length + 1];
+
+        outputGrid[0][0] = "";
+
+        // fill out header row
+        for (int col = 1; col < entryRowsDouble[0].length; col++)
+            outputGrid[0][col] = headerRow[col - 1];
+
+        // fill out leftmost column using timestampColumn
+        for (int row = 1; row < entryRowsDouble.length; row++)
+            outputGrid[row][0] = timestampColumn[row - 1];
+
+        // fill out rest of output grid using entryRowsDouble
+        for (int row = 1; row < entryRowsDouble.length; row++) {
+            for (int col = 1; col < entryRowsDouble[0].length; col++) {
+                outputGrid[row][col] = String.valueOf(entryRowsDouble[row - 1][col - 1]);
+            }
+        }
+
+        return outputGrid;
+    }
+
     private double round_two_digits(double num) {
         return Math.round(num * 100) / 100.0;
     }
@@ -278,14 +308,14 @@ public class ServerMonitor {
          while (true) {
              row++;
 
-             if (entryFields[row][col] != 0.0d) {
-                 // if a non-null row is found, return the index
-                 return row;
-             }
-
              if (row == entryFields.length) {
                  // return -1 if there is no next non-null entry
                  return -1;
+             }
+
+             if (entryFields[row][col] != 0.0d) {
+                 // if a non-null row is found, return the index
+                 return row;
              }
          }
 
