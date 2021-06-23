@@ -192,12 +192,12 @@ public class ServerMonitor {
         for (int col = 0; col < entryFields[0].length; col++) {
             // iterate through columns and interpolate
 
-            int prevEntryIdx = 0;
+            int prevEntryIdx = -1;
             int nextEntryIdx;
 
             while (true) {
                 nextEntryIdx = findNextEntryIdx(entryFields, col, prevEntryIdx);
-                if (prevEntryIdx == 0) {
+                if (prevEntryIdx == -1) {
                     double nextEntry = entryFields[nextEntryIdx][col];
                     // fill in all entries between earliest entry and first non-null entry
                     double fillInValue = round_two_digits(nextEntry);
