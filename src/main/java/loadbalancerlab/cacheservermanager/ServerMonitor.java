@@ -224,7 +224,7 @@ public class ServerMonitor {
                     double nextEntry = entryFields[nextEntryIdx][col];
                     double fillInValue = roundTwoDigits(nextEntry);
 
-                    for (int row = serverStartTime - earliestTime; row < nextEntryIdx; row++) {
+                    for (int row = Math.max(serverStartTime - earliestTime, 0); row < nextEntryIdx; row++) {
                         entryFields[row][col] = fillInValue;
                     }
 

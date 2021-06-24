@@ -7,6 +7,7 @@ import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.methods.HttpUriRequest;
 import org.apache.http.impl.client.CloseableHttpClient;
+import org.apache.maven.settings.Server;
 import org.json.JSONObject;
 import org.junit.jupiter.api.*;
 import org.mockito.ArgumentCaptor;
@@ -430,9 +431,11 @@ public class ServerMonitorTest {
             int serverId1 = 5956;
             int serverId2 = 6582;
             int serverId3 = 8909;
+            int serverId4 = 16943;
             int port1 = 6849;
             int port2 = 61054;
             int port3 = 15406;
+            int port4 = 51630;
             int indexTime;
 
             @BeforeEach
@@ -443,6 +446,7 @@ public class ServerMonitorTest {
                 ServerInfo info1 = new ServerInfo(serverId1, port1, indexTime - 5);
                 ServerInfo info2 = new ServerInfo(serverId2, port2, indexTime - 4);
                 ServerInfo info3 = new ServerInfo(serverId3, port3, indexTime - 5);
+                ServerInfo info4 = new ServerInfo(serverId4, port4, indexTime - 7);
 
                 // setup capacity factor history
                 info1.updateCapacityFactor(indexTime - 5, 0.39);
@@ -456,9 +460,14 @@ public class ServerMonitorTest {
                 info3.updateCapacityFactor(indexTime - 4, 0.98);
                 info3.updateCapacityFactor(indexTime - 3, 0.89);
 
+                info4.updateCapacityFactor(indexTime - 5, 0.99);
+                info4.updateCapacityFactor(indexTime - 4, 0.55);
+                info4.updateCapacityFactor(indexTime - 3, 0.51);
+
                 serverInfoTable.put(serverId1, info1);
                 serverInfoTable.put(serverId2, info2);
                 serverInfoTable.put(serverId3, info3);
+                serverInfoTable.put(serverId4, info4);
                 serverMonitor.serverInfoTable = serverInfoTable;
 
                 serverMonitor.deactivateServer(serverId2, indexTime - 1);
@@ -496,6 +505,12 @@ public class ServerMonitorTest {
             @DisplayName("If a cf value is available at the deactivation time, it should remain unchanged by the interpolation logic")
             public void cfValueAtDeactivationTime() {
                 assertEquals("0.89", result[3][3]);
+            }
+
+            @Test
+            @DisplayName("If a server start time is before the earliest time, the earliest time entry for that server should be unchanged")
+            public void serverStartTimeBeforeEarliestTime() {
+                assertEquals(result[1][4], "0.99");
             }
 
             @Test
