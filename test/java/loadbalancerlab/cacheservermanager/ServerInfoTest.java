@@ -8,6 +8,13 @@ import org.junit.jupiter.api.Test;
 import static org.junit.jupiter.api.Assertions.*;
 
 public class ServerInfoTest {
+    int currentTime;
+
+    @BeforeEach
+    public void setup() {
+        currentTime = (int)(System.currentTimeMillis() / 1_000);
+    }
+
     @Nested
     @DisplayName("Test 'updateCapacityFactor'")
     class TestUpdateCapacityFactor {
@@ -17,7 +24,7 @@ public class ServerInfoTest {
 
         @BeforeEach
         public void setup() {
-            serverInfo = new ServerInfo(serverId, port);
+            serverInfo = new ServerInfo(serverId, port, currentTime);
         }
 
         @Nested

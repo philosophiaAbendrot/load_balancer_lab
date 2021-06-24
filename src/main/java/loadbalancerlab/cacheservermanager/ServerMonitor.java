@@ -54,20 +54,25 @@ public class ServerMonitor {
      * @param id: the id of the server
      * @param port: the port that the server is running on
      */
-    public void addServer( int id, int port ) {
+    public void addServer( int id, int port, int currentTime ) {
         if (serverInfoTable.containsKey(id)) {
             throw new IllegalArgumentException("serverInfoTable already contains an entry for id " + id);
         }
-        serverInfoTable.put(id, new ServerInfo(id, port));
+
+        serverInfoTable.put(id, new ServerInfo(id, port, currentTime));
     }
 
     /**
-     * Records that a certain server is no longer active
+     * Records that a certain server is no longer active. Also records the time at which a server was deactivated.
      * @param id: the id of the server
+     * @param currentTime: the current time, in seconds since 1-Jan-1970
      */
-    public void deactivateServer(int id) {
-        if (serverInfoTable.containsKey(id))
-            serverInfoTable.get(id).setActive(false);
+    public void deactivateServer(int id, int currentTime) {
+        if (serverInfoTable.containsKey(id)) {
+            ServerInfo info = serverInfoTable.get(id);
+            info.setActive(false);
+            info.setDeactivationTime(currentTime);
+        }
     }
 
     /**

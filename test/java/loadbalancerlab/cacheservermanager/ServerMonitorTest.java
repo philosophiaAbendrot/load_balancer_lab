@@ -40,6 +40,7 @@ public class ServerMonitorTest {
         this.mockClient = Mockito.mock(CloseableHttpClient.class);
         this.mockDecoder = Mockito.mock(RequestDecoder.class);
         this.mockCacheServerManager = Mockito.mock(CacheServerManager.class);
+        currentTime = (int)(System.currentTimeMillis() / 1_000);
     }
 
     @Nested
@@ -53,7 +54,6 @@ public class ServerMonitorTest {
         @Test
         @DisplayName("Should return the correct number of active servers by second")
         public void returnActiveServers() {
-            currentTime = (int)System.currentTimeMillis() / 1_000;
             serverMonitor.updateServerCount(currentTime + 1, 10);
             serverMonitor.updateServerCount(currentTime + 2, 12);
             serverMonitor.updateServerCount(currentTime + 3, 15);
@@ -70,7 +70,6 @@ public class ServerMonitorTest {
         @Test
         @DisplayName("If there are duplicate entries for a given second, the first one should be recorded")
         public void ignoreDuplicateInputs() {
-            currentTime = (int)System.currentTimeMillis() / 1_000;
             serverMonitor.updateServerCount(currentTime + 1, 10);
             serverMonitor.updateServerCount(currentTime + 2, 12);
             serverMonitor.updateServerCount(currentTime + 2, 16);
@@ -110,7 +109,7 @@ public class ServerMonitorTest {
 
             // add server info instances to monitor
             for (int i = 0; i < numServers; i++)
-                serverMonitor.addServer(i, 10_000 + i);
+                serverMonitor.addServer(i, 10_000 + i, currentTime);
 
             serverMonitor.pingCacheServers();
         }
@@ -160,8 +159,8 @@ public class ServerMonitorTest {
         @Test
         @DisplayName("Adding server should add a new entry to serverInfoTable")
         public void shouldAddNewEntryToTable() {
-            serverMonitor.addServer(1, 10_015);
-            serverMonitor.addServer(2, 10_030);
+            serverMonitor.addServer(1, 10_015, currentTime);
+            serverMonitor.addServer(2, 10_030, currentTime);
             assertTrue(serverMonitor.serverInfoTable.containsKey(1));
             assertTrue(serverMonitor.serverInfoTable.containsKey(2));
             ServerInfo info1 = serverMonitor.serverInfoTable.get(1);
@@ -175,9 +174,9 @@ public class ServerMonitorTest {
         @Test
         @DisplayName("Adding server with an existing id should raise an error")
         public void shouldRaiseErrorWhenAddingDuplicateEntry() {
-            serverMonitor.addServer(1, 10_015);
+            serverMonitor.addServer(1, 10_015, currentTime);
             assertThrows(IllegalArgumentException.class, () -> {
-                serverMonitor.addServer(1, 13_581);
+                serverMonitor.addServer(1, 13_581, currentTime);
             });
         }
     }
@@ -190,11 +189,9 @@ public class ServerMonitorTest {
             Random rand = new Random();
 
             serverMonitor = new ServerMonitor(clientFactory, mockDecoder, mockCacheServerManager);
-            serverMonitor.addServer(1, 10_105);
-            serverMonitor.addServer(2, 37_594);
-            serverMonitor.addServer(3, 14_049);
-
-            currentTime = (int)(System.currentTimeMillis() / 1_000);
+            serverMonitor.addServer(1, 10_105, currentTime);
+            serverMonitor.addServer(2, 37_594, currentTime);
+            serverMonitor.addServer(3, 14_049, currentTime);
 
             // add entries to server info table
             for (int i = 1; i < 4; i++) {
@@ -242,8 +239,8 @@ public class ServerMonitorTest {
             public void setup() {
                 ConcurrentMap<Integer, ServerInfo> serverInfoTable = new ConcurrentHashMap<>();
 
-                info1 = new ServerInfo(serverId1, port1);
-                info2 = new ServerInfo(serverId2, port2);
+                info1 = new ServerInfo(serverId1, port1, currentTime);
+                info2 = new ServerInfo(serverId2, port2, currentTime);
                 indexTime = (int)(System.currentTimeMillis() / 1_000);
 
                 // setup capacity factor history
@@ -304,8 +301,8 @@ public class ServerMonitorTest {
             public void setup() {
                 ConcurrentMap<Integer, ServerInfo> serverInfoTable = new ConcurrentHashMap<>();
 
-                ServerInfo info1 = new ServerInfo(serverId1, port1);
-                ServerInfo info2 = new ServerInfo(serverId2, port2);
+                ServerInfo info1 = new ServerInfo(serverId1, port1, currentTime);
+                ServerInfo info2 = new ServerInfo(serverId2, port2, currentTime);
                 indexTime = (int)(System.currentTimeMillis() / 1_000);
 
                 // setup capacity factor history
@@ -322,7 +319,7 @@ public class ServerMonitorTest {
                 serverInfoTable.put(serverId2, info2);
                 serverInfoTable.put(serverId1, info1);
                 serverMonitor.serverInfoTable = serverInfoTable;
-                serverMonitor.deactivateServer(serverId2);
+                serverMonitor.deactivateServer(serverId2, indexTime - 1);
 
                 result = serverMonitor.deliverCfData();
             }
@@ -365,8 +362,8 @@ public class ServerMonitorTest {
             public void setup() {
                 ConcurrentMap<Integer, ServerInfo> serverInfoTable = new ConcurrentHashMap<>();
 
-                ServerInfo info1 = new ServerInfo(serverId1, port1);
-                ServerInfo info2 = new ServerInfo(serverId2, port2);
+                ServerInfo info1 = new ServerInfo(serverId1, port1, currentTime);
+                ServerInfo info2 = new ServerInfo(serverId2, port2, currentTime);
                 indexTime = (int)(System.currentTimeMillis() / 1_000);
 
                 // setup capacity factor history
@@ -383,7 +380,7 @@ public class ServerMonitorTest {
                 serverInfoTable.put(serverId1, info1);
                 serverMonitor.serverInfoTable = serverInfoTable;
 
-                serverMonitor.deactivateServer(serverId2);
+                serverMonitor.deactivateServer(serverId2, indexTime - 2);
 
                 result = serverMonitor.deliverCfData();
             }
@@ -425,8 +422,8 @@ public class ServerMonitorTest {
             public void setup() {
                 ConcurrentMap<Integer, ServerInfo> serverInfoTable = new ConcurrentHashMap<>();
 
-                ServerInfo info1 = new ServerInfo(serverId1, port1);
-                ServerInfo info2 = new ServerInfo(serverId2, port2);
+                ServerInfo info1 = new ServerInfo(serverId1, port1, currentTime);
+                ServerInfo info2 = new ServerInfo(serverId2, port2, currentTime);
                 indexTime = (int)(System.currentTimeMillis() / 1_000);
 
                 // setup capacity factor history
@@ -441,7 +438,7 @@ public class ServerMonitorTest {
                 serverInfoTable.put(serverId1, info1);
                 serverMonitor.serverInfoTable = serverInfoTable;
 
-                serverMonitor.deactivateServer(serverId2);
+                serverMonitor.deactivateServer(serverId2, indexTime - 2);
 
                 result = serverMonitor.deliverCfData();
             }

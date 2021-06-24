@@ -93,7 +93,8 @@ public class CacheServerManager {
                 }
             }
 
-            serverMonitor.addServer(cacheServerIdCounter, cacheServer.getPort());
+            int currentTime = (int)(System.currentTimeMillis() / 1_000);
+            serverMonitor.addServer(cacheServerIdCounter, cacheServer.getPort(), currentTime);
             cacheServerIdCounter++;
         }
     }
@@ -123,7 +124,7 @@ public class CacheServerManager {
             Thread selectedThread = serverThreadTable.get(selectedId);
             selectedThread.interrupt();
             serverThreadTable.remove(selectedId);
-            serverMonitor.deactivateServer(selectedId);
+            serverMonitor.deactivateServer(selectedId, (int)(System.currentTimeMillis() / 1_000));
             serverIds.remove(randIdx);
         }
     }
