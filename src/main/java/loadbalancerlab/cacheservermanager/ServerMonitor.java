@@ -153,9 +153,15 @@ public class ServerMonitor {
         // figure out dimensions of data
         SortedMap<Integer, ServerInfo> serverInfoTableCopy = new TreeMap<>();
 
-        // copy server Info table
-        for (Map.Entry<Integer, ServerInfo> entry : serverInfoTable.entrySet())
-            serverInfoTableCopy.put(entry.getKey(), entry.getValue());
+        // copy server info table
+        for (Map.Entry<Integer, ServerInfo> entry : serverInfoTable.entrySet()) {
+            try {
+                serverInfoTableCopy.put(entry.getKey(), (ServerInfo)entry.getValue().clone());
+            } catch (CloneNotSupportedException e) {
+                e.printStackTrace();
+            }
+        }
+
 
         Integer[] serverIds = serverInfoTableCopy.keySet().stream().toArray(Integer[]::new);
         Arrays.sort(serverIds);
@@ -188,12 +194,12 @@ public class ServerMonitor {
             }
         }
 
-        interpolateMissingEntries(entryRowsDouble);
+        interpolateMissingEntries(entryRowsDouble, serverIds, serverInfoTableCopy);
 
         return constructOutputGrid(headerRow, timestampColumn, entryRowsDouble);
     }
 
-    private void interpolateMissingEntries(double[][] entryFields) {
+    private void interpolateMissingEntries(double[][] entryFields, Integer[] serverIds, SortedMap<Integer, ServerInfo> serverInfoTableCopy) {
         for (int col = 0; col < entryFields[0].length; col++) {
             // iterate through columns and interpolate
 

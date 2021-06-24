@@ -3,7 +3,7 @@ package loadbalancerlab.cacheservermanager;
 import java.util.SortedMap;
 import java.util.TreeMap;
 
-public class ServerInfo {
+public class ServerInfo implements Cloneable {
     private int serverId;
     private int port;
     private SortedMap<Integer, Double> capFactorRecord;
@@ -29,6 +29,14 @@ public class ServerInfo {
     public SortedMap<Integer, Double> getCapacityFactorRecord() {
         SortedMap<Integer, Double> copyMap = (SortedMap<Integer, Double>) ((TreeMap<Integer, Double>)capFactorRecord).clone();
         return copyMap;
+    }
+
+    @Override
+    public Object clone() throws CloneNotSupportedException {
+        ServerInfo copy = (ServerInfo)super.clone();
+        copy.capFactorRecord = new TreeMap<>(capFactorRecord);
+
+        return copy;
     }
 
     public int getStartTime() {
