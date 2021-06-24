@@ -3,6 +3,7 @@ package loadbalancerlab.cacheservermanager;
 import loadbalancerlab.factory.HttpClientFactory;
 import loadbalancerlab.shared.Logger;
 import loadbalancerlab.shared.RequestDecoder;
+import org.apache.commons.lang3.builder.ToStringExclude;
 import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.methods.HttpUriRequest;
@@ -393,6 +394,21 @@ public class ServerMonitorTest {
             }
 
             @Test
+            @DisplayName("topmost row should contain server ids in ascending order")
+            public void topRowShouldBeInAscOrder() {
+                boolean asc = true;
+
+                for (int col = 1; col < result[0].length - 1; col++) {
+                    if (Integer.valueOf(result[0][col + 1]) < Integer.valueOf(result[0][col])) {
+                        asc = false;
+                        break;
+                    }
+                }
+
+                assertTrue(asc);
+            }
+
+            @Test
             @DisplayName("leftmost column should contain all timestamps")
             public void leftColumnShouldContainTimestamps() {
                 assertEquals(String.valueOf(indexTime - 5), result[1][0]);
@@ -414,17 +430,20 @@ public class ServerMonitorTest {
         class TestInterpolationLogic {
             int serverId1 = 5956;
             int serverId2 = 6582;
+            int serverId3 = 8909;
             int port1 = 6849;
             int port2 = 61054;
+            int port3 = 15406;
             int indexTime;
 
             @BeforeEach
             public void setup() {
                 ConcurrentMap<Integer, ServerInfo> serverInfoTable = new ConcurrentHashMap<>();
 
-                ServerInfo info1 = new ServerInfo(serverId1, port1, currentTime);
-                ServerInfo info2 = new ServerInfo(serverId2, port2, currentTime);
                 indexTime = (int)(System.currentTimeMillis() / 1_000);
+                ServerInfo info1 = new ServerInfo(serverId1, port1, indexTime - 5);
+                ServerInfo info2 = new ServerInfo(serverId2, port2, indexTime - 4);
+                ServerInfo info3 = new ServerInfo(serverId3, port3, indexTime - 5);
 
                 // setup capacity factor history
                 info1.updateCapacityFactor(indexTime - 5, 0.39);
@@ -434,26 +453,43 @@ public class ServerMonitorTest {
                 info2.updateCapacityFactor(indexTime - 3, 0.95);
                 info2.updateCapacityFactor(indexTime - 2, 0.11);
 
-                serverInfoTable.put(serverId2, info2);
+                info3.updateCapacityFactor(indexTime - 5, 0.48);
+                info3.updateCapacityFactor(indexTime - 4, 0.98);
+                info3.updateCapacityFactor(indexTime - 3, 0.89);
+
                 serverInfoTable.put(serverId1, info1);
+                serverInfoTable.put(serverId2, info2);
+                serverInfoTable.put(serverId3, info3);
                 serverMonitor.serverInfoTable = serverInfoTable;
 
-                serverMonitor.deactivateServer(serverId2, indexTime - 2);
+                serverMonitor.deactivateServer(serverId2, indexTime - 1);
+                serverMonitor.deactivateServer(serverId3, indexTime - 3);
 
                 result = serverMonitor.deliverCfData();
             }
 
             @Test
-            @DisplayName("Between a data point and earliest time, cf should be interpolated as if the earliest time had the same cf as that point")
+            @DisplayName("Between a data point and server start time, cf should be interpolated as if the earliest time had the same cf as that point")
             public void betweenEarliestTimeAndDataPoint() {
-                assertEquals("0.95", result[1][2]);
                 assertEquals("0.95", result[2][2]);
+            }
+
+            @Test
+            @DisplayName("Between a server start time and the earliest time, cf should be set to 0")
+            public void betweenServerStartAndEarliestTime() {
+                assertEquals("0.0", result[2][1]);
             }
 
             @Test
             @DisplayName("Between a data point and the latest time, cf should be interpolated as if the latest time had the same cf as that point")
             public void betweenLatestTimeAndDataPoint() {
                 assertEquals("0.11", result[5][2]);
+            }
+
+            @Test
+            @DisplayName("If a cf value is available at the deactivation time, it should remain unchanged by the interpolation logic")
+            public void cfValueAtDeactivationTime() {
+                assertEquals("0.89", result[3][3]);
             }
 
             @Test
