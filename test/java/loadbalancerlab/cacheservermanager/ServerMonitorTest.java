@@ -481,6 +481,13 @@ public class ServerMonitorTest {
             }
 
             @Test
+            @DisplayName("Between deactivation time and the latest time, cf should be set to 0")
+            public void betweenDeactivationTimeAndLatestTime() {
+                assertEquals("0.0", result[4][3]);
+                assertEquals("0.0", result[5][3]);
+            }
+
+            @Test
             @DisplayName("Between a data point and the latest time, cf should be interpolated as if the latest time had the same cf as that point")
             public void betweenLatestTimeAndDataPoint() {
                 assertEquals("0.11", result[5][2]);
