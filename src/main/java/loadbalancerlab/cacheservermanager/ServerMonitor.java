@@ -194,12 +194,12 @@ public class ServerMonitor {
             }
         }
 
-        interpolateMissingEntries(entryRowsDouble, serverIds, serverInfoTableCopy);
+        interpolateMissingEntries(entryRowsDouble, serverIds, serverInfoTableCopy, earliestTime);
 
         return constructOutputGrid(headerRow, timestampColumn, entryRowsDouble);
     }
 
-    private void interpolateMissingEntries(double[][] entryFields, Integer[] serverIds, SortedMap<Integer, ServerInfo> serverInfoTableCopy) {
+    private void interpolateMissingEntries(double[][] entryFields, Integer[] serverIds, SortedMap<Integer, ServerInfo> serverInfoTableCopy, int earliestTime) {
         for (int col = 0; col < entryFields[0].length; col++) {
             // iterate through columns and interpolate
 
@@ -209,24 +209,40 @@ public class ServerMonitor {
 
             while (true) {
                 nextEntryIdx = findNextEntryIdx(entryFields, col, prevEntryIdx);
+                int serverId = serverIds[col];
+                ServerInfo info = serverInfoTableCopy.get(serverId);
+                int serverStartTime = info.getStartTime();
+                int deactivationTime = info.getDeactivationTime();
 
                 if (prevEntryIdx == -1) {
-                    double nextEntry = entryFields[nextEntryIdx][col];
-                    // fill in all entries between earliest entry and first non-null entry
-                    double fillInValue = round_two_digits(nextEntry);
+                    // fill in all entries between earliest time and server start time with "0.0"
+                    for (int row = 0; row + earliestTime < serverStartTime; row++) {
+                        entryFields[row][col] = 0.0d;
+                    }
 
-                    for (int row = 0; row < nextEntryIdx; row++) {
+                    // fill in all entries between server start time and first non-null entry with the value of the first non-null entry
+                    double nextEntry = entryFields[nextEntryIdx][col];
+                    double fillInValue = roundTwoDigits(nextEntry);
+
+                    for (int row = serverStartTime - earliestTime; row < nextEntryIdx; row++) {
                         entryFields[row][col] = fillInValue;
                     }
 
                     prevEntryIdx = nextEntryIdx;
                 } else if (nextEntryIdx == -1) {
+                    // fill in all entries between current entry and server deactivation time if there are no subsequent filled entries
+                    double fillInValue = roundTwoDigits(entryFields[prevEntryIdx][col]);
+
                     // fill in all entries between current entry and last entry if there are no subsequent filled entries
-
-                    double fillInValue = round_two_digits(entryFields[prevEntryIdx][col]);
-
-                    for (int row = prevEntryIdx; row < entryFields.length; row++) {
+                    for (int row = prevEntryIdx; row <= deactivationTime - earliestTime; row++) {
                         entryFields[row][col] = fillInValue;
+                    }
+
+                    if (deactivationTime != -1) {
+                        // fill in all entries between server deactivation time and the latest time with "0.0"
+                        for (int row = deactivationTime - earliestTime + 1; row < entryFields.length; row++) {
+                            entryFields[row][col] = 0.0d;
+                        }
                     }
 
                     // terminate since all entries up to the last have been filled
@@ -240,7 +256,7 @@ public class ServerMonitor {
                     for (int row = prevEntryIdx; row < nextEntryIdx; row++) {
                         double res = (row - prevEntryIdx) * slope + entryFields[prevEntryIdx][col];
                         // round to 2 decimal places
-                        entryFields[row][col] = round_two_digits(res);
+                        entryFields[row][col] = roundTwoDigits(res);
                     }
 
                     prevEntryIdx = nextEntryIdx;
@@ -279,7 +295,7 @@ public class ServerMonitor {
         return outputGrid;
     }
 
-    private double round_two_digits(double num) {
+    private double roundTwoDigits(double num) {
         return Math.round(num * 100) / 100.0;
     }
 

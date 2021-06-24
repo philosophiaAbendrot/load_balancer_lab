@@ -3,7 +3,6 @@ package loadbalancerlab.cacheservermanager;
 import loadbalancerlab.factory.HttpClientFactory;
 import loadbalancerlab.shared.Logger;
 import loadbalancerlab.shared.RequestDecoder;
-import org.apache.commons.lang3.builder.ToStringExclude;
 import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.methods.HttpUriRequest;
@@ -240,9 +239,9 @@ public class ServerMonitorTest {
             public void setup() {
                 ConcurrentMap<Integer, ServerInfo> serverInfoTable = new ConcurrentHashMap<>();
 
-                info1 = new ServerInfo(serverId1, port1, currentTime);
-                info2 = new ServerInfo(serverId2, port2, currentTime);
                 indexTime = (int)(System.currentTimeMillis() / 1_000);
+                info1 = new ServerInfo(serverId1, port1, indexTime - 5);
+                info2 = new ServerInfo(serverId2, port2, indexTime - 5);
 
                 // setup capacity factor history
                 info1.updateCapacityFactor(indexTime - 5, 0.65);
@@ -302,9 +301,9 @@ public class ServerMonitorTest {
             public void setup() {
                 ConcurrentMap<Integer, ServerInfo> serverInfoTable = new ConcurrentHashMap<>();
 
-                ServerInfo info1 = new ServerInfo(serverId1, port1, currentTime);
-                ServerInfo info2 = new ServerInfo(serverId2, port2, currentTime);
                 indexTime = (int)(System.currentTimeMillis() / 1_000);
+                ServerInfo info1 = new ServerInfo(serverId1, port1, indexTime - 5);
+                ServerInfo info2 = new ServerInfo(serverId2, port2, indexTime - 3);
 
                 // setup capacity factor history
                 info1.updateCapacityFactor(indexTime - 5, 0.39);
@@ -363,9 +362,9 @@ public class ServerMonitorTest {
             public void setup() {
                 ConcurrentMap<Integer, ServerInfo> serverInfoTable = new ConcurrentHashMap<>();
 
-                ServerInfo info1 = new ServerInfo(serverId1, port1, currentTime);
-                ServerInfo info2 = new ServerInfo(serverId2, port2, currentTime);
                 indexTime = (int)(System.currentTimeMillis() / 1_000);
+                ServerInfo info1 = new ServerInfo(serverId1, port1, indexTime - 5);
+                ServerInfo info2 = new ServerInfo(serverId2, port2, indexTime - 3);
 
                 // setup capacity factor history
                 info1.updateCapacityFactor(indexTime - 5, 0.39);
@@ -477,7 +476,7 @@ public class ServerMonitorTest {
             @Test
             @DisplayName("Between a server start time and the earliest time, cf should be set to 0")
             public void betweenServerStartAndEarliestTime() {
-                assertEquals("0.0", result[2][1]);
+                assertEquals("0.0", result[1][2]);
             }
 
             @Test
