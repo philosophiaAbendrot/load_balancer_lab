@@ -140,7 +140,15 @@ public class Executor {
         // Graph collected metrics
         synthesizedClientRequestLogOutput = new ArrayList<>();
         loadBalancerRequestLogOutput = new ArrayList<>();
+
+        int earliestTime = serverCountLog.firstKey();
+        int latestTime = serverCountLog.lastKey();
+
         serverCountLogOutput = new ArrayList<>();
+
+        // initialize serverCountLogOutput to have one entry for each second
+        for (int timestamp = earliestTime; timestamp <= latestTime; timestamp++)
+            serverCountLogOutput.add(0.0d);
 
 //        for (Integer value : synthesizedClientRequestLog.values())
 //            synthesizedClientRequestLogOutput.add((double)value);
@@ -149,8 +157,10 @@ public class Executor {
 //            loadBalancerRequestLogOutput.add((double)value);
 
         // add collected data
-        for (Map.Entry<Integer, Integer> entry : serverCountLog.entrySet())
-            serverCountLogOutput.add((double) entry.getValue());
+        for (Map.Entry<Integer, Integer> entry : serverCountLog.entrySet()) {
+            int timestamp = entry.getKey();
+            serverCountLogOutput.set(timestamp - earliestTime, (double) entry.getValue());
+        }
 
         cacheServerCfData = cacheServerManager.deliverCfData();
     }
