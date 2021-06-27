@@ -82,7 +82,7 @@ public class HashRing {
                 }
             }
 
-            HashRingAngle newAngle = new HashRingAngle(serverId, angle, hashFunction);
+            HashRingAngle newAngle = new HashRingAngle(serverId, angle);
             anglesByServerId.get(serverId).add(newAngle);
             angles.put(angle, newAngle);
         }
