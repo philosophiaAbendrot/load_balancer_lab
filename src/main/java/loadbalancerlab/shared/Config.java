@@ -25,6 +25,7 @@ public class Config {
     private int numClients;
     private int numCacheServersOnStartup;
     private int simulationTime;
+    private int hashRingAngleRecordInterval;
 
     public Config() {
         // default configurations
@@ -48,6 +49,7 @@ public class Config {
         numClients = 20;
         numCacheServersOnStartup = 5;
         simulationTime = 80_000;
+        hashRingAngleRecordInterval = 5;
 
         // factories
         httpClientFactory = new HttpClientFactory();
@@ -118,6 +120,8 @@ public class Config {
 
     public int getSimulationTime() { return simulationTime; }
 
+    public int getHashRingAngleRecordInterval() { return hashRingAngleRecordInterval; }
+
     public void setMaxAnglesPerServer( int _maxAnglesPerServer ) {
         maxAnglesPerServer = _maxAnglesPerServer;
     }
@@ -183,4 +187,6 @@ public class Config {
     public void setNumCacheServersOnStartup( int numCacheServersOnStartup ) {
         this.numCacheServersOnStartup = numCacheServersOnStartup;
     }
+
+    public void setHashRingAngleRecordInterval(int val) { hashRingAngleRecordInterval = val; }
 }

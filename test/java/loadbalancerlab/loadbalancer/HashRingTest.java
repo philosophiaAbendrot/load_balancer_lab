@@ -398,4 +398,70 @@ public class HashRingTest {
             }
         }
     }
+
+    @Nested
+    @DisplayName("Test 'recordServerAngles()'")
+    class TestRecordServerAngles {
+        HashFunction mockHashFunction = Mockito.mock(HashFunction.class);
+        int serverId1 = 5;
+        int serverId2 = 8;
+        int serverId3 = 14;
+        int serverId4 = 2;
+        int indexTime = (int)(System.currentTimeMillis() / 1_000);
+        TreeMap<Integer, Map<Integer, List<HashRingAngle>>> angleHistory;
+
+        @BeforeEach
+        public void setup() {
+            config.setHashFunction(mockHashFunction);
+            HashRing.configure(config);
+            hashRing = new HashRing();
+            hashRing.addServer(serverId1);
+            hashRing.addServer(serverId2);
+            hashRing.addServer(serverId3);
+
+            hashRing.recordServerAngles(indexTime - 5);
+            hashRing.addServer(serverId4);
+            hashRing.recordServerAngles(indexTime);
+            angleHistory = hashRing.angleHistory;
+        }
+
+        @Test
+        @DisplayName("angleHistory should have correct number of entries")
+        public void angleHistoryShouldHaveCorrectEntryNumber() {
+            assertEquals(2, angleHistory.size());
+        }
+
+        @Test
+        @DisplayName("angle history entry should have correct size")
+        public void angleHistoryEntrySizeShouldBeCorrect() {
+            // should be same size
+            Map<Integer, List<HashRingAngle>> firstAngleHistoryEntry = angleHistory.get(indexTime - 5);
+            assertEquals(3, firstAngleHistoryEntry.size());
+            Map<Integer, List<HashRingAngle>> lastAngleHistoryEntry = angleHistory.get(indexTime);
+            assertEquals(4, lastAngleHistoryEntry.size());
+        }
+
+        @Test
+        @DisplayName("angleHistory entries should record the angles by server id")
+        public void angleHistoryShouldRecordAnglesByServerId() {
+            Map<Integer, List<HashRingAngle>> firstAngleHistoryEntry = angleHistory.get(indexTime - 5);
+            Map<Integer, List<HashRingAngle>> lastAngleHistoryEntry = angleHistory.get(indexTime);
+
+            // test first angle history entries
+            int[] firstHistoryEntryServerIds = { serverId1, serverId2, serverId3 };
+            int[] secondHistoryEntryServerIds = { serverId1, serverId2, serverId3, serverId4 };
+
+            for (int i = 0; i < firstHistoryEntryServerIds.length; i++) {
+                int serverId = firstHistoryEntryServerIds[i];
+                List<HashRingAngle> recordedAngleList = firstAngleHistoryEntry.get(serverId);
+                List<HashRingAngle> angleList = hashRing.anglesByServerId.get(serverId);
+
+                assertEquals(angleList.size(), recordedAngleList.size());
+
+                for (HashRingAngle angle : recordedAngleList) {
+                    assertTrue(angleList.contains(angle));
+                }
+            }
+        }
+    }
 }

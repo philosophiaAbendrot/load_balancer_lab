@@ -15,6 +15,7 @@ public class HashRing {
 
     ConcurrentMap<Integer, HashRingAngle> angles;
     ConcurrentMap<Integer, List<HashRingAngle>> anglesByServerId;
+    TreeMap<Integer, Map<Integer, List<HashRingAngle>>> angleHistory;
 
     public static void configure( Config config) {
         maxAnglesPerServer = config.getMaxAnglesPerServer();
@@ -112,6 +113,10 @@ public class HashRing {
 
         anglesByServerId.put(serverId, new ArrayList<>());
         addAngle(serverId, defaultAnglesPerServer);
+    }
+
+    public void recordServerAngles(int currentTime) {
+
     }
 
     public void removeServer( int serverId ) {

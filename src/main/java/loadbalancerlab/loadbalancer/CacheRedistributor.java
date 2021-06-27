@@ -83,6 +83,10 @@ public class CacheRedistributor {
         return serverInfoTable.get(serverId).getPort();
     }
 
+    public void recordServerAngles(int currentTime) {
+        hashRing.recordServerAngles(currentTime);
+    }
+
     // remaps caching responsibility based on the load on each server
     public void remapCacheKeys() {
         for (Map.Entry<Integer, ServerInfo> entry : serverInfoTable.entrySet()) {
