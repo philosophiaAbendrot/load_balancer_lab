@@ -408,7 +408,7 @@ public class HashRingTest {
         int serverId3 = 14;
         int serverId4 = 2;
         int indexTime = (int)(System.currentTimeMillis() / 1_000);
-        TreeMap<Integer, Map<Integer, List<HashRingAngle>>> angleHistory;
+        SortedMap<Integer, Map<Integer, List<HashRingAngle>>> angleHistory;
 
         @BeforeEach
         public void setup() {

@@ -15,7 +15,7 @@ public class HashRing {
 
     ConcurrentMap<Integer, HashRingAngle> angles;
     ConcurrentMap<Integer, List<HashRingAngle>> anglesByServerId;
-    TreeMap<Integer, Map<Integer, List<HashRingAngle>>> angleHistory;
+    SortedMap<Integer, Map<Integer, List<HashRingAngle>>> angleHistory;
 
     public static void configure( Config config) {
         maxAnglesPerServer = config.getMaxAnglesPerServer();
@@ -28,6 +28,7 @@ public class HashRing {
     public HashRing() {
         angles = new ConcurrentHashMap<>();
         anglesByServerId = new ConcurrentHashMap<>();
+        angleHistory = new TreeMap<>();
     }
 
     public int findServerId( String resourceName ) {
@@ -115,8 +116,23 @@ public class HashRing {
         addAngle(serverId, defaultAnglesPerServer);
     }
 
+    /**
+     * Records a copy of anglesByServerId for a particular moment in time into 'angleHistory' field
+     * @param currentTime: the current time, in seconds since 1-Jan-1970
+     */
     public void recordServerAngles(int currentTime) {
+        // do not record if there is already an entry for the given timestamp
+        if (angleHistory.containsKey(currentTime))
+            return;
 
+        Map<Integer, List<HashRingAngle>> copyTable = new HashMap<>();
+
+        anglesByServerId.forEach((k, v) -> {
+            List<HashRingAngle> newList = new ArrayList<>(v);
+            copyTable.put(k, newList);
+        });
+
+        angleHistory.put(currentTime, copyTable);
     }
 
     public void removeServer( int serverId ) {
