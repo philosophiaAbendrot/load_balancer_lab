@@ -196,6 +196,8 @@ public class ServerMonitor {
 
         interpolateMissingEntries(entryRowsDouble, serverIds, serverInfoTableCopy, earliestTime);
 
+        roundEntries(entryRowsDouble);
+
         return constructOutputGrid(headerRow, timestampColumn, entryRowsDouble);
     }
 
@@ -222,7 +224,7 @@ public class ServerMonitor {
 
                     // fill in all entries between server start time and first non-null entry with the value of the first non-null entry
                     double nextEntry = entryFields[nextEntryIdx][col];
-                    double fillInValue = roundTwoDigits(nextEntry);
+                    double fillInValue = nextEntry;
 
                     for (int row = Math.max(serverStartTime - earliestTime, 0); row < nextEntryIdx; row++) {
                         entryFields[row][col] = fillInValue;
@@ -231,7 +233,7 @@ public class ServerMonitor {
                     prevEntryIdx = nextEntryIdx;
                 } else if (nextEntryIdx == -1) {
                     // fill in all entries between current entry and server deactivation time if there are no subsequent filled entries
-                    double fillInValue = roundTwoDigits(entryFields[prevEntryIdx][col]);
+                    double fillInValue = entryFields[prevEntryIdx][col];
 
                     // fill in all entries between current entry and last entry if there are no subsequent filled entries
                     for (int row = prevEntryIdx; row <= deactivationTime - earliestTime; row++) {
@@ -256,11 +258,23 @@ public class ServerMonitor {
                     for (int row = prevEntryIdx; row < nextEntryIdx; row++) {
                         double res = (row - prevEntryIdx) * slope + entryFields[prevEntryIdx][col];
                         // round to 2 decimal places
-                        entryFields[row][col] = roundTwoDigits(res);
+                        entryFields[row][col] = res;
                     }
 
                     prevEntryIdx = nextEntryIdx;
                 }
+            }
+        }
+    }
+
+    /**
+     * rounds all entries in cf grid to two digits
+     * @param entryRows: the 2d double array holding the capacity factor values per time
+     */
+    private void roundEntries(double[][] entryRows) {
+        for (int row = 0; row < entryRows.length; row++) {
+            for (int col = 0; col < entryRows[0].length; col++) {
+                entryRows[row][col] = Math.round(entryRows[row][col] * 100) / 100.0;
             }
         }
     }
@@ -293,10 +307,6 @@ public class ServerMonitor {
         }
 
         return outputGrid;
-    }
-
-    private double roundTwoDigits(double num) {
-        return Math.round(num * 100) / 100.0;
     }
 
     /**

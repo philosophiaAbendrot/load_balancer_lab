@@ -92,9 +92,6 @@ public class Executor {
 
         // print data to csv
         printData();
-
-        // graph cacheServerManager cache server count vs time
-        graphData();
     }
 
     public static void main(String[] args) {
