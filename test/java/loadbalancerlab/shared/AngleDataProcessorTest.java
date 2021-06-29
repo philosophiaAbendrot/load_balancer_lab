@@ -18,7 +18,8 @@ public class AngleDataProcessorTest {
         SortedMap<Integer, Map<Integer, List<HashRingAngle>>> angleHistory;
         AngleDataProcessor angleProcessor;
         String[][] processedResult;
-        int[] serverIds = { 5, 18, 16, 39 };
+        int[] serverIds = { 39, 18, 16, 5 };
+        Map<Integer, Integer> serverIdTable;
         int[] timestamps;
 
         int indexTime;
@@ -29,6 +30,16 @@ public class AngleDataProcessorTest {
 
         @BeforeEach
         public void setup() {
+            int[] serverIdsCopy = new int[serverIds.length];
+            System.arraycopy(serverIds, 0, serverIdsCopy, 0, serverIds.length);
+            Arrays.sort(serverIdsCopy);
+
+            // table mapping server id to order when sorted in ascending order of ids
+            serverIdTable = new HashMap<>();
+
+            for (int i = 0; i < serverIds.length; i++)
+                serverIdTable.put(serverIds[i], i);
+
             angleProcessor = new AngleDataProcessor();
             numAnglesMat.add(Arrays.asList(5, 4, 9));
             numAnglesMat.add(Arrays.asList(8, 13, 2, 8));
@@ -94,9 +105,16 @@ public class AngleDataProcessorTest {
         @Test
         @DisplayName("should have correct number of angles by server for each timestamp")
         public void shouldReturnNumberOfAnglesByServer() {
+            for (int i = 0 ; i < processedResult.length; i++) {
+                System.out.println(Arrays.toString(processedResult[i]));
+            }
+
             for (int timestampIdx = 0; timestampIdx < timestamps.length; timestampIdx++) {
                 for (int serverIdIdx = 0; serverIdIdx < numAnglesMat.get(timestampIdx).size(); serverIdIdx++) {
-                    assertEquals(String.valueOf(numAnglesMat.get(timestampIdx).get(serverIdIdx)), processedResult[timestampIdx + 1][serverIdIdx + 1]);
+                    int serverId = serverIds[serverIdIdx];
+                    int serverIdOrder = serverIdTable.get(serverId);
+
+                    assertEquals(String.valueOf(numAnglesMat.get(timestampIdx).get(serverIdIdx)), processedResult[timestampIdx + 1][serverIdOrder + 1]);
                 }
             }
         }
@@ -138,7 +156,7 @@ public class AngleDataProcessorTest {
         public void headerRowShouldContainIdsOfServers() {
             String[] headerRow = processedResult[0];
 
-            for (int i = 0; i < headerRow.length - 1; i++)
+            for (int i = 1; i < headerRow.length - 1; i++)
                 assertTrue(Integer.parseInt(headerRow[i + 1]) >= Integer.parseInt(headerRow[i]));
         }
 
@@ -149,7 +167,7 @@ public class AngleDataProcessorTest {
                 int timestamp = timestamps[i];
                 boolean contains = false;
 
-                for (int row = 0; row < timestamps.length; row++) {
+                for (int row = 1; row < processedResult.length; row++) {
                     if (timestamp == Integer.parseInt(processedResult[row][0])) {
                         contains = true;
                         break;
