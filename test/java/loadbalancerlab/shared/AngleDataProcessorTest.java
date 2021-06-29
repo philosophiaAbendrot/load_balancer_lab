@@ -1,6 +1,7 @@
 package loadbalancerlab.shared;
 
 import loadbalancerlab.loadbalancer.HashRingAngle;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
@@ -26,7 +27,9 @@ public class AngleDataProcessorTest {
 
         List<List<Integer>> numAnglesMat = new ArrayList<>();
 
+        @BeforeEach
         public void setup() {
+            angleProcessor = new AngleDataProcessor();
             numAnglesMat.add(Arrays.asList(5, 4, 9));
             numAnglesMat.add(Arrays.asList(8, 13, 2, 8));
             numAnglesMat.add(Arrays.asList(4, 9, 7, 6));
@@ -61,7 +64,8 @@ public class AngleDataProcessorTest {
 
             // fill up angle history matrix
             for (int timestampIdx = 0; timestampIdx < numAnglesMat.size(); timestampIdx++) {
-                Map<Integer, List<HashRingAngle>> timestampEntry = angleHistory.get(timestampIdx);
+                Map<Integer, List<HashRingAngle>> timestampEntry = angleHistory.get(timestamps[timestampIdx]);
+
                 for (int serverIdIdx = 0; serverIdIdx < numAnglesMat.get(timestampIdx).size(); serverIdIdx++) {
                     numAngles = numAnglesMat.get(timestampIdx).get(serverIdIdx);
                     List<HashRingAngle> angleList = new ArrayList<>();
@@ -90,7 +94,7 @@ public class AngleDataProcessorTest {
         @Test
         @DisplayName("should have correct number of angles by server for each timestamp")
         public void shouldReturnNumberOfAnglesByServer() {
-            for (int timestampIdx = 0; timestampIdx < numAnglesMat.size(); timestampIdx++) {
+            for (int timestampIdx = 0; timestampIdx < timestamps.length; timestampIdx++) {
                 for (int serverIdIdx = 0; serverIdIdx < numAnglesMat.get(timestampIdx).size(); serverIdIdx++) {
                     assertEquals(String.valueOf(numAnglesMat.get(timestampIdx).get(serverIdIdx)), processedResult[timestampIdx + 1][serverIdIdx + 1]);
                 }
