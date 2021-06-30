@@ -79,4 +79,16 @@ public class AngleDataProcessor {
 
         return outputGraph;
     }
+
+    /**
+     * Processes angleHistory field into a field counting the total sweep angle of the HashRingAngle instances associated
+     * with each server as a function of time
+     * @return: Returns a 2d String array formatted for printing to csv holding information about the total sweep angle for each
+     * cache server as a function of time
+     */
+    public String[][] getSweepAngleByTime() {
+
+
+        return new String[0][0];
+    }
 }

@@ -191,5 +191,37 @@ public class AngleDataProcessorTest {
     @DisplayName("Test getTotalSweepAngleByServerByTime()")
     class TestTotalSweepAngleByTime {
         String[][] processedResult;
+
+        @BeforeEach
+        public void setup() {
+            processedResult = angleProcessor.getSweepAngleByTime();
+        }
+
+        @Test
+        @DisplayName("header row should contain ids of all servers")
+        public void headerRowShouldContainIdsOfAllServers() {
+
+        }
+
+        @Test
+        @DisplayName("header row should contain ids of all servers in ascending order")
+        public void headerRowShouldContainIdsOfAllServersInAscendingOrder() {
+
+        }
+
+        @Test
+        @DisplayName("Leftmost column should contain all timestamps")
+        public void leftMostColumnShouldContainAllTimestamps() {
+
+        }
+
+        @Test
+        @DisplayName("Result should have correct dimensions")
+        public void ShouldHaveCorrectDimensions() {
+
+        }
+
+        @Test
+        @DisplayName(" ")
     }
 }
