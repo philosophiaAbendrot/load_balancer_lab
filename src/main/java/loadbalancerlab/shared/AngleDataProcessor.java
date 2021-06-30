@@ -87,7 +87,11 @@ public class AngleDataProcessor {
      * cache server as a function of time
      */
     public String[][] getSweepAngleByTime() {
-
+        // general idea:
+        // for each snapshot in HashRingAngle.angleHistory:
+            // convert snapshot into a sorted map 'hashRingAnglesTable' which maps HashRingAngle position to HashRingAngle instances
+            // traverse through each entry in 'hashRingAnglesTable' and record how much angle is allocated to each server
+            // store this information into an output variable
 
         return new String[0][0];
     }

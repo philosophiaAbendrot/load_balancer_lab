@@ -200,28 +200,55 @@ public class AngleDataProcessorTest {
         @Test
         @DisplayName("header row should contain ids of all servers")
         public void headerRowShouldContainIdsOfAllServers() {
+            String[] headerRow = processedResult[0];
 
+            for (int i = 0; i < serverIds.length; i++) {
+                String serverId = String.valueOf(serverIds[i]);
+                boolean contains = false;
+
+                for (int j = 0; j < headerRow.length; j++) {
+                    if (serverId.equals(headerRow[j])) {
+                        contains = true;
+                        break;
+                    }
+                }
+
+                assertTrue(contains);
+            }
         }
 
         @Test
         @DisplayName("header row should contain ids of all servers in ascending order")
         public void headerRowShouldContainIdsOfAllServersInAscendingOrder() {
+            String[] headerRow = processedResult[0];
 
+            for (int i = 1; i < headerRow.length - 1; i++)
+                assertTrue(Integer.parseInt(headerRow[i + 1]) >= Integer.parseInt(headerRow[i]));
         }
 
         @Test
         @DisplayName("Leftmost column should contain all timestamps")
         public void leftMostColumnShouldContainAllTimestamps() {
+            for (int i = 0; i < timestamps.length; i++) {
+                int timestamp = timestamps[i];
+                boolean contains = false;
 
+                for (int row = 1; row < processedResult.length; row++) {
+                    if (timestamp == Integer.parseInt(processedResult[row][0])) {
+                        contains = true;
+                        break;
+                    }
+                }
+
+                assertTrue(contains);
+            }
         }
 
         @Test
         @DisplayName("Result should have correct dimensions")
-        public void ShouldHaveCorrectDimensions() {
-
+        public void shouldHaveCorrectDimensions() {
+            assertEquals(serverIds.length + 1, processedResult[0].length);
+            assertEquals(timestamps.length + 1, processedResult.length);
         }
-
-        @Test
-        @DisplayName(" ")
     }
 }
