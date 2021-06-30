@@ -38,7 +38,7 @@ public class AngleDataProcessorTest {
             serverIdTable = new HashMap<>();
 
             for (int i = 0; i < serverIds.length; i++)
-                serverIdTable.put(serverIds[i], i);
+                serverIdTable.put(serverIdsCopy[i], i);
 
             angleProcessor = new AngleDataProcessor();
             numAnglesMat.add(Arrays.asList(5, 4, 9));
@@ -105,10 +105,6 @@ public class AngleDataProcessorTest {
         @Test
         @DisplayName("should have correct number of angles by server for each timestamp")
         public void shouldReturnNumberOfAnglesByServer() {
-            for (int i = 0 ; i < processedResult.length; i++) {
-                System.out.println(Arrays.toString(processedResult[i]));
-            }
-
             for (int timestampIdx = 0; timestampIdx < timestamps.length; timestampIdx++) {
                 for (int serverIdIdx = 0; serverIdIdx < numAnglesMat.get(timestampIdx).size(); serverIdIdx++) {
                     int serverId = serverIds[serverIdIdx];
