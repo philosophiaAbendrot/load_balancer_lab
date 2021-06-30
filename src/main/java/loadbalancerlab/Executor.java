@@ -8,6 +8,7 @@ import loadbalancerlab.client.ClientManagerRunnable;
 import loadbalancerlab.factory.ClientFactory;
 import loadbalancerlab.factory.HttpClientFactory;
 import loadbalancerlab.loadbalancer.*;
+import loadbalancerlab.shared.AngleDataProcessor;
 import loadbalancerlab.shared.Config;
 import loadbalancerlab.shared.RequestDecoder;
 import loadbalancerlab.vendor.Graph;
@@ -48,6 +49,7 @@ public class Executor {
     List<Double> serverCountLogOutput;
     String[][] cacheServerCfData;
     SortedMap<Integer, Integer> serverCountLog;
+    String[][] numAnglesByServerByTime;
 
     public static void configure( Config config ) {
         simulationTime = config.getSimulationTime();
@@ -159,6 +161,11 @@ public class Executor {
             serverCountLogOutput.set(timestamp - earliestTime, (double) entry.getValue());
         }
 
+        // collect HashRingAngle data
+        SortedMap<Integer, Map<Integer, List<HashRingAngle>>> angleHistory = loadBalancer.getHashRingAngleHistory();
+        AngleDataProcessor angleDataProcessor = new AngleDataProcessor(angleHistory);
+        numAnglesByServerByTime = angleDataProcessor.getNumAnglesByTime();
+
         cacheServerCfData = cacheServerManager.deliverCfData();
     }
 
@@ -252,6 +259,23 @@ public class Executor {
                 for (int i = 0; i < content.length; i++) {
                     System.out.println("content = " + Arrays.toString(content[i]));
                     printer.printRecord(content[i]);
+                }
+            }
+
+            out.close();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
+        System.out.println("Printing num angles vs time by server");
+
+        try {
+            // write data on number of angles by server by time
+            FileWriter out = new FileWriter("csv_output/num_angles_vs_time.csv");
+            String[] headers = numAnglesByServerByTime[0];
+            try (CSVPrinter printer = new CSVPrinter(out, CSVFormat.DEFAULT.withHeader(headers))) {
+                for (int i = 1; i < numAnglesByServerByTime.length; i++) {
+                    printer.printRecord(numAnglesByServerByTime[i]);
                 }
             }
 

@@ -11,7 +11,9 @@ import org.json.JSONObject;
 
 import java.io.IOException;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
+import java.util.SortedMap;
 
 public class CacheRedistributor {
     Map<Integer, ServerInfo> serverInfoTable;
@@ -34,6 +36,10 @@ public class CacheRedistributor {
         cacheServerManagerPort = _cacheServerManagerPort;
         hashRing = _hashRing;
         logger = new Logger("CacheRedistributor");
+    }
+
+    public SortedMap<Integer, Map<Integer, List<HashRingAngle>>> getHashRingAngleHistory() {
+        return hashRing.getHashRingAngleHistory();
     }
 
     // sends request to cache server manager for an update on which cache servers are running on which ports and

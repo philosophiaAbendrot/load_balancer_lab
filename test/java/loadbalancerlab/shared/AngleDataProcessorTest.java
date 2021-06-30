@@ -40,7 +40,6 @@ public class AngleDataProcessorTest {
             for (int i = 0; i < serverIds.length; i++)
                 serverIdTable.put(serverIdsCopy[i], i);
 
-            angleProcessor = new AngleDataProcessor();
             numAnglesMat.add(Arrays.asList(5, 4, 9));
             numAnglesMat.add(Arrays.asList(8, 13, 2, 8));
             numAnglesMat.add(Arrays.asList(4, 9, 7, 6));
@@ -73,6 +72,8 @@ public class AngleDataProcessorTest {
             angleHistory.put(timestamps[1], new HashMap<>());
             angleHistory.put(timestamps[2], new HashMap<>());
 
+            angleProcessor = new AngleDataProcessor(angleHistory);
+
             // fill up angle history matrix
             for (int timestampIdx = 0; timestampIdx < numAnglesMat.size(); timestampIdx++) {
                 Map<Integer, List<HashRingAngle>> timestampEntry = angleHistory.get(timestamps[timestampIdx]);
@@ -92,7 +93,7 @@ public class AngleDataProcessorTest {
                 }
             }
 
-            processedResult = angleProcessor.getNumAnglesByTime(angleHistory);
+            processedResult = angleProcessor.getNumAnglesByTime();
         }
 
         @Test

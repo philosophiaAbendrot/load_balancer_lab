@@ -1,5 +1,9 @@
 package loadbalancerlab.loadbalancer;
 
+import java.util.List;
+import java.util.Map;
+import java.util.SortedMap;
+
 public class LoadBalancerRunnable implements Runnable {
     private int port;
     private int cacheServerManagerPort;
@@ -23,6 +27,10 @@ public class LoadBalancerRunnable implements Runnable {
         clientReqHandler = new LoadBalancerClientRequestHandler(cacheRedis);
         clientReqHandlerRunnable = new ClientRequestHandlerServer(clientReqHandler);
         clientReqHandlerThread = new Thread(clientReqHandlerRunnable);
+    }
+
+    public SortedMap<Integer, Map<Integer, List<HashRingAngle>>> getHashRingAngleHistory() {
+        return cacheRedis.getHashRingAngleHistory();
     }
 
     @Override

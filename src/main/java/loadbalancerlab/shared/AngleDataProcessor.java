@@ -1,12 +1,30 @@
 package loadbalancerlab.shared;
 
-import loadbalancerlab.loadbalancer.HashRing;
 import loadbalancerlab.loadbalancer.HashRingAngle;
 
 import java.util.*;
 
+/**
+ * Data processing class for processing snapshots of HashRingAngle instances over time into csv-printable information
+ */
 public class AngleDataProcessor {
-    public String[][] getNumAnglesByTime(SortedMap<Integer, Map<Integer, List<HashRingAngle>>> angleHistory) {
+    SortedMap<Integer, Map<Integer, List<HashRingAngle>>> angleHistory;
+
+    /**
+     * Constructor method
+     * @param angleHistory: a table mapping time (seconds since 1-Jan-1970) to a map which holds a snapshot of
+     *                      server ids mapping to the HashRingAngle instances belonging to that server at that moment in time
+     */
+    public AngleDataProcessor(SortedMap<Integer, Map<Integer, List<HashRingAngle>>> angleHistory) {
+        this.angleHistory = angleHistory;
+    }
+
+    /**
+     * Processes angleHistory field into a field counting the number of angles active by server by timestamp
+     * @return: Returns a 2d string array formatted for printing to csv holding information about the number of angles
+     * for each CacheServer at a number of timestamps
+     */
+    public String[][] getNumAnglesByTime() {
         int maxServerCount = 0;
         int maxServerCountTimestamp = 0;
 
