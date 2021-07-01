@@ -20,7 +20,7 @@ public class AngleDataProcessorTest {
     List<List<Integer>> numAnglesMat = new ArrayList<>();
     int indexTime;
     int numAngles = 25;
-    int maxAngle = 120;
+    int maxAnglePosition = 120;
 
     @BeforeEach
     public void setup() {
@@ -41,52 +41,6 @@ public class AngleDataProcessorTest {
 
         indexTime = (int)(System.currentTimeMillis() / 1_000);
         timestamps = new int[] { indexTime - 15, indexTime - 10, indexTime - 5 };
-
-        angleHistory = new TreeMap<>();
-        List<HashRingAngle> anglePool = new ArrayList<>();
-
-        // pool of angles from which angle positions are chosen
-        List<Integer> possibleAngles = new ArrayList<>();
-
-        for (int i = 0; i <= maxAngle; i++) {
-            possibleAngles.add(i);
-        }
-
-        Random rand = new Random();
-
-        for (int i = 0; i < numAngles; i++) {
-            // fill up angle pool with angles with randomly generated angles
-            int randIdx = rand.nextInt(possibleAngles.size());
-            int selectedAngle = possibleAngles.get(randIdx);
-            // remove selected angle from possible angles to prevent duplicates HashRingAngles with the same angle
-            possibleAngles.remove(randIdx);
-            anglePool.add(new HashRingAngle(i, selectedAngle));
-        }
-
-        angleHistory.put(timestamps[0], new HashMap<>());
-        angleHistory.put(timestamps[1], new HashMap<>());
-        angleHistory.put(timestamps[2], new HashMap<>());
-
-        angleProcessor = new AngleDataProcessor(angleHistory);
-
-        // fill up angle history matrix
-        for (int timestampIdx = 0; timestampIdx < numAnglesMat.size(); timestampIdx++) {
-            Map<Integer, List<HashRingAngle>> timestampEntry = angleHistory.get(timestamps[timestampIdx]);
-
-            for (int serverIdIdx = 0; serverIdIdx < numAnglesMat.get(timestampIdx).size(); serverIdIdx++) {
-                numAngles = numAnglesMat.get(timestampIdx).get(serverIdIdx);
-                List<HashRingAngle> angleList = new ArrayList<>();
-
-                for (int i = 0; i < numAngles; i++) {
-                    int randAngleIdx = rand.nextInt(anglePool.size());
-                    angleList.add(anglePool.get(randAngleIdx));
-                }
-
-                int serverId = serverIds[serverIdIdx];
-
-                timestampEntry.put(serverId, angleList);
-            }
-        }
     }
 
     @Nested
@@ -96,6 +50,52 @@ public class AngleDataProcessorTest {
 
         @BeforeEach
         public void setup() {
+            angleHistory = new TreeMap<>();
+            List<HashRingAngle> anglePool = new ArrayList<>();
+
+            // pool of angles from which angle positions are chosen
+            List<Integer> possibleAngles = new ArrayList<>();
+
+            for (int i = 0; i <= maxAnglePosition; i++) {
+                possibleAngles.add(i);
+            }
+
+            Random rand = new Random();
+
+            for (int i = 0; i < numAngles; i++) {
+                // fill up angle pool with angles with randomly generated angles
+                int randIdx = rand.nextInt(possibleAngles.size());
+                int selectedAngle = possibleAngles.get(randIdx);
+                // remove selected angle from possible angles to prevent duplicates HashRingAngles with the same angle
+                possibleAngles.remove(randIdx);
+                anglePool.add(new HashRingAngle(i, selectedAngle));
+            }
+
+            angleHistory.put(timestamps[0], new HashMap<>());
+            angleHistory.put(timestamps[1], new HashMap<>());
+            angleHistory.put(timestamps[2], new HashMap<>());
+
+            angleProcessor = new AngleDataProcessor(angleHistory);
+
+            // fill up angle history matrix
+            for (int timestampIdx = 0; timestampIdx < numAnglesMat.size(); timestampIdx++) {
+                Map<Integer, List<HashRingAngle>> timestampEntry = angleHistory.get(timestamps[timestampIdx]);
+
+                for (int serverIdIdx = 0; serverIdIdx < numAnglesMat.get(timestampIdx).size(); serverIdIdx++) {
+                    numAngles = numAnglesMat.get(timestampIdx).get(serverIdIdx);
+                    List<HashRingAngle> angleList = new ArrayList<>();
+
+                    for (int i = 0; i < numAngles; i++) {
+                        int randAngleIdx = rand.nextInt(anglePool.size());
+                        angleList.add(anglePool.get(randAngleIdx));
+                    }
+
+                    int serverId = serverIds[serverIdIdx];
+
+                    timestampEntry.put(serverId, angleList);
+                }
+            }
+
             processedResult = angleProcessor.getNumAnglesByTime();
         }
 
@@ -191,9 +191,77 @@ public class AngleDataProcessorTest {
     @DisplayName("Test getTotalSweepAngleByServerByTime()")
     class TestTotalSweepAngleByTime {
         String[][] processedResult;
+        SortedMap<Integer, Map<Integer, List<Integer>>> sortedMapByServer = new TreeMap<>();
+        Map<Integer, HashRingAngle> angleTable = new HashMap<>();
+        int[] anglePositions;
+        int numAnglesInitial = 10;
+        Map<Integer, List<Integer>> angleAlloc1;
+        Map<Integer, List<Integer>> angleAlloc2;
+        Map<Integer, List<Integer>> angleAlloc3;
+        Map<Integer, Map<Integer, List<Integer>>> angleAllocTable;
 
         @BeforeEach
         public void setup() {
+            serverIds = new int[] { 599, 660, 201, 489, 113 };
+
+            // angle positions of servers
+            anglePositions = new int[] { 86, 91, 22, 54, 85, 10, 98, 36, 69, 8, 55, 35, 92 };
+
+            // initialize angle table
+            for (int i = 0; i < numAnglesInitial; i++)
+                angleTable.put(i, new HashRingAngle(i, anglePositions[i]));
+
+            // initial angle placement
+            angleAlloc1 = new HashMap<>();
+            angleAlloc2 = new HashMap<>();
+            angleAlloc3 = new HashMap<>();
+
+            // first timestamp snapshot
+            angleAlloc1.put(serverIds[0], Arrays.asList(0, 2));
+            angleAlloc1.put(serverIds[1], Arrays.asList(7, 4));
+            angleAlloc1.put(serverIds[2], Arrays.asList(8));
+            angleAlloc1.put(serverIds[3], Arrays.asList(1, 5, 6));
+            angleAlloc1.put(serverIds[4], Arrays.asList(3));
+
+            // second timestamp snapshot
+            angleAlloc2.put(serverIds[0], Arrays.asList(0, 2, 9));
+            angleAlloc2.put(serverIds[1], Arrays.asList(7, 4));
+            angleAlloc2.put(serverIds[2], Arrays.asList(8, 11));
+            angleAlloc2.put(serverIds[3], Arrays.asList(1, 5, 6));
+            angleAlloc2.put(serverIds[4], Arrays.asList(3));
+
+            // third timestamp snapshot
+            angleAlloc3.put(serverIds[0], Arrays.asList(0, 2, 9));
+            angleAlloc3.put(serverIds[1], Arrays.asList(7, 4, 10));
+            angleAlloc3.put(serverIds[2], Arrays.asList(8, 11));
+            angleAlloc3.put(serverIds[3], Arrays.asList(1, 5, 6));
+            angleAlloc3.put(serverIds[4], Arrays.asList(3, 12));
+
+            angleAllocTable.put(timestamps[0], angleAlloc1);
+            angleAllocTable.put(timestamps[1], angleAlloc2);
+            angleAllocTable.put(timestamps[2], angleAlloc3);
+
+            // convert angle allocation into angle history table
+            for (Map.Entry<Integer, Map<Integer, List<Integer>>> entry : angleAllocTable.entrySet()) {
+                int timestamp = entry.getKey();
+                Map<Integer, List<Integer>> allocSnapshot = entry.getValue();
+                Map<Integer, List<HashRingAngle>> angleHistoryEntry = new HashMap<>();
+
+                for (Map.Entry<Integer, List<Integer>> allocSnapshotEntry : allocSnapshot.entrySet()) {
+                    int serverId = allocSnapshotEntry.getKey();
+                    List<Integer> angleIds = allocSnapshotEntry.getValue();
+                    List<HashRingAngle> angleList = new ArrayList<>();
+
+                    for (Integer angleId : angleIds)
+                        angleList.add(angleTable.get(angleId));
+
+                    angleHistoryEntry.put(serverId, angleList);
+                }
+
+                angleHistory.put(timestamp, angleHistoryEntry);
+            }
+
+            angleProcessor = new AngleDataProcessor(angleHistory);
             processedResult = angleProcessor.getSweepAngleByTime();
         }
 
@@ -249,6 +317,21 @@ public class AngleDataProcessorTest {
         public void shouldHaveCorrectDimensions() {
             assertEquals(serverIds.length + 1, processedResult[0].length);
             assertEquals(timestamps.length + 1, processedResult.length);
+        }
+
+        @Test
+        @DisplayName("Should return correct values for sweep angle")
+        public void shouldReturnCorrectValuesForSweepAngle() {
+            // row for first timestamp
+            assertEquals("18", processedResult[1][1]);
+            assertEquals("15", processedResult[1][2]);
+            assertEquals("45", processedResult[1][3]);
+            assertEquals("13", processedResult[1][4]);
+            assertEquals("30", processedResult[1][5]);
+
+            // row for second timestamp
+
+            // row for third timestamp
         }
     }
 }
