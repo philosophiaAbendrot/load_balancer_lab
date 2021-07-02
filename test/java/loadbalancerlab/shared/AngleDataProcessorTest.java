@@ -114,6 +114,12 @@ public class AngleDataProcessorTest {
                     int serverId = serverIds[serverIdIdx];
                     int serverIdOrder = serverIdTable.get(serverId);
 
+                    System.out.println("processedResult.length = " + processedResult.length);
+                    System.out.println("processedResult[0].length = " + processedResult[0].length);
+                    System.out.println("timestampIdx = " + timestampIdx);
+                    System.out.println("serverIdIdx = " + serverIdIdx);
+                    System.out.println("serverIdOrder = " + serverIdOrder);
+
                     assertEquals(String.valueOf(numAnglesMat.get(timestampIdx).get(serverIdIdx)), processedResult[timestampIdx + 1][serverIdOrder + 1]);
                 }
             }

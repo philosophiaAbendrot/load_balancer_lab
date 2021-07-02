@@ -10,6 +10,8 @@ import java.util.*;
 public class AngleDataProcessor {
     SortedMap<Integer, Map<Integer, List<HashRingAngle>>> angleHistory;
     int hashRingSize;
+    Integer[] serverIds;
+    Integer[] timestamps;
 
     /**
      * Constructor method
@@ -19,6 +21,27 @@ public class AngleDataProcessor {
     public AngleDataProcessor(SortedMap<Integer, Map<Integer, List<HashRingAngle>>> angleHistory, int hashRingSize) {
         this.angleHistory = angleHistory;
         this.hashRingSize = hashRingSize;
+
+        // traverse through angle history and compile the ids of every server that was active at one point
+        Set<Integer> serverIdSet = new HashSet<>();
+
+        for (Map<Integer, List<HashRingAngle>> snapshot : angleHistory.values()) {
+            for (Integer serverId : snapshot.keySet()) {
+                serverIdSet.add(serverId);
+            }
+        }
+
+        // convert the set of server ids into an array and sort it in ascending order
+        serverIds = serverIdSet.toArray(new Integer[serverIdSet.size()]);
+        Arrays.sort(serverIds);
+
+        // compile an array of timestamps for serverIds in ascending order
+        timestamps = new Integer[angleHistory.size()];
+
+        int i = 0;
+        for (int timestamp : angleHistory.keySet()) {
+            timestamps[i++] = timestamp;
+        }
     }
 
     /**
@@ -27,22 +50,6 @@ public class AngleDataProcessor {
      * for each CacheServer at a number of timestamps
      */
     public String[][] getNumAnglesByTime() {
-        int maxServerCount = 0;
-        int maxServerCountTimestamp = 0;
-
-        for (Map.Entry<Integer, Map<Integer, List<HashRingAngle>>> entry : angleHistory.entrySet()) {
-            int numServers;
-
-            if ((numServers = entry.getValue().size()) > maxServerCount) {
-                maxServerCount = numServers;
-                maxServerCountTimestamp = entry.getKey();
-            }
-        }
-
-        // find list of all server ids
-        Integer[] serverIds = angleHistory.get(maxServerCountTimestamp).keySet().toArray(new Integer[maxServerCount]);
-        Arrays.sort(serverIds);
-
         // create a mapping of index values to server ids
         Map<Integer, Integer> serverIdTable = new HashMap<>();
 
@@ -50,7 +57,7 @@ public class AngleDataProcessor {
             serverIdTable.put(i, serverIds[i]);
 
         // initialize output graph
-        String[][] outputGraph = new String[angleHistory.size() + 1][maxServerCount + 1];
+        String[][] outputGraph = new String[angleHistory.size() + 1][serverIds.length + 1];
 
         // fill in header row
         outputGraph[0][0] = "";
@@ -138,8 +145,27 @@ public class AngleDataProcessor {
         }
 
         // convert 'sweepAngleHistory' data into a 2d String for csv-output
+        String[][] outputString = new String[sweepAngleHistory.size() + 1][serverIds.length + 1];
 
+        // fill out header row
+        outputString[0][0] = "";
+        for (int col = 1; col < outputString.length; col++)
+            outputString[0][col] = String.valueOf(serverIds[col - 1]);
 
-        return new String[0][0];
+        // fill out other rows
+        for (int row = 1; row < outputString.length; row++) {
+            int timestamp = timestamps[row - 1];
+
+            // fill out timestamp column
+            outputString[row][0] = String.valueOf(timestamp);
+
+            // fill out other columns
+            for (int col = 1; col < outputString[0].length; col++) {
+                int serverId = serverIds[col - 1];
+                outputString[row][col] = String.valueOf(sweepAngleHistory.get(timestamp).get(serverId));
+            }
+        }
+
+        return outputString;
     }
 }
