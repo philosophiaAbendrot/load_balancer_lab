@@ -330,8 +330,18 @@ public class AngleDataProcessorTest {
             assertEquals("30", processedResult[1][5]);
 
             // row for second timestamp
+            assertEquals("44", processedResult[2][1]);
+            assertEquals("17", processedResult[2][2]);
+            assertEquals("28", processedResult[2][3]);
+            assertEquals("14", processedResult[2][4]);
+            assertEquals("18", processedResult[2][5]);
 
             // row for third timestamp
+            assertEquals("18", processedResult[3][1]);
+            assertEquals("27", processedResult[3][2]);
+            assertEquals("14", processedResult[3][3]);
+            assertEquals("44", processedResult[3][4]);
+            assertEquals("18", processedResult[3][5]);
         }
     }
 }
