@@ -90,7 +90,7 @@ public class Executor {
         shutdownThreads();
 
         // collect simulation data
-        collectData();
+        collectData(config.getRingSize());
 
         // print data to csv
         printData();
@@ -132,7 +132,7 @@ public class Executor {
     /**
      * Compiles data from simulation
      */
-    private void collectData() {
+    private void collectData(int hashRingSize) {
         // collect data from CacheServerManager instance about how many cache servers were active at each second
         serverCountLog = cacheServerManager.deliverServerCountData();
 
@@ -163,7 +163,7 @@ public class Executor {
 
         // collect HashRingAngle data
         SortedMap<Integer, Map<Integer, List<HashRingAngle>>> angleHistory = loadBalancer.getHashRingAngleHistory();
-        AngleDataProcessor angleDataProcessor = new AngleDataProcessor(angleHistory);
+        AngleDataProcessor angleDataProcessor = new AngleDataProcessor(angleHistory, hashRingSize);
         numAnglesByServerByTime = angleDataProcessor.getNumAnglesByTime();
 
         cacheServerCfData = cacheServerManager.deliverCfData();

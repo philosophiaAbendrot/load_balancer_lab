@@ -9,14 +9,16 @@ import java.util.*;
  */
 public class AngleDataProcessor {
     SortedMap<Integer, Map<Integer, List<HashRingAngle>>> angleHistory;
+    int hashRingSize;
 
     /**
      * Constructor method
      * @param angleHistory: a table mapping time (seconds since 1-Jan-1970) to a map which holds a snapshot of
      *                      server ids mapping to the HashRingAngle instances belonging to that server at that moment in time
      */
-    public AngleDataProcessor(SortedMap<Integer, Map<Integer, List<HashRingAngle>>> angleHistory) {
+    public AngleDataProcessor(SortedMap<Integer, Map<Integer, List<HashRingAngle>>> angleHistory, int hashRingSize) {
         this.angleHistory = angleHistory;
+        this.hashRingSize = hashRingSize;
     }
 
     /**
@@ -87,11 +89,56 @@ public class AngleDataProcessor {
      * cache server as a function of time
      */
     public String[][] getSweepAngleByTime() {
-        // general idea:
         // for each snapshot in HashRingAngle.angleHistory:
-            // convert snapshot into a sorted map 'hashRingAnglesTable' which maps HashRingAngle position to HashRingAngle instances
-            // traverse through each entry in 'hashRingAnglesTable' and record how much angle is allocated to each server
-            // store this information into an output variable
+        SortedMap<Integer, Map<Integer, Integer>> sweepAngleHistory = new TreeMap<>();
+
+        for (Map.Entry<Integer, Map<Integer, List<HashRingAngle>>> entry : angleHistory.entrySet()) {
+            Integer timestamp = entry.getKey();
+            Map<Integer, List<HashRingAngle>> snapshot = entry.getValue();
+
+            // convert snapshot into a sorted map 'hashRingAngleTable' which maps HashRingAngle position to the HashRingAngle
+            // instance.
+            SortedMap<Integer, HashRingAngle> hashRingAngleTable = new TreeMap<>();
+
+            for (List<HashRingAngle> angles : snapshot.values()) {
+                for (HashRingAngle angle : angles) {
+                    hashRingAngleTable.put(angle.getAngle(), angle);
+                }
+            }
+
+            // traverse through each entry in 'hashRingAngleTable' and record how much angle is allocated to each server
+            int prevPos = 0;
+            int currentPos;
+            int lastPosition = hashRingAngleTable.lastKey();
+
+            Map<Integer, Integer> totalSweepAngleTalliesForSnapshot = new HashMap<>();
+            // initialize entry for all server ids
+            for (Integer serverId : snapshot.keySet()) {
+                totalSweepAngleTalliesForSnapshot.put(serverId, 0);
+            }
+
+            for (Map.Entry<Integer, HashRingAngle> angleEntry : hashRingAngleTable.entrySet()) {
+                HashRingAngle angle = angleEntry.getValue();
+                int serverId = angle.getServerId();
+                int currentSweepAngleForServer = totalSweepAngleTalliesForSnapshot.get(serverId);
+
+                if (angleEntry.getKey() == lastPosition) {
+                    // if the angle is the last angle in the hash ring
+                    currentPos = angleEntry.getKey();
+                    totalSweepAngleTalliesForSnapshot.put(serverId, currentSweepAngleForServer + (hashRingSize - currentPos));
+                } else {
+                    // add the sweep angle from the previous position to the current position
+                    currentPos = angleEntry.getKey();
+                    totalSweepAngleTalliesForSnapshot.put(serverId, currentSweepAngleForServer + (currentPos - prevPos + 1));
+                    prevPos = currentPos;
+                }
+            }
+
+            sweepAngleHistory.put(timestamp, totalSweepAngleTalliesForSnapshot);
+        }
+
+        // convert 'sweepAngleHistory' data into a 2d String for csv-output
+
 
         return new String[0][0];
     }

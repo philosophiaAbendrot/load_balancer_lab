@@ -75,7 +75,7 @@ public class AngleDataProcessorTest {
             angleHistory.put(timestamps[1], new HashMap<>());
             angleHistory.put(timestamps[2], new HashMap<>());
 
-            angleProcessor = new AngleDataProcessor(angleHistory);
+            angleProcessor = new AngleDataProcessor(angleHistory, maxAnglePosition + 1);
 
             // fill up angle history matrix
             for (int timestampIdx = 0; timestampIdx < numAnglesMat.size(); timestampIdx++) {
@@ -261,7 +261,7 @@ public class AngleDataProcessorTest {
                 angleHistory.put(timestamp, angleHistoryEntry);
             }
 
-            angleProcessor = new AngleDataProcessor(angleHistory);
+            angleProcessor = new AngleDataProcessor(angleHistory, maxAnglePosition + 1);
             processedResult = angleProcessor.getSweepAngleByTime();
         }
 
