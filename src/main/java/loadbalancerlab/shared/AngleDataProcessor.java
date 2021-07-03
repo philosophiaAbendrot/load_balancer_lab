@@ -99,9 +99,12 @@ public class AngleDataProcessor {
         // for each snapshot in HashRingAngle.angleHistory:
         SortedMap<Integer, Map<Integer, Integer>> sweepAngleHistory = new TreeMap<>();
 
+
         for (Map.Entry<Integer, Map<Integer, List<HashRingAngle>>> entry : angleHistory.entrySet()) {
             Integer timestamp = entry.getKey();
             Map<Integer, List<HashRingAngle>> snapshot = entry.getValue();
+            // find lowest key value of snapshot
+            Set<Integer> anglePositions = snapshot.keySet();
 
             // convert snapshot into a sorted map 'hashRingAngleTable' which maps HashRingAngle position to the HashRingAngle
             // instance.
@@ -116,6 +119,7 @@ public class AngleDataProcessor {
             // traverse through each entry in 'hashRingAngleTable' and record how much angle is allocated to each server
             int prevPos = 0;
             int currentPos;
+            int firstPosition = hashRingAngleTable.firstKey();
             int lastPosition = hashRingAngleTable.lastKey();
 
             Map<Integer, Integer> totalSweepAngleTalliesForSnapshot = new HashMap<>();
@@ -128,15 +132,18 @@ public class AngleDataProcessor {
                 HashRingAngle angle = angleEntry.getValue();
                 int serverId = angle.getServerId();
                 int currentSweepAngleForServer = totalSweepAngleTalliesForSnapshot.get(serverId);
+                currentPos = angleEntry.getKey();
 
                 if (angleEntry.getKey() == lastPosition) {
                     // if the angle is the last angle in the hash ring
-                    currentPos = angleEntry.getKey();
-                    totalSweepAngleTalliesForSnapshot.put(serverId, currentSweepAngleForServer + (hashRingSize - currentPos));
+                    totalSweepAngleTalliesForSnapshot.put(serverId, currentSweepAngleForServer + (currentPos - prevPos));
+                    HashRingAngle firstAngle = hashRingAngleTable.get(firstPosition);
+                    int firstAngleServerId = firstAngle.getServerId();
+                    int firstAngleServerCurrentSweepAngle = totalSweepAngleTalliesForSnapshot.get(firstAngleServerId);
+                    totalSweepAngleTalliesForSnapshot.put(firstAngleServerId, firstAngleServerCurrentSweepAngle + (hashRingSize - currentPos));
                 } else {
                     // add the sweep angle from the previous position to the current position
-                    currentPos = angleEntry.getKey();
-                    totalSweepAngleTalliesForSnapshot.put(serverId, currentSweepAngleForServer + (currentPos - prevPos + 1));
+                    totalSweepAngleTalliesForSnapshot.put(serverId, currentSweepAngleForServer + (currentPos - (prevPos + 1) + 1));
                     prevPos = currentPos;
                 }
             }
