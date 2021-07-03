@@ -16,4 +16,6 @@ public class HashRingAngle {
     public int getAngle() {
         return angle;
     }
+
+    public void setServerId(int serverId) { this.serverId = serverId; }
 }

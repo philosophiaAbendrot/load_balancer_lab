@@ -194,7 +194,6 @@ public class AngleDataProcessorTest {
         SortedMap<Integer, Map<Integer, List<Integer>>> sortedMapByServer = new TreeMap<>();
         Map<Integer, HashRingAngle> angleTable = new HashMap<>();
         int[] anglePositions;
-        int numAnglesInitial = 10;
         Map<Integer, List<Integer>> angleAlloc1;
         Map<Integer, List<Integer>> angleAlloc2;
         Map<Integer, List<Integer>> angleAlloc3;
@@ -207,11 +206,13 @@ public class AngleDataProcessorTest {
             // angle positions of servers
             anglePositions = new int[] { 86, 91, 22, 54, 85, 10, 98, 36, 69, 8, 55, 35, 92 };
 
-            // initialize angle table
-            for (int i = 0; i < numAnglesInitial; i++)
-                angleTable.put(i, new HashRingAngle(i, anglePositions[i]));
+            // initialize angle table and fill it with HashRingAngle instances
+            for (int i = 0; i < anglePositions.length; i++)
+                angleTable.put(i, new HashRingAngle(-1, anglePositions[i]));
 
             // initial angle placement
+            angleHistory = new TreeMap<>();
+            angleAllocTable = new HashMap<>();
             angleAlloc1 = new HashMap<>();
             angleAlloc2 = new HashMap<>();
             angleAlloc3 = new HashMap<>();
@@ -252,8 +253,12 @@ public class AngleDataProcessorTest {
                     List<Integer> angleIds = allocSnapshotEntry.getValue();
                     List<HashRingAngle> angleList = new ArrayList<>();
 
-                    for (Integer angleId : angleIds)
-                        angleList.add(angleTable.get(angleId));
+                    for (Integer angleId : angleIds) {
+                        HashRingAngle angle = angleTable.get(angleId);
+                        // set the angle's serverId attribute to the server it is being assigned
+                        angle.setServerId(serverId);
+                        angleList.add(angle);
+                    }
 
                     angleHistoryEntry.put(serverId, angleList);
                 }
