@@ -148,8 +148,9 @@ public class AngleDataProcessor {
         String[][] outputString = new String[sweepAngleHistory.size() + 1][serverIds.length + 1];
 
         // fill out header row
+        System.out.println("serverIds = " + Arrays.toString(serverIds));
         outputString[0][0] = "";
-        for (int col = 1; col < outputString.length; col++)
+        for (int col = 1; col < outputString[0].length; col++)
             outputString[0][col] = String.valueOf(serverIds[col - 1]);
 
         // fill out other rows
