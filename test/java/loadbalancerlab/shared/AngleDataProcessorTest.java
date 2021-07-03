@@ -75,7 +75,6 @@ public class AngleDataProcessorTest {
             angleHistory.put(timestamps[1], new HashMap<>());
             angleHistory.put(timestamps[2], new HashMap<>());
 
-            angleProcessor = new AngleDataProcessor(angleHistory, maxAnglePosition + 1);
 
             // fill up angle history matrix
             for (int timestampIdx = 0; timestampIdx < numAnglesMat.size(); timestampIdx++) {
@@ -96,6 +95,7 @@ public class AngleDataProcessorTest {
                 }
             }
 
+            angleProcessor = new AngleDataProcessor(angleHistory, maxAnglePosition + 1);
             processedResult = angleProcessor.getNumAnglesByTime();
         }
 
@@ -113,12 +113,6 @@ public class AngleDataProcessorTest {
                 for (int serverIdIdx = 0; serverIdIdx < numAnglesMat.get(timestampIdx).size(); serverIdIdx++) {
                     int serverId = serverIds[serverIdIdx];
                     int serverIdOrder = serverIdTable.get(serverId);
-
-                    System.out.println("processedResult.length = " + processedResult.length);
-                    System.out.println("processedResult[0].length = " + processedResult[0].length);
-                    System.out.println("timestampIdx = " + timestampIdx);
-                    System.out.println("serverIdIdx = " + serverIdIdx);
-                    System.out.println("serverIdOrder = " + serverIdOrder);
 
                     assertEquals(String.valueOf(numAnglesMat.get(timestampIdx).get(serverIdIdx)), processedResult[timestampIdx + 1][serverIdOrder + 1]);
                 }
