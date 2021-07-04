@@ -144,6 +144,7 @@ public class AngleDataProcessor {
                 } else {
                     // add the sweep angle from the previous position to the current position
                     totalSweepAngleTalliesForSnapshot.put(serverId, currentSweepAngleForServer + (currentPos - (prevPos + 1) + 1));
+                    int after = totalSweepAngleTalliesForSnapshot.get(serverId);
                     prevPos = currentPos;
                 }
             }
@@ -169,7 +170,8 @@ public class AngleDataProcessor {
             // fill out other columns
             for (int col = 1; col < outputString[0].length; col++) {
                 int serverId = serverIds[col - 1];
-                outputString[row][col] = String.valueOf(sweepAngleHistory.get(timestamp).get(serverId));
+                int sweepAngle = sweepAngleHistory.get(timestamp).get(serverId);
+                outputString[row][col] = String.valueOf(sweepAngle);
             }
         }
 
