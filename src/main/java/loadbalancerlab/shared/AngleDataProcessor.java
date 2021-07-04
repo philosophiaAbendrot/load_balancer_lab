@@ -167,11 +167,18 @@ public class AngleDataProcessor {
             // fill out timestamp column
             outputString[row][0] = String.valueOf(timestamp);
 
+            Map<Integer, Integer> snapshot = sweepAngleHistory.get(timestamp);
+
             // fill out other columns
             for (int col = 1; col < outputString[0].length; col++) {
                 int serverId = serverIds[col - 1];
-                int sweepAngle = sweepAngleHistory.get(timestamp).get(serverId);
-                outputString[row][col] = String.valueOf(sweepAngle);
+
+                if (snapshot.containsKey(serverId)) {
+                    int sweepAngle = snapshot.get(serverId);
+                    outputString[row][col] = String.valueOf(sweepAngle);
+                } else {
+                    outputString[row][col] = "";
+                }
             }
         }
 

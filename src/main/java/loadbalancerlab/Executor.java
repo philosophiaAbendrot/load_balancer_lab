@@ -50,6 +50,7 @@ public class Executor {
     String[][] cacheServerCfData;
     SortedMap<Integer, Integer> serverCountLog;
     String[][] numAnglesByServerByTime;
+    String[][] sweepAngleByTime;
 
     public static void configure( Config config ) {
         simulationTime = config.getSimulationTime();
@@ -165,6 +166,7 @@ public class Executor {
         SortedMap<Integer, Map<Integer, List<HashRingAngle>>> angleHistory = loadBalancer.getHashRingAngleHistory();
         AngleDataProcessor angleDataProcessor = new AngleDataProcessor(angleHistory, hashRingSize);
         numAnglesByServerByTime = angleDataProcessor.getNumAnglesByTime();
+        sweepAngleByTime = angleDataProcessor.getSweepAngleByTime();
 
         cacheServerCfData = cacheServerManager.deliverCfData();
     }
@@ -276,6 +278,24 @@ public class Executor {
             try (CSVPrinter printer = new CSVPrinter(out, CSVFormat.DEFAULT.withHeader(headers))) {
                 for (int i = 1; i < numAnglesByServerByTime.length; i++) {
                     printer.printRecord(numAnglesByServerByTime[i]);
+                }
+            }
+
+            out.close();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
+        System.out.println("Printing sweep angle vs time by server");
+
+        try {
+            // write sweep angle by time to csv
+            FileWriter out = new FileWriter("csv_output/sweep_angle_by_time.csv");
+            String[] headers = sweepAngleByTime[0];
+
+            try (CSVPrinter printer = new CSVPrinter(out, CSVFormat.DEFAULT.withHeader(headers))) {
+                for (int i = 1; i < sweepAngleByTime.length; i++) {
+                    printer.printRecord(sweepAngleByTime[i]);
                 }
             }
 
