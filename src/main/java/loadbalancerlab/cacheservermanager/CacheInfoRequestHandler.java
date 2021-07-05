@@ -11,6 +11,10 @@ import org.json.JSONObject;
 import java.io.IOException;
 import java.util.Map;
 
+/**
+ * A HttpRequestHandler implementation used to handle requests for info on the associated CacheServer's capacity factor
+ * Requests are delegated to this class by the CacheServerManager class.
+ */
 public class CacheInfoRequestHandler implements HttpRequestHandler {
     private ServerMonitor serverMonitor;
 

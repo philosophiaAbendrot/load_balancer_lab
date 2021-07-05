@@ -36,12 +36,25 @@ public class CacheServerManager {
      * Static variable which is used to determine the id of the next CacheServer to be started
      */
     static int cacheServerIdCounter;
-    int[] selectablePorts = new int[100];
+    /**
+     * Implementation of HttpRequestHandler interface which is used to handle requests for updates on a CacheServer instance's capacity factor
+     */
     CacheInfoRequestHandler cacheInfoRequestHandler;
-
+    /**
+     * Factory class used to create CacheServer instances
+     */
     private CacheServerFactory cacheServerFactory;
+    /**
+     * Factory class used to create CloseableHttpClient instances
+     */
     private HttpClientFactory clientFactory;
+    /**
+     * Utility class used to extract json fields from a CloseableHttpResponse instance
+     */
     private RequestDecoder reqDecoder;
+    /**
+     * The port that the CacheServerManager instance is running on
+     */
     private int port;
 
 
@@ -49,20 +62,26 @@ public class CacheServerManager {
         cacheServerIdCounter = 0;
     }
 
+    /**
+     * Used to configure static variables on class
+     * @param config: Config class instance used to store configuration
+     */
     public static void configure( Config config ) {
         targetCf = config.getTargetCf();
         growthRate = config.getCacheServerGrowthRate();
     }
 
+    /**
+     * constructor method
+     * @param cacheServerFactory: a factory class used to generate CacheServer instances
+     * @param clientFactory: a factory class used to generate CloseableHttpClient instances for sending requests
+     * @param reqDecoder: a utility class used to parse json from http responses
+     */
     public CacheServerManager( CacheServerFactory cacheServerFactory, HttpClientFactory clientFactory, RequestDecoder reqDecoder ) {
         port = -1;
         this.cacheServerFactory = cacheServerFactory;
         this.clientFactory = clientFactory;
         this.reqDecoder = reqDecoder;
-
-        // reserve ports 37000 through 37099 as usable ports
-        for (int i = 0; i < selectablePorts.length; i++)
-            selectablePorts[i] = 37100 + i;
 
         // server monitor is set
         serverMonitor = new ServerMonitor(clientFactory, reqDecoder, this);
@@ -77,6 +96,12 @@ public class CacheServerManager {
         return this.serverMonitor.deliverServerCountData();
     }
 
+    /**
+     * Generates CacheServer instances, allocates it a thread on which to run, and starts the thread.
+     * Updates 'serverThreadTable' field, which keeps track of cache server ids and the threads the CacheServer instances
+     * are running on
+     * @param num: parameter which controls how many CacheServer instances are being generated and started.
+     */
     public void startupCacheServer(int num) {
         for (int i = 0; i < num; i++) {
             CacheServer cacheServer = cacheServerFactory.produceCacheServer(new RequestMonitor());
@@ -99,6 +124,9 @@ public class CacheServerManager {
         }
     }
 
+    /**
+     * Modulates number of active CacheServer instances by using the average capacity factor of all CacheServer instances
+     */
     public void modulateCapacity() {
         double averageCapacityFactor = serverMonitor.getAverageCf();
         double diff = averageCapacityFactor - targetCf;
@@ -113,6 +141,11 @@ public class CacheServerManager {
         }
     }
 
+    /**
+     * Shuts down CacheServer threads and removes the terminated thread from 'serverThreadTable'.
+     * Informs the ServerMonitor instance which CacheServer instances have been terminated.
+     * @param num: the number of CacheServers to be deactivated
+     */
     public void shutdownCacheServer(int num) {
         List<Integer> serverIds = new ArrayList<>(serverThreadTable.keySet());
         Random rand = new Random();
@@ -129,10 +162,16 @@ public class CacheServerManager {
         }
     }
 
+    /**
+     * @return: the number of CacheServer instances which are currently active
+     */
     public int numServers() {
         return this.serverThreadTable.size();
     }
 
+    /**
+     * @return: Returns capacity factors of CacheServer instances as a function of time
+     */
     public String[][] deliverCfData() {
         return serverMonitor.deliverCfData();
     }
