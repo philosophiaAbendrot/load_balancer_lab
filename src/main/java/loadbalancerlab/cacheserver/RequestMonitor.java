@@ -68,7 +68,7 @@ public class RequestMonitor {
     }
 
     /**
-     * Returns a recent capacity factor value by processing recent request records, stored in 'requestData'
+     * Returns the average recent capacity factor value by processing recent request records, stored in 'requestData'
      * @param currentTime: a timestamp for the current time in milliseconds since 1-Jan-1970
      * @return capacityFactor: the 'load' on the CacheServer, in terms of running time / total time
      */

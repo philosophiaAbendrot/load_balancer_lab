@@ -70,12 +70,18 @@ public class CacheServerManagerRunnable implements Runnable {
      */
     private int lastCapacityModulationTime;
 
-    public CacheServerManagerRunnable( CacheServerFactory _cacheServerFactory, HttpClientFactory _clientFactory, RequestDecoder _reqDecoder, CacheServerManager _cacheServerManager ) {
-        reqDecoder = _reqDecoder;
-        clientFactory = _clientFactory;
-        cacheServerFactory = _cacheServerFactory;
-
-        cacheServerManager = _cacheServerManager;
+    /**
+     * @param cacheServerFactory: Factory class used to generate CacheServer instances
+     * @param clientFactory: Factory class used to generate CloseableHttpClient instances
+     * @param reqDecoder: Utility class used to extract json parameters from a CloseableHttpResponse instance
+     * @param cacheServerManager: object used to manage life cycle of CacheServer instances and modulate the number of
+     *                            CacheServer instances to meet request load.
+     */
+    public CacheServerManagerRunnable( CacheServerFactory cacheServerFactory, HttpClientFactory clientFactory, RequestDecoder reqDecoder, CacheServerManager cacheServerManager ) {
+        this.reqDecoder = reqDecoder;
+        this.clientFactory = clientFactory;
+        this.cacheServerFactory = cacheServerFactory;
+        this.cacheServerManager = cacheServerManager;
 
         // generate instances of sub-components
         serverMonitor = cacheServerManager.serverMonitor;
@@ -90,15 +96,30 @@ public class CacheServerManagerRunnable implements Runnable {
         cacheInfoServerThread = new Thread(cacheInfoServerRunnable);
     }
 
+    /**
+     * @return: the port that the associated CacheInfoServerRunnable is running on
+     */
     public int getPort() {
         return cacheInfoServerRunnable.getPort();
     }
 
+    /**
+     * @param config: method used to configure static variables
+     */
     public static void configure(Config config) {
         numCacheServersOnStartup = config.getNumCacheServersOnStartup();
         capacityModulationInterval = config.getCapacityModulationInterval();
     }
 
+    /**
+     * Method from Runnable interface
+     * Starts sub-threads for ServerMonitor instance and CacheInfoServer instance
+     * Starts default number of cache server instances.
+     * Runs CacheServerManager.modulateCapacity() method periodically to modulate the number of CacheServers to meet
+     * request load
+     * When interrupted, shuts down the assocaited sub-threads, including the threads that the CacheServer instances
+     * run on.
+     */
     @Override
     public void run() {
         // start sub-threads
