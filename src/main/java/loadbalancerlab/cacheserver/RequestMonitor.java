@@ -8,7 +8,9 @@ import java.util.List;
 import java.util.ArrayList;
 import java.util.Collections;
 
-// monitors the number of incoming requests, compiles data and delivers reports
+/**
+ * Monitors the number of incoming requests, compiles data and delivers reports.
+ */
 public class RequestMonitor {
     /**
      * A list of RequestDatum objects. Keeps track of the processing times of the most recent requests

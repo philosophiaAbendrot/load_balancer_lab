@@ -19,9 +19,10 @@ public class CacheInfoServerFactory {
     }
 
     /**
-     *
-     * @param cacheInfoRequestHandler
-     * @return
+     * Given a CacheInfoRequestHandler instance, wraps it in a CacheInfoServerRunnable instance
+     * @param cacheInfoRequestHandler: CacheInfoRequestHandler instance used for handling requests on updates of CacheServer
+     *                                 capacity factors
+     * @return: A Runnable instance which runs an HttpServer that processes requests for updates on CacheServer capacity factors.
      */
     public CacheInfoServerRunnable produceCacheInfoServerRunnable(CacheInfoRequestHandler cacheInfoRequestHandler) {
         return new CacheInfoServerRunnable(cacheInfoRequestHandler);
