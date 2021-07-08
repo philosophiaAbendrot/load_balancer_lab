@@ -40,46 +40,48 @@ public class ServerMonitorRunnable implements Runnable {
      */
     private Logger logger;
 
-    public ServerMonitorRunnable( ServerMonitor _serverMonitor, CacheServerManager _cacheServerManager) {
-        serverMonitor = _serverMonitor;
-        cacheServerManager = _cacheServerManager;
+    /**
+     * @param serverMonitor: Associated ServerMonitor instance
+     * @param cacheServerManager: Associated CacheServerManager instance
+     */
+    public ServerMonitorRunnable( ServerMonitor serverMonitor, CacheServerManager cacheServerManager) {
+        this.serverMonitor = serverMonitor;
+        this.cacheServerManager = cacheServerManager;
         stopExecution = false;
         logger = new Logger("ServerMonitorRunnable");
     }
 
-    // Runnable Interface
+    /**
+     * Method from Runnable interface
+     * Periodically runs 'updateServerCount()' and 'pingCacheServers()' methods on the associated
+     * ServerMonitor instance
+     */
     @Override
     public void run() {
         int currentTime = (int)(System.currentTimeMillis() / 1_000);
         lastPingServerTime = lastServerCountTime = currentTime;
 
-
         logger.log("Starting ServerMonitor", Logger.LogType.THREAD_MANAGEMENT);
 
         while (!this.stopExecution) {
-            tick();
-        }
-    }
+            try {
+                Thread.sleep(100);
+                int currentSecond = (int)(System.currentTimeMillis() / 1_000);
 
-    // end of Runnable Interface
-    void tick() {
-        try {
-            Thread.sleep(100);
-            int currentSecond = (int)(System.currentTimeMillis() / 1_000);
+                // updates record of active number of servers for a particular second
+                if (currentSecond - lastServerCountTime >= serverCountInterval)
+                    serverMonitor.updateServerCount(currentSecond, cacheServerManager.numServers());
 
-            // updates record of active number of servers for a particular second
-            if (currentSecond - lastServerCountTime >= serverCountInterval)
-                serverMonitor.updateServerCount(currentSecond, cacheServerManager.numServers());
+                // server monitor pings cache servers for checkup
+                if (currentSecond - lastPingServerTime >= pingServerInterval)
+                    serverMonitor.pingCacheServers();
 
-            // server monitor pings cache servers for checkup
-            if (currentSecond - lastPingServerTime >= pingServerInterval)
-                serverMonitor.pingCacheServers();
-
-        } catch (InterruptedException e) {
-            e.printStackTrace();
-            Thread.currentThread().interrupt();
-            logger.log("Shutting down ServerMonitorRunnable", Logger.LogType.THREAD_MANAGEMENT);
-            this.stopExecution = true;
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+                Thread.currentThread().interrupt();
+                logger.log("Shutting down ServerMonitorRunnable", Logger.LogType.THREAD_MANAGEMENT);
+                this.stopExecution = true;
+            }
         }
     }
 }
