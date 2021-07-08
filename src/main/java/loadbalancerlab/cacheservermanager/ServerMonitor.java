@@ -12,6 +12,9 @@ import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 
+/**
+ * Used to monitor, record, and process data on CacheServer instances.
+ */
 public class ServerMonitor {
     /**
      * A hash table which maps server id to a ServerInfo instance which holds info about the server
