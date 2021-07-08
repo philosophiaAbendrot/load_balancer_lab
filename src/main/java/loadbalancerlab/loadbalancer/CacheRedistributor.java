@@ -15,6 +15,9 @@ import java.util.List;
 import java.util.Map;
 import java.util.SortedMap;
 
+/**
+ * Class used to manage mapping of
+ */
 public class CacheRedistributor {
     Map<Integer, ServerInfo> serverInfoTable;
     HashRing hashRing;
@@ -25,19 +28,31 @@ public class CacheRedistributor {
     private static double[] serverLoadCutoffs;
     private Logger logger;
 
+    /**
+     * Configures static variables
+     * @param config: Config instance used to hold configurations
+     */
     public static void configure( Config config ) {
         reqDecoder = config.getRequestDecoder();
         httpClientFactory = config.getHttpClientFactory();
         serverLoadCutoffs = config.getServerLoadCutoffs();
     }
 
-    public CacheRedistributor( int _cacheServerManagerPort, HashRing _hashRing) {
+    /**
+     * @param cacheServerManagerPort: The port that the CacheServerManager instance is running on
+     * @param hashRing: A HashRing instance for selecting the server to handle a request based on consistent hashing
+     */
+    public CacheRedistributor( int cacheServerManagerPort, HashRing hashRing) {
         serverInfoTable = new HashMap<>();
-        cacheServerManagerPort = _cacheServerManagerPort;
-        hashRing = _hashRing;
+        this.cacheServerManagerPort = cacheServerManagerPort;
+        this.hashRing = hashRing;
         logger = new Logger("CacheRedistributor");
     }
 
+    /**
+     * Getter method for associated HashRing instance's 'angleHistory' field
+     * @return: returns a reference to the HashRing's 'angleHistory' field
+     */
     public SortedMap<Integer, Map<Integer, List<HashRingAngle>>> getHashRingAngleHistory() {
         return hashRing.getHashRingAngleHistory();
     }
@@ -45,6 +60,10 @@ public class CacheRedistributor {
     // sends request to cache server manager for an update on which cache servers are running on which ports and
     // their capacity factors
     // updates the serverInfoTable field using the results
+
+    /**
+     *
+     */
     public void requestServerInfo() {
         CloseableHttpClient client = httpClientFactory.buildApacheClient();
         HttpGet getReq = new HttpGet("http://127.0.0.1:" + cacheServerManagerPort + "/cache-servers");
