@@ -2,7 +2,9 @@ package loadbalancerlab.cacheservermanager;
 
 import loadbalancerlab.shared.Logger;
 
-
+/**
+ * A Runnable implementation which wraps around ServerMonitor class
+ */
 public class ServerMonitorRunnable implements Runnable {
     ServerMonitor serverMonitor;
     boolean stopExecution;

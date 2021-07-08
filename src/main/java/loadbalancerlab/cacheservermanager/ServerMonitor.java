@@ -201,6 +201,13 @@ public class ServerMonitor {
         return constructOutputGrid(headerRow, timestampColumn, entryRowsDouble);
     }
 
+    /**
+     * Interpolates missing entries in the 2d capacity-factor array 'entryFields'
+     * @param entryFields: 2d array detailing capacity factor of servers
+     * @param serverIds: array of cache server ids (sorted in ascending order)
+     * @param serverInfoTableCopy: a copy of the serverInfoTable field
+     * @param earliestTime: the earliest timestamp in serverInfoTable field (in seconds since 1-Jan-1970)
+     */
     private void interpolateMissingEntries(double[][] entryFields, Integer[] serverIds, SortedMap<Integer, ServerInfo> serverInfoTableCopy, int earliestTime) {
         for (int col = 0; col < entryFields[0].length; col++) {
             // iterate through columns and interpolate
@@ -339,6 +346,11 @@ public class ServerMonitor {
          return nextIdx;
     }
 
+    /**
+     * Takes a copy of the 'serverInfoTable' field and returns the earliest and latest timestamps within it
+     * @param serverInfoTableCopy: A copy of 'serverInfoTable' field.
+     * @return: an integer array of length 2. The first element is earliest time. The second element is the latest time.
+     */
     private int[] findTimeRange(SortedMap<Integer, ServerInfo> serverInfoTableCopy) {
         int earliestTime = Integer.MAX_VALUE;
         int latestTime = Integer.MIN_VALUE;
