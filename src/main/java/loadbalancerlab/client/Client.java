@@ -16,6 +16,10 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
 
+/**
+ * Simulates a client
+ * Sends requests to the load balancer
+ */
 public class Client implements Runnable {
     /**
      * Timestamp at which demand peaks. Used for certain demand functions. Milliseconds since 1-Jan-1970

@@ -2,15 +2,27 @@ package loadbalancerlab.client;
 
 import loadbalancerlab.shared.Logger;
 
+/**
+ * Implementation of DemandFunction interface
+ * A simple flat demand function
+ */
 public class ConstantDemandFunctionImpl implements DemandFunction {
     int restInterval;
     private Logger logger;
 
+    /**
+     * @param restInterval: the sleep interval between requests in milliseconds
+     */
     public ConstantDemandFunctionImpl(int restInterval) {
         this.restInterval = restInterval;
         logger = new Logger("ConstantDemandFunctionImpl");
     }
 
+    /**
+     * Makes the thread sleep for a certain amount of time
+     * Method from DemandFunction interface
+     * @throws InterruptedException
+     */
     @Override
     public void rest() throws InterruptedException {
         logger.log("restInterval = " + this.restInterval, Logger.LogType.LOAD_MODULATION);
