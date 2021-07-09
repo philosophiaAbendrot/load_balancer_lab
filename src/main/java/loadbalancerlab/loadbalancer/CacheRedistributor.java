@@ -16,7 +16,12 @@ import java.util.Map;
 import java.util.SortedMap;
 
 /**
- * Class used to manage mapping of
+ * Class which acts as a middleman between the LoadBalancerRunnable class above it and the HashRing class below it.
+ * Asks associated HashRing for the port to delegate client requests to based on a consistent caching scheme which is
+ * managed by the HashRing.
+ * Manages an associated HashRing instance to handle this logic.
+ * Prompts associated HashRing instance to record snapshots of its angles.
+ * Prompts associated HashRing instance to update its delegation logic to balance out loading of CacheServer instances.
  */
 public class CacheRedistributor {
     Map<Integer, ServerInfo> serverInfoTable;
@@ -57,12 +62,10 @@ public class CacheRedistributor {
         return hashRing.getHashRingAngleHistory();
     }
 
-    // sends request to cache server manager for an update on which cache servers are running on which ports and
-    // their capacity factors
-    // updates the serverInfoTable field using the results
-
     /**
-     *
+     * Sends a request to the associated CacheServerManager instance for an update on which CacheServer instances are
+     * running on which ports and their capacity factors
+     * Updates the serverInfoTable field with the results
      */
     public void requestServerInfo() {
         CloseableHttpClient client = httpClientFactory.buildApacheClient();
@@ -95,10 +98,11 @@ public class CacheRedistributor {
         }
     }
 
-    // returns the port of the cache server which is responsible for the resource
-    // params:
-    // resourceName: the name of the resource
-
+    /**
+     * @param resourceName: the name of the resource specified in the URI of the request from the client
+     * @return: the port that the CacheServer instance which is responsible for the resource is running on
+     * @throws IllegalStateException: Thrown if there is no corresponding server for this resource name
+     */
     public int selectPort( String resourceName ) throws IllegalStateException {
         int serverId = hashRing.findServerId(resourceName);
 
@@ -108,11 +112,20 @@ public class CacheRedistributor {
         return serverInfoTable.get(serverId).getPort();
     }
 
+    /**
+     * Makes the associated HashRing instance record a snapshot of its 'angleHistory' field for the current time
+     * This builds a record of the positions of the angles on the HashRing for analysis
+     * @param currentTime: timestamp for the current time (seconds since 1-Jan-1970)
+     */
     public void recordServerAngles(int currentTime) {
         hashRing.recordServerAngles(currentTime);
     }
 
-    // remaps caching responsibility based on the load on each server
+    /**
+     * Adds or removes HashRingAngle instances from the associated HashRing for each CacheServer based on its capacity factor
+     * If the server is underloaded, additional HashRingAngle instances are added for it
+     * If the server is overloaded, some of its HashRingAngle instances are removed from the HashRing
+     */
     public void remapCacheKeys() {
         for (Map.Entry<Integer, ServerInfo> entry : serverInfoTable.entrySet()) {
             int serverId = entry.getKey();
