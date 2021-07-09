@@ -37,6 +37,7 @@ public class CacheRedistributorRunnable implements Runnable {
         hashRingAngleRecordInterval = config.getHashRingAngleRecordInterval();
     }
 
+
     /**
      * @param cacheRedis: Associated CacheRedistributor class which manages HashRing instance and handles consistent
      *                    hashing logic to delegate client requests to CacheServer instances

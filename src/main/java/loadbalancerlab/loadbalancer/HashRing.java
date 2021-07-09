@@ -6,13 +6,38 @@ import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 
+/**
+ * A class which implements a consistent hashing mechanism to map resource names to CacheServer objects
+ */
 public class HashRing {
+    /**
+     * Controls the maximum number of HashRingAngle objects per CacheServer object
+     */
     static int maxAnglesPerServer;
+
+    /**
+     * Controls the minimum number of HashRingAngle objects per CacheServer instance
+     */
     static int minAnglesPerServer;
+
+    /**
+     * Controls the default number of HashRingAngle objects per CacheServer object
+     */
     static int defaultAnglesPerServer;
+
+    /**
+     * Controls the number of positions on HashRing objects
+     */
     static int ringSize;
+
+    /**
+     * The HashFunction object which is used to hash resource names into positions
+     */
     static HashFunction hashFunction;
 
+    /**
+     * A Table which maps integer position values to all the HashRingAngle objects which the positions contain
+     */
     ConcurrentMap<Integer, HashRingAngle> angles;
     ConcurrentMap<Integer, List<HashRingAngle>> anglesByServerId;
     SortedMap<Integer, Map<Integer, List<HashRingAngle>>> angleHistory;

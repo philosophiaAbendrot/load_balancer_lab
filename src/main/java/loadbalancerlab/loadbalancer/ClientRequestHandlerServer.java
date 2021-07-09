@@ -14,14 +14,30 @@ import java.util.ArrayList;
 import java.util.concurrent.TimeUnit;
 
 public class ClientRequestHandlerServer implements Runnable {
+    /**
+     * the default port which the server started by an instance of this class tries to run on
+     */
     volatile private static int defaultPort;
+
+    /**
+     * the port which the server started by an instance of this class is running on
+     */
     volatile private int port = -1;
-    public int getPort() {
-        return port;
-    }
+
+    /**
+     * Logger object used for logging
+     */
     private Logger logger;
+
+    /**
+     * LoadBalancerClientRequestHandler object used for handling requests from clients
+     */
     LoadBalancerClientRequestHandler loadBalancerClientRequestHandler;
 
+    /**
+     * Method to configure static fields
+     * @param config: Config object used to configure various classes
+     */
     public static void configure( Config config ) {
         defaultPort = config.getClientHandlerServerDefaultPort();
     }
@@ -31,6 +47,10 @@ public class ClientRequestHandlerServer implements Runnable {
         logger = new Logger("ClientRequestHandlerServer");
     }
 
+    /**
+     * Runnable interface method
+     * Starts an apache.http.impl.bootstrap.HttpServer instance and awaits termination
+     */
     @Override
     public void run() {
         logger.log("ClientRequestHandlerServer thread started", Logger.LogType.THREAD_MANAGEMENT);
@@ -94,5 +114,12 @@ public class ClientRequestHandlerServer implements Runnable {
             // shut down this thread
             logger.log("Thread shutdown", Logger.LogType.THREAD_MANAGEMENT);
         }
+    }
+
+    /**
+     * @return: the port an instance of this class is running a server on
+     */
+    public int getPort() {
+        return port;
     }
 }
