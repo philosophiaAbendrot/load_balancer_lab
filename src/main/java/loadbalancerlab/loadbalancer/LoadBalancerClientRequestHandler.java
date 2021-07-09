@@ -22,9 +22,21 @@ import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
 
+/**
+ * HttpRequestHandler implementation for handling HTTP requests from Client received by the LoadBalancerRunnable class
+ */
 public class LoadBalancerClientRequestHandler implements HttpRequestHandler {
+    /**
+     * A synchronized list which records the timestamps of all incoming requests (seconds since 1-Jan-1970)
+     */
     private List<Integer> incomingRequestTimestamps;
+
+    /**
+     * CacheRedistributor object which is used to handle logic for assigning requests to a particular CacheServer object.
+     * This is done through a consistent hashing mechanism in conjunction with a HashRing object.
+     */
     private CacheRedistributor cacheRedis;
+
     public static HttpClientFactory clientFactory;
     private Logger logger;
 
