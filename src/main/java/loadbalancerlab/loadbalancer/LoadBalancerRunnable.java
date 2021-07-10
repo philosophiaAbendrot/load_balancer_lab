@@ -72,6 +72,11 @@ public class LoadBalancerRunnable implements Runnable {
         return cacheRedis.getHashRingAngleHistory();
     }
 
+    /**
+     * Method from Runnable interface.
+     * Starts sub-threads for CacheRedistributor object and ClientRequestHandlerServer object and awaits
+     * termination.
+     */
     @Override
     public void run() {
         // startup cache redistributor and client request handler
@@ -93,6 +98,10 @@ public class LoadBalancerRunnable implements Runnable {
         clientReqHandlerThread.interrupt();
     }
 
+    /**
+     * Getter method for the port that ClientRequestHandlerServer is running on
+     * @return      The port that ClientRequestHandlerServer is running on
+     */
     public int getPort() {
         return clientReqHandlerRunnable.getPort();
     }
