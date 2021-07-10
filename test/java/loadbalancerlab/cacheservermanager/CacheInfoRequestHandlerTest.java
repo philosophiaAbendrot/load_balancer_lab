@@ -58,7 +58,9 @@ public class CacheInfoRequestHandlerTest {
         mockServerInfoTable.put(serverId2, mockServerInfo2);
 
         when(mockServerMonitor.getServerInfo()).thenReturn(mockServerInfoTable);
-        Logger.configure(new Logger.LogType[] { Logger.LogType.PRINT_NOTHING });
+
+        /* Configure logger to print nothing */
+        Logger.setPrintSetting(-1);
         dummyServerThread = new Thread(new DummyServer(mockServerMonitor));
         dummyServerThread.start();
         reqDecoder = new RequestDecoder();

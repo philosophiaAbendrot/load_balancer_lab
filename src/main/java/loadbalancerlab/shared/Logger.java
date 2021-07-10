@@ -16,9 +16,13 @@ public class Logger {
     private static Set<LogType> displayedLogTypes;
 
     /**
-     * If this variable is set to true, all logs will be printed regardless of type
+     * Integer variable used to control print settings/
+     *
+     * 0: Default setting (no overrides).
+     * -1: Don't print any logs.
+     * 1: Print all logs.
      */
-    private static boolean printAll;
+    private static int printSetting;
 
     /**
      * The name of the class for which this Logger object is printing logs
@@ -26,7 +30,7 @@ public class Logger {
     private String className;
 
     static {
-        printAll = false;
+        printSetting = -1;
         displayedLogTypes = new HashSet<>();
     }
 
@@ -46,10 +50,10 @@ public class Logger {
 
     /**
      * Setter method for 'printAll' field. When set to true, all logs are printed regardless of type.
-     * @param setting       Boolean value to set 'printAll' field to
+     * @param setting       Value used to set 'printSetting' field.
      */
-    public static void setPrintAll(boolean setting) {
-        printAll = setting;
+    public static void setPrintSetting(int setting) {
+        printSetting = setting;
     }
 
     /**
@@ -74,10 +78,18 @@ public class Logger {
      * @param type  The type of the message to be logged
      */
     public void log(String msg, LogType type) {
-        if (printAll) {
+        if (printSetting == 1) {
+
+            /* Print all logs if printSetting is 1 */
             System.out.printf("%s | %s | %s\n", className, msg, java.time.ZonedDateTime.now());
-        } else if (displayedLogTypes.contains(type) || type == LogType.ALWAYS_PRINT) {
-            System.out.printf("%s | %s | %s\n", className, msg, java.time.ZonedDateTime.now());
+        } else if (printSetting == -1) {
+
+            /* Don't print anything if printSetting is -1 */
+        } else if (printSetting == 0) {
+
+            /* Print if the log is of the type selected to be printed */
+            if (displayedLogTypes.contains(type) || type == LogType.ALWAYS_PRINT)
+                System.out.printf("%s | %s | %s\n", className, msg, java.time.ZonedDateTime.now());
         }
     }
 }

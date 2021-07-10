@@ -32,7 +32,9 @@ public class ServerMonitorTest {
 
     @BeforeAll
     public static void beforeAll() {
-        Logger.configure(new Logger.LogType[] { Logger.LogType.PRINT_NOTHING });
+
+        /* Configure logger to print nothing */
+        Logger.setPrintSetting(-1);
     }
 
     @BeforeEach
