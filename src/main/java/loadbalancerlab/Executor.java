@@ -26,32 +26,130 @@ import java.io.IOException;
 import java.util.*;
 import java.util.List;
 
+/**
+ * Main execution class used for setting up, running, and shutting down simulation
+ */
 public class Executor {
+    /**
+     * Timestamp at which demand peaks. Used for certain demand functions. Milliseconds since 1-Jan-1970
+     */
     long maxDemandTime;
+
+    /**
+     * Controls how long simulation runs (in milliseconds)
+     */
     static int simulationTime;
-    Random rand;
+
+    /**
+     * Logger object used for logging messages to terminal
+     */
     Logger logger;
+
+    /**
+     * A factory class which produces CacheServer instances
+     */
     CacheServerFactory cacheServerFactory;
+
+    /**
+     * Factory class used for generating CloseableHttpClient instances
+     */
     HttpClientFactory httpClientFactory;
+
+    /**
+     * Used for extracting JSON parameters from a CloseableHttpResponse object
+     */
     RequestDecoder reqDecoder;
+
+    /**
+     * A factory class for producing Client instances
+     */
     ClientFactory clientFactory;
+
+    /**
+     * A server which manages the lifecycle of CacheServer instances
+     * Modulates the number of CacheServers to match the request load
+     */
     CacheServerManager cacheServerManager;
+
+    /**
+     * Runnable implementation which serves as a wrapper for CacheServerManager class
+     */
     CacheServerManagerRunnable cacheServerManagerRunnable;
+
+    /**
+     * Thread which CacheServerManager object
+     */
     Thread cacheServerManagerThread;
+
+    /**
+     * LoadBalancer object which handles delegation and forwarding of incoming client Http requests to CacheServer objects
+     */
     LoadBalancerRunnable loadBalancer;
+
+    /**
+     * Thread which runs LoadBalancerRunnable object
+     */
     Thread loadBalancerThread;
+
+    /**
+     * Used to manage lifecycle of Client objects.
+     */
     ClientManagerRunnable clientManagerRunnable;
+
+    /**
+     * Thread instance which runs ClientManagerRunnable object
+     */
     Thread clientManagerThread;
 
-    // execution data
-    List<Double> synthesizedClientRequestLogOutput;
-    List<Double> loadBalancerRequestLogOutput;
+    /* Fields which hold execution data */
+    /**
+     * A list of doubles which holds number of active CacheServer.
+     * Meant to be used by vendor graphing class.
+     * The list has one entry for every second of the simulation.
+     */
     List<Double> serverCountLogOutput;
+
+    /**
+     * A 2d String array representation of a CSV file for CacheServer capacity-factor vs time.
+     *
+     * The leftmost column lists all timestamps in ascending order from top to bottom.
+     * The top row lists all ids of CacheServer instances in ascending order from left to right.
+     * The rest of the entries contain capacity factor values.
+     */
     String[][] cacheServerCfData;
+
+    /**
+     * A sorted map which holds logs about the number of CacheServers active by time.
+     * The table maps timestamps (seconds since 1-Jan-1970) to the number of CacheServer objects active.
+     */
     SortedMap<Integer, Integer> serverCountLog;
+
+    /**
+     * A 2d String array representation of a CSV file for the number of HashRingAngle objects owned by each CacheServer
+     * vs time.
+     *
+     * The top row lists ids of all CacheServers in ascending order from left to right.
+     * The leftmost column lists all timestamps in ascending order from top to bottom.
+     * The rest of the entries hold the number of HashRingAngle objects owned by a particular CacheServer at a point in
+     * time.
+     */
     String[][] numAnglesByServerByTime;
+
+    /**
+     * A 2d String array representation of a CSV file for the total sweep angle captured by all HashRingAngle objects
+     * owned by each CacheServer vs time.
+     *
+     * The Top row holds ids of all CacheServers in ascending order from left to right.
+     * The leftmost column lists all timestamps in ascending order from top to bottom.
+     * The rest of the entries hold the total sweep angle captured by all HashRingAngle objects owned by a particular
+     * CacheServer at a point in time.
+     */
     String[][] sweepAngleByTime;
 
+    /**
+     * Static method used to configure static variables in this class.
+     * @param config        Configuration object used for configuring various classes.
+     */
     public static void configure( Config config ) {
         simulationTime = config.getSimulationTime();
     }
@@ -64,22 +162,23 @@ public class Executor {
      * Starts, runs and shuts down entire simulation system
      */
     public void start( Config config ) {
-        this.rand = new Random();
-//        Logger.setPrintAll(true);
+        // Logger.setPrintAll(true);
+
+        /* set up logger */
         logger = new Logger("Executor");
         Logger.configure(new Logger.LogType[] {  });
         logger.log("started Run thread", Logger.LogType.THREAD_MANAGEMENT);
 
-        // configure classes
+        /* Configure classes */
         configureComponents(config);
 
-        // instantiate factories and other shared services
+        /* Instantiate factories and other shared services */
         instantiateFactories();
 
-        // startup threads
+        /* Startup threads */
         startupThreads();
 
-        // let simulation run
+        /* Let simulation run */
         try {
             Thread.sleep(simulationTime);
         } catch (InterruptedException e) {
@@ -87,13 +186,13 @@ public class Executor {
             logger.log("Simulation interrupted", Logger.LogType.THREAD_MANAGEMENT);
         }
 
-        // interrupt threads
+        /* Interrupt threads */
         shutdownThreads();
 
-        // collect simulation data
+        /* Collect and process simulation data */
         collectData(config.getRingSize());
 
-        // print data to csv
+        /* Print data to csv */
         printData();
     }
 
@@ -103,26 +202,35 @@ public class Executor {
         new Executor().start(config);
     }
 
+    /**
+     * Helper method used to configure classes with the given Config object.
+     * @param config    Config object used to configure various classes.
+     */
     private void configureComponents(Config config) {
-        // CONFIGURATION
-        // configure CacheServer package
-        RequestMonitor.configure(config);
-        // configure CacheServerManager package
-        CacheInfoServerRunnable.configure(config); // being called
-        CacheServerManager.configure(config); // being called
-        CacheServerManagerRunnable.configure(config);
-        // configure LoadBalancer package
-        CacheRedistributor.configure(config); // being called
-        CacheRedistributorRunnable.configure(config); // being called
 
+        /* Configure CacheServer package */
+        RequestMonitor.configure(config);
+
+        /* Configure CacheServerManager package */
+        CacheInfoServerRunnable.configure(config);
+        CacheServerManager.configure(config);
+        CacheServerManagerRunnable.configure(config);
+
+        /* Configure LoadBalancer package */
+        CacheRedistributor.configure(config);
+        CacheRedistributorRunnable.configure(config);
         CacheServerClientRequestHandler.configure(config);
         LoadBalancerClientRequestHandler.configure(config);
         ClientRequestHandlerServer.configure(config);
         HashRing.configure(config);
-        // configure Client package
+
+        /* Configure Client package */
         ClientManagerRunnable.configure(config);
     }
 
+    /**
+     * Helper method used to instantiate factories
+     */
     private void instantiateFactories() {
         cacheServerFactory = new CacheServerFactory();
         httpClientFactory = new HttpClientFactory();
@@ -131,38 +239,29 @@ public class Executor {
     }
 
     /**
-     * Compiles data from simulation
+     * Helper method used to compiles data from simulation
      */
     private void collectData(int hashRingSize) {
-        // collect data from CacheServerManager instance about how many cache servers were active at each second
+
+        /* Collect data from CacheServerManager instance about how many cache servers were active at each second */
         serverCountLog = cacheServerManager.deliverServerCountData();
 
-        // Graph collected metrics
-        synthesizedClientRequestLogOutput = new ArrayList<>();
-        loadBalancerRequestLogOutput = new ArrayList<>();
-
+        /* Graph collected metrics */
         int earliestTime = serverCountLog.firstKey();
         int latestTime = serverCountLog.lastKey();
-
         serverCountLogOutput = new ArrayList<>();
 
-        // initialize serverCountLogOutput to have one entry for each second
+        /* Initialize serverCountLogOutput to have one entry for each second */
         for (int timestamp = earliestTime; timestamp <= latestTime; timestamp++)
             serverCountLogOutput.add(0.0d);
 
-//        for (Integer value : synthesizedClientRequestLog.values())
-//            synthesizedClientRequestLogOutput.add((double)value);
-
-//        for (Integer value : loadBalancerRequestLog.values())
-//            loadBalancerRequestLogOutput.add((double)value);
-
-        // add collected data
+        /* Add collected data */
         for (Map.Entry<Integer, Integer> entry : serverCountLog.entrySet()) {
             int timestamp = entry.getKey();
             serverCountLogOutput.set(timestamp - earliestTime, (double) entry.getValue());
         }
 
-        // collect HashRingAngle data
+        /* Collect HashRingAngle data */
         SortedMap<Integer, Map<Integer, List<HashRingAngle>>> angleHistory = loadBalancer.getHashRingAngleHistory();
         AngleDataProcessor angleDataProcessor = new AngleDataProcessor(angleHistory, hashRingSize);
         numAnglesByServerByTime = angleDataProcessor.getNumAnglesByTime();
@@ -171,17 +270,21 @@ public class Executor {
         cacheServerCfData = cacheServerManager.deliverCfData();
     }
 
+    /**
+     * Helper method used to startup all threads
+     */
     private void startupThreads() {
-        // start cache server manager thread
+
+        /* Instantiate CacheServerManager and wrap it into a Runnable object and then a Thread object */
         cacheServerManager = new CacheServerManager(cacheServerFactory, httpClientFactory, reqDecoder);
         cacheServerManagerRunnable = new CacheServerManagerRunnable(cacheServerFactory, httpClientFactory, reqDecoder, cacheServerManager);
         cacheServerManagerThread = new Thread(cacheServerManagerRunnable);
 
+        /* Start cache server manager thread */
         cacheServerManagerThread.start();
-
         int cacheServerManagerPort;
 
-        // wait for cache server manager to start up and record the port it's running on
+        /* Wait for cache server manager to start up and record the port it's running on */
         while ((cacheServerManagerPort = cacheServerManagerRunnable.getPort()) == 0) {
             try {
                 Thread.sleep(10);
@@ -193,13 +296,13 @@ public class Executor {
 
         logger.log("CacheServerManager running on port " + cacheServerManagerPort, Logger.LogType.THREAD_MANAGEMENT);
 
-        // instantiate and start load balancer
+        /* Instantiate LoadBalancerRunnable object, wrap it in a Thread object, and start it. */
         loadBalancer = new LoadBalancerRunnable(cacheServerManagerPort);
         loadBalancerThread = new Thread(loadBalancer);
         loadBalancerThread.start();
         int loadBalancerPort;
 
-        // wait for load balancer to start and port to be set
+        /* Wait for load balancer to start and record the port it's running on */
         while ((loadBalancerPort = loadBalancer.getPort()) == -1) {
             try {
                 Thread.sleep(10);
@@ -211,25 +314,26 @@ public class Executor {
 
         logger.log("LoadBalancer running on port " + loadBalancerPort, Logger.LogType.THREAD_MANAGEMENT);
 
-        // set load balancer port on Client class
+        /* Set load balancer port on Client class */
         Client.setLoadBalancerPort(loadBalancerPort);
 
         long requestStartTime = System.currentTimeMillis() + 1_000;
 
-        // startup ClientManager class
+        /* Instantiate ClientManagerRunnable object, wrap it in a Thread object, and start it. */
         clientManagerRunnable = new ClientManagerRunnable(clientFactory, maxDemandTime, requestStartTime, httpClientFactory, reqDecoder);
         clientManagerThread = new Thread(clientManagerRunnable);
         clientManagerThread.start();
     }
 
     /**
-     * Prints simulation data to csv
+     * Helper method for printing simulation data to csv files.
      */
     private void printData() {
-        System.out.println("printing num servers vs time");
+        logger.log("Printing num servers vs time", Logger.LogType.PRINT_DATA_TO_CSV);
 
         try {
-            // write data on server count vs time
+
+            /* Write data on server count vs time */
             FileWriter out = new FileWriter("csv_output/num_servers_vs_time.csv");
             String[] headers = { "time", "cache servers active" };
             try (CSVPrinter printer = new CSVPrinter(out, CSVFormat.DEFAULT.withHeader(headers))) {
@@ -245,10 +349,11 @@ public class Executor {
             e.printStackTrace();
         }
 
-        System.out.println("printing cf vs time");
+        logger.log("Printing cf vs time to csv", Logger.LogType.PRINT_DATA_TO_CSV);
 
         try {
-            // write data on cf vs time
+
+            /* Write data on cf vs time */
             FileWriter out = new FileWriter("csv_output/cf_vs_time.csv");
             String[] headers = cacheServerCfData[0];
             String[][] content = new String[cacheServerCfData.length - 1][cacheServerCfData[0].length];
@@ -269,10 +374,11 @@ public class Executor {
             e.printStackTrace();
         }
 
-        System.out.println("Printing num angles vs time by server");
+        logger.log("Printing num angles vs time by server to csv", Logger.LogType.PRINT_DATA_TO_CSV);
 
         try {
-            // write data on number of angles by server by time
+
+            /* Write data on number of angles by server by time */
             FileWriter out = new FileWriter("csv_output/num_angles_vs_time.csv");
             String[] headers = numAnglesByServerByTime[0];
             try (CSVPrinter printer = new CSVPrinter(out, CSVFormat.DEFAULT.withHeader(headers))) {
@@ -286,10 +392,11 @@ public class Executor {
             e.printStackTrace();
         }
 
-        System.out.println("Printing sweep angle vs time by server");
+        logger.log("Printing sweep angle vs time by server to csv", Logger.LogType.PRINT_DATA_TO_CSV);
 
         try {
-            // write sweep angle by time to csv
+
+            /* Write sweep angle by time to csv */
             FileWriter out = new FileWriter("csv_output/sweep_angle_by_time.csv");
             String[] headers = sweepAngleByTime[0];
 
@@ -306,30 +413,11 @@ public class Executor {
     }
 
     /**
-     * Graphs simulation data
+     * Helper method for graphing simulation data using vendor class 'Graph'
      */
     private void graphData() {
-        // graph client request requests sent vs time
-//        Graph mainPanel = new Graph(synthesizedClientRequestLogOutput);
-//        mainPanel.setPreferredSize(new Dimension(800, 600));
-//        JFrame frame = new JFrame("Client request output");
-//        frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-//        frame.getContentPane().add(mainPanel);
-//        frame.pack();
-//        frame.setLocationRelativeTo(null);
-//        frame.setVisible(true);
 
-        // graph load balancer requests received vs time
-//        Graph secondPanel = new Graph(loadBalancerRequestLogOutput);
-//        secondPanel.setPreferredSize(new Dimension(800, 600));
-//        JFrame secondFrame = new JFrame("Load Balancer requests received");
-//        secondFrame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-//        secondFrame.getContentPane().add(secondPanel);
-//        secondFrame.pack();
-//        secondFrame.setLocationRelativeTo(null);
-//        secondFrame.setVisible(true);
-
-
+        /* Graph server count vs time data */
         Graph thirdPanel = new Graph(serverCountLogOutput);
         thirdPanel.setPreferredSize((new Dimension(800, 600)));
         JFrame thirdFrame = new JFrame("Cache servers active vs time");
@@ -340,35 +428,34 @@ public class Executor {
         thirdFrame.setVisible(true);
     }
 
+    /**
+     * Helper method to shutdown threads
+     */
     private void shutdownThreads() {
-        // interrupt ClientManager class
+
+        /* Interrupt ClientManager class */
         logger.log("shutdown stage 1: shutdown client threads", Logger.LogType.THREAD_MANAGEMENT);
         clientManagerThread.interrupt();
 
-
-        // allow time to shut down client threads
+        /* Allow time to shut down client threads */
         try {
             Thread.sleep(2_000);
         } catch (InterruptedException e) {
             e.printStackTrace();
         }
 
-        // collect data from load balancer
-//        Logger.log("collecting request log data from load balancer", Logger.LogType.RECORDING_DATA);
-//        SortedMap<Integer, Integer> loadBalancerRequestLog = loadBalancer.deliverData();
-
-        // shutdown load balancer
+        /* Shutdown load balancer */
         logger.log("shutdown stage 2: Shutdown LoadBalancer thread", Logger.LogType.THREAD_MANAGEMENT);
         loadBalancerThread.interrupt();
 
-        // allow time to shut down load balancer system
+        /* Allow time to shut down load balancer system */
         try {
             Thread.sleep(2_000);
         } catch(InterruptedException e) {
             e.printStackTrace();
         }
 
-        // shutdown CacheServerManager instance
+        /* Shutdown CacheServerManager instance */
         cacheServerManagerThread.interrupt();
         logger.log("shutdown stage 3: Shutdown CacheServerManager thread", Logger.LogType.THREAD_MANAGEMENT);
         logger.log("terminated Run thread", Logger.LogType.THREAD_MANAGEMENT);

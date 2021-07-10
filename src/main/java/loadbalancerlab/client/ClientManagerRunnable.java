@@ -8,6 +8,10 @@ import loadbalancerlab.shared.RequestDecoder;
 import java.util.ArrayList;
 import java.util.List;
 
+/**
+ * Manages lifecycle of Client objects.
+ * Implementation of Runnable interface.
+ */
 public class ClientManagerRunnable implements Runnable {
     /**
      * Number of clients instances that the ClientManagerRunnable will spawn
@@ -68,17 +72,18 @@ public class ClientManagerRunnable implements Runnable {
     public void run() {
         clientThreads = new ArrayList<>();
 
-        // generate client threads
+        /* Generate client threads */
         for (int i = 0; i < numClients; i++) {
             Client client = clientFactory.buildClient(maxDemandTime, new ConstantDemandFunctionImpl(restInterval), httpClientFactory, requestStartTime, reqDecoder);
             Thread clientThread = new Thread(client);
             clientThreads.add(clientThread);
         }
 
-        // start threads
+        /* Start client threads */
         for (Thread thread : clientThreads)
             thread.start();
 
+        /* Await termination */
         while (true) {
             try {
                 Thread.sleep(TICK_INTERVAL);
@@ -89,7 +94,7 @@ public class ClientManagerRunnable implements Runnable {
             }
         }
 
-        // interrupt client threads
+        /* Interrupt client threads */
         for (Thread thread : clientThreads) {
             thread.interrupt();
         }

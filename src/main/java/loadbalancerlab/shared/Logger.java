@@ -40,7 +40,8 @@ public class Logger {
         RECORDING_DATA,         /* Recording and processing simulation data */
         REQUEST_PASSING,        /* Handling of HttpRequests */
         CAPACITY_MODULATION,    /* Recording load on each CacheServer object and modulating the number of CacheServers */
-        ALWAYS_PRINT           /* A type of log which is always printed */
+        PRINT_DATA_TO_CSV,      /* Printing data to csv files */
+        ALWAYS_PRINT,           /* A type of log which is always printed */
     }
 
     /**
