@@ -98,6 +98,7 @@ public class AngleDataProcessor {
      * cache server as a function of time
      */
     public String[][] getSweepAngleByTime() {
+
         /* For each snapshot in HashRingAngle.angleHistory */
         SortedMap<Integer, Map<Integer, Integer>> sweepAngleHistory = new TreeMap<>();
 
@@ -105,6 +106,7 @@ public class AngleDataProcessor {
         for (Map.Entry<Integer, Map<Integer, List<HashRingAngle>>> entry : angleHistory.entrySet()) {
             Integer timestamp = entry.getKey();
             Map<Integer, List<HashRingAngle>> snapshot = entry.getValue();
+
             /* Find lowest key value of snapshot */
             Set<Integer> anglePositions = snapshot.keySet();
 

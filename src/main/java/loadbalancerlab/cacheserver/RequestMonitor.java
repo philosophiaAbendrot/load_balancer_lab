@@ -51,7 +51,6 @@ public class RequestMonitor {
      * @param currentTime: the time which is used to calculate whether the records are old enough to be deleted
      */
     public void clearOutData(long currentTime) {
-        logger.log("clearOutTelemetry running", Logger.LogType.TELEMETRY_UPDATE);
         // delete request data which are out of date
         Iterator<RequestDatum> iterator = requestData.iterator();
         int deleteCount = 0;
@@ -65,8 +64,6 @@ public class RequestMonitor {
                 break;
             }
         }
-
-        logger.log(deleteCount + " data deleted.", Logger.LogType.TELEMETRY_UPDATE);
     }
 
     /**

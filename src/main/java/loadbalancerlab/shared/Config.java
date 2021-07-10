@@ -9,42 +9,54 @@ import loadbalancerlab.loadbalancer.MurmurHashFunctionImpl;
  */
 public class Config {
     /**
+     * Configures various classes.
+     * Factory object used for generating CloseableHttpClient instances for sending Http requests
+     */
+    private HttpClientFactory httpClientFactory;
+
+    /* Start of HashRing class configurations */
+    /**
+     * Configures HashRing class.
      * The maximum number of HashRingAngle objects that a CacheServer object can have
      */
     private int maxAnglesPerServer;
 
     /**
+     * Configures HashRing class.
      * The minimum number of HashRingAngle objects that a CacheServer object can own
      */
     private int minAnglesPerServer;
 
     /**
+     * Configures HashRing class.
      * The default number of HashRingAngle objects that a CacheServer is assigned
      */
     private int defaultAnglesPerServer;
 
     /**
+     * Configures HashRing class.
      * The number of positions in a HashRing object
      */
     private int ringSize;
 
     /**
+     * Configures HashRing class.
      * The HashFunction object which is used to hash resource names into integers.
      * Used within a consistent hashing mechanism for assigning resource names to CacheServer objects
      */
     private HashFunction hashFunction;
 
+    /* End of HashRing class configurations */
+
     /**
+     * Configures CacheRedistributor class.
      * RequestDecoder object used to extract JSON parameters from a CloseableHttpResponse object
      */
     private RequestDecoder reqDecoder;
 
     /**
-     * Factory object used for generating CloseableHttpClient instances for sending Http requests
-     */
-    private HttpClientFactory httpClientFactory;
-
-    /**
+     * Configures CacheRedistributor class.
+     *
      * An array of doubles which is used to decide how to modulate the number of HashRingAngle objects a CacheServer
      * object has.
      *
@@ -57,7 +69,9 @@ public class Config {
      */
     private double[] serverLoadCutoffs;
 
+    /* Start of CacheRedistributorRunnable class configurations */
     /**
+     * Configures CacheRedistributorRunnable class.
      * The minimum interval (in seconds) between calls of CacheRedistributor.requestServerInfo().
      * Controls how often the CacheRedistributor object (within the loadbalancer package) package requests an update from the
      * CacheServerManager object (within the cacheservermanager package) about information on the CacheServers.
@@ -65,27 +79,88 @@ public class Config {
     private int cacheRedisPingInterval;
 
     /**
+     * Configures CacheRedistributorRunnable class.
      * The minimum interval (in seconds) between calls of CacheRedistributor.remapCacheKeys().
      * Controls how often the HashRingAngles are dynamically remapped on the CacheServers to even out the capacity factors
      * of CacheServer objects.
      */
     private int cacheRedisRemapInterval;
 
-    private int clientHandlerServerDefaultPort;
-    private int cacheInfoServerDefaultPort;
-    private double targetCf;
-    private double cacheServerGrowthRate;
-    private int capacityModulationInterval;
-    private int requestMonitorRecordTTL;
-    private int cacheServerProcessingTime;
-    private int numClients;
-    private int numCacheServersOnStartup;
-    private int simulationTime;
+    /**
+     * Configures CacheRedistributorRunnable class.
+     * Controls minimum interval (in milliseconds) between calls of CacheRedistributor.recordServerAngles() method.
+     * Controls the temporal resolution of the HashRingAngle telemetry.
+     */
     private int hashRingAngleRecordInterval;
+
+    /* End of CacheRedistributorRunnable class configurations */
+
+    /**
+     * Configures ClientRequestHandlerServer class.
+     * The default port that ClientRequestHandlerServer attempts to start on
+     */
+    private int clientHandlerServerDefaultPort;
+
+    /**
+     * Configures CacheInfoServerRunnable class.
+     * The default port that CacheInfoServerRunnable objects attempt to start on
+     */
+    private int cacheInfoServerDefaultPort;
+
+    /**
+     * NOT USED OUTSIDE OF TESTS. NEED TO REMOVE AND REFACTOR TESTS
+     */
+    private double targetCf;
+
+    /**
+     * Configures CacheServerManager class.
+     * Controls the speed of the growth or shrinking in the number of active CacheServer objects in response to the
+     * request load.
+     */
+    private double cacheServerGrowthRate;
+
+    /**
+     * Configures CacheServerManagerRunnable class.
+     * Controls the minimum time (in milliseconds) between calls of CacheServerManager.modulateCapacity() method.
+     * This controls how often the number of CacheServer instances is dynamically modulated in response to the request
+     * load.
+     */
+    private int capacityModulationInterval;
+
+    /**
+     * Configures RequestMonitor class.
+     * Controls how long RequestMonitor records are kept in memory, in milliseconds.
+     */
+    private int requestMonitorRecordTTL;
+
+    /**
+     * Configures CacheServerClientRequestHandler class.
+     * Controls how long a CacheServer instance (in milliseconds) waits before sending back a response to a request.
+     * Used to simulate request processing time by the CacheServer.
+     */
+    private int cacheServerProcessingTime;
+
+    /**
+     * Configures ClientManagerRunnable class.
+     * Controls the number of Client instances which will be spawned.
+     */
+    private int numClients;
+
+    /**
+     * Configures CacheServerManagerRunnable class.
+     * Controls the number of CacheServer objects which are spawned initially.
+     */
+    private int numCacheServersOnStartup;
+
+    /**
+     * Configures Executor class.
+     * Controls how long simulation runs (in milliseconds).
+     */
+    private int simulationTime;
 
     public Config() {
 
-        /* Default values for configurations */
+        /* Set default values for configurations */
         maxAnglesPerServer = 40;
         minAnglesPerServer = 10;
         defaultAnglesPerServer = 20;
@@ -180,6 +255,8 @@ public class Config {
 
     public int getHashRingAngleRecordInterval() { return hashRingAngleRecordInterval; }
 
+    /* END OF GETTER METHODS */
+
     /* SETTER METHODS */
     public void setMaxAnglesPerServer( int _maxAnglesPerServer ) {
         maxAnglesPerServer = _maxAnglesPerServer;
@@ -248,4 +325,6 @@ public class Config {
     }
 
     public void setHashRingAngleRecordInterval(int val) { hashRingAngleRecordInterval = val; }
+
+    /* END OF SETTER METHODS */
 }

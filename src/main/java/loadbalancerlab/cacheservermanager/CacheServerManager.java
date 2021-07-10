@@ -17,7 +17,8 @@ import java.util.concurrent.ConcurrentMap;
  */
 public class CacheServerManager {
     /**
-     * used to control the rate at which servers are spawned or shutdown
+     * Controls the speed of the growth or shrinking in the number of active CacheServer objects in response to the
+     * request load.
      */
     static double growthRate;
     /**

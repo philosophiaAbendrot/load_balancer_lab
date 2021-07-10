@@ -68,7 +68,7 @@ public class Executor {
 //        Logger.setPrintAll(true);
         logger = new Logger("Executor");
         Logger.configure(new Logger.LogType[] {  });
-        logger.log("started Run thread", Logger.LogType.STARTUP_SEQUENCE);
+        logger.log("started Run thread", Logger.LogType.THREAD_MANAGEMENT);
 
         // configure classes
         configureComponents(config);
@@ -187,11 +187,11 @@ public class Executor {
                 Thread.sleep(10);
             } catch (InterruptedException e) {
                 e.printStackTrace();
-                logger.log("CacheServerManager startup loop interrupted", Logger.LogType.STARTUP_SEQUENCE);
+                logger.log("CacheServerManager startup loop interrupted", Logger.LogType.THREAD_MANAGEMENT);
             }
         }
 
-        logger.log("CacheServerManager running on port " + cacheServerManagerPort, Logger.LogType.STARTUP_SEQUENCE);
+        logger.log("CacheServerManager running on port " + cacheServerManagerPort, Logger.LogType.THREAD_MANAGEMENT);
 
         // instantiate and start load balancer
         loadBalancer = new LoadBalancerRunnable(cacheServerManagerPort);
@@ -205,11 +205,11 @@ public class Executor {
                 Thread.sleep(10);
             } catch (InterruptedException e) {
                 e.printStackTrace();
-                logger.log("LoadBalancer startup waiting loop interrupted", Logger.LogType.STARTUP_SEQUENCE);
+                logger.log("LoadBalancer startup waiting loop interrupted", Logger.LogType.THREAD_MANAGEMENT);
             }
         }
 
-        logger.log("LoadBalancer running on port " + loadBalancerPort, Logger.LogType.STARTUP_SEQUENCE);
+        logger.log("LoadBalancer running on port " + loadBalancerPort, Logger.LogType.THREAD_MANAGEMENT);
 
         // set load balancer port on Client class
         Client.setLoadBalancerPort(loadBalancerPort);

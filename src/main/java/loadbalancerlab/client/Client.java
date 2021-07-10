@@ -120,7 +120,7 @@ public class Client implements Runnable {
     public CloseableHttpResponse sendResponse(String resourceName) throws IOException {
         String path = "/api/" + resourceName;
         HttpGet httpGet = new HttpGet("http://127.0.0.1:" + Client.loadBalancerPort + path);
-        logger.log(String.format("path: %s", path), Logger.LogType.CLIENT_STARTUP);
+        logger.log(String.format("path: %s", path), Logger.LogType.REQUEST_PASSING);
         CloseableHttpClient httpClient = clientFactory.buildApacheClient();
         CloseableHttpResponse res = httpClient.execute(httpGet);
         HttpEntity resEntity = res.getEntity();

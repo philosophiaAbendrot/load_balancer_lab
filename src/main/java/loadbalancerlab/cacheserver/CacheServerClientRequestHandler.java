@@ -20,7 +20,13 @@ public class CacheServerClientRequestHandler implements HttpHandler {
      * RequestMonitor which monitors load on the associated CacheServer instance
      */
     RequestMonitor reqMonitor;
+
+    /**
+     * Controls how long a CacheServer instance (in milliseconds) waits before sending back a response to a request.
+     * Used to simulate request processing time by the CacheServer.
+     */
     static int processingTime;
+
     /**
      * Used for logging
      */

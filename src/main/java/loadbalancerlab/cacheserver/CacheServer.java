@@ -88,7 +88,7 @@ public class CacheServer implements Runnable {
 
         for (int i = 0; i < selectablePorts.length; i++) {
             port = selectablePorts[i];
-            logger.log("attempting to start server on port " + port, Logger.LogType.CACHE_SERVER_STARTUP);
+            logger.log("attempting to start server on port " + port, Logger.LogType.CAPACITY_MODULATION);
 
             try {
                 InetAddress host = InetAddress.getByName("127.0.0.1");
@@ -97,10 +97,10 @@ public class CacheServer implements Runnable {
                 server.createContext("/capacity-factor", capacityFactorRequestHandler);
                 server.createContext("/", clientReqHandler);
                 server.setExecutor(threadPoolExecutor);
-                logger.log("Server started on " + socketAddress.toString(), Logger.LogType.CACHE_SERVER_STARTUP);
+                logger.log("Server started on " + socketAddress.toString(), Logger.LogType.CAPACITY_MODULATION);
                 break;
             } catch(IOException e) {
-                logger.log("Failed to start server on port " + port, Logger.LogType.CACHE_SERVER_STARTUP);
+                logger.log("Failed to start server on port " + port, Logger.LogType.CAPACITY_MODULATION);
             }
         }
 
@@ -109,7 +109,7 @@ public class CacheServer implements Runnable {
 
         // start server
         server.start();
-        logger.log("Server started on port " + port, Logger.LogType.CACHE_SERVER_STARTUP);
+        logger.log("Server started on port " + port, Logger.LogType.CAPACITY_MODULATION);
 
         while(true) {
             try {
