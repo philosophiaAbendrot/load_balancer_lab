@@ -11,13 +11,15 @@ import java.io.IOException;
 import java.io.OutputStream;
 
 /**
- * HttpHandler implementation which serves requests to '/' path on CacheServer.
- * Serves requests which originate from the Client class.
+ * HttpHandler implementation which serves client requests forwarded by load balancer.
+ * Used by CacheServer class.
  * Returns a dummy response indicating that the response was returned by the CacheServer.
+ * Delays the thread for a fixed amount of time to simulate processing time.
  */
 public class CacheServerClientRequestHandler implements HttpHandler {
+
     /**
-     * RequestMonitor which monitors load on the associated CacheServer instance
+     * RequestMonitor which monitors load and incoming requests on the associated CacheServer instance
      */
     RequestMonitor reqMonitor;
 
@@ -28,31 +30,40 @@ public class CacheServerClientRequestHandler implements HttpHandler {
     static int processingTime;
 
     /**
-     * Used for logging
+     * Object used for logging
      */
     private Logger logger;
 
+    /**
+     * Method used for configuring static variables on class.
+     * @param config        Config object used for configuring various classes
+     */
     public static void configure( Config config ) {
         processingTime = config.getCacheServerProcessingTime();
     }
 
-    public CacheServerClientRequestHandler( RequestMonitor _reqMonitor ) {
-        reqMonitor = _reqMonitor;
+    /**
+     * @param reqMonitor        RequestMonitor object used for monitoring the number of incoming requests and the
+     *                          capacity factor of the associated CacheServer object.
+     */
+    public CacheServerClientRequestHandler( RequestMonitor reqMonitor ) {
+        this.reqMonitor = reqMonitor;
         logger = new Logger("CacheServerClientRequestHandler");
     }
 
     /**
-     * handles incoming request for update on the capacity factor of the associated CacheServer instance
-     * @param httpExchange - an encapsulation of an Http request for the com.sun.net.httpserver package
+     * Handles incoming requests for updates on the capacity factor of the associated CacheServer instance
+     * @param httpExchange - an representation of an Http request from the com.sun.net.httpserver package
      */
     @Override
     public void handle( HttpExchange httpExchange ) throws IOException {
         long startTime = System.currentTimeMillis();
         logger.log("received request from load balancer", Logger.LogType.REQUEST_PASSING);
-        // extract parameters from request uri
+
+        /* Extract parameters from request uri */
         String requestParams = extractParams(httpExchange);
 
-        // simulate processing time
+        /* Simulate processing time */
         try {
             Thread.sleep(processingTime);
         } catch (InterruptedException e) {
@@ -60,7 +71,7 @@ public class CacheServerClientRequestHandler implements HttpHandler {
             e.printStackTrace();
         }
 
-        // generate response and send it back
+        /* Generate response and send it back */
         String responseString = generateResponse(requestParams);
         OutputStream outputStream = httpExchange.getResponseBody();
         httpExchange.sendResponseHeaders(200, responseString.length());
@@ -68,30 +79,31 @@ public class CacheServerClientRequestHandler implements HttpHandler {
         outputStream.flush();
         outputStream.close();
         logger.log("sent request back to load balancer", Logger.LogType.REQUEST_PASSING);
-
         long endTime = System.currentTimeMillis();
-        // record request
+
+        /* Record request */
         reqMonitor.addRecord(startTime, endTime);
     }
 
     /**
-     * Helper method which is called by 'handle' method.
-     * @param requestParams: a parameter which holds the query string of the request URI
-     * Generates a dummy response
+     * Helper method which is called by 'handle' method to generate a dummy response.
+     * @param requestParams  The query string of the request URI
      */
     private String generateResponse(String requestParams) {
+
+        /* Dummy contents */
         JSONObject jsonOutput = new JSONObject();
         jsonOutput.put("resourceName", requestParams);
         jsonOutput.put("resourceContents", "here it is");
-        // encode html content
+
+        /* Encode JSON content */
         String htmlResponse = StringEscapeUtils.escapeJson(jsonOutput.toString());
         return htmlResponse;
     }
 
     /**
-     * Helper method which is called by 'handle' method.
-     * Returns the query string of the uri of a request
-     * @param httpExchange: httpExchange - an encapsulation of an Http request for the com.sun.net.httpserver package
+     * Helper method which returns the query string of the uri of a request
+     * @param httpExchange: httpExchange - a representation of a Http request from the com.sun.net.httpserver package
      * @return query string of the request uri
      */
     private String extractParams(HttpExchange httpExchange) {

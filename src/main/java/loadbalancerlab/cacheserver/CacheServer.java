@@ -11,27 +11,36 @@ import java.util.concurrent.ThreadPoolExecutor;
 
 import loadbalancerlab.shared.Logger;
 
+/**
+ * Handles client requests which are forwarded by LoadBalancerRunnable using ClientRequestHandler object.
+ * Monitors its usage levels and handles requests for updates by LoadBalancerRunnable using
+ * CapacityFactorRequestsHandler object.
+ */
 public class CacheServer implements Runnable {
+
     /**
-     * Associated RequestMonitor which keeps track of load on a CacheServer instance
+     * Associated RequestMonitor which keeps track of the capacity factor of this object and data on the incoming
+     * requests.
      */
     RequestMonitor reqMonitor;
+
     /**
-     * Runnable implementation which wraps around 'reqMonitor' variable
+     * Runnable implementation which wraps around RequestMonitor object
      */
     RequestMonitorRunnable reqMonitorRunnable;
+
     /**
-     * Thread running the runnable implementation 'reqMonitorRunnable'
+     * Thread running the RequestMonitorRunnable object
      */
     Thread reqMonitorThread;
 
     /**
-     * Port number on which the cache server instance is running
+     * Port number on which the CacheServer instance is running
      */
     private volatile int port;
 
     /**
-     * Used for logging
+     * Object used for logging
      */
     private Logger logger;
 
@@ -41,14 +50,19 @@ public class CacheServer implements Runnable {
      */
     int[] selectablePorts = new int[100];
 
-    public CacheServer(RequestMonitor _reqMonitor) {
-        reqMonitor = _reqMonitor;
-        reqMonitorRunnable = new RequestMonitorRunnable(reqMonitor);
-        reqMonitorThread = new Thread(reqMonitorRunnable);
+    /**
+     * @param reqMonitor        RequestMonitor object used to keep track of the capacity factor of this object
+     */
+    public CacheServer(RequestMonitor reqMonitor) {
 
-        Random rand = new Random();
-        initializeSelectablePorts();
+        /* Initialize request monitor and wrap it in a Runnable object and then assign it to a Thread object */
+        this.reqMonitor = reqMonitor;
+        reqMonitorRunnable = new RequestMonitorRunnable(this.reqMonitor);
+        reqMonitorThread = new Thread(reqMonitorRunnable);
         logger = new Logger("CacheServer");
+
+        /* Initialize array of ports that this object can run on */
+        initializeSelectablePorts();
     }
 
     /**
@@ -60,7 +74,8 @@ public class CacheServer implements Runnable {
     }
 
     /**
-     * @return getter method which returns the port that the CacheServer instance is running on
+     * Getter method for returning the port that the CacheServer instance is running on
+     * @return      The port that the CacheServer instance is running on
      */
     public int getPort() {
         return port;
@@ -68,28 +83,38 @@ public class CacheServer implements Runnable {
 
     /**
      * Setter method for setting the port on which the CacheServer instance is running
-     * @param _port: the port number
+     * @param port: the port on which this CacheServer object is running
      */
-    public void setPort(int _port) {
-        port = _port;
+    public void setPort(int port) {
+        this.port = port;
     }
+
     /**
      * Method inherited from Runnable interface
      * Starts server and request monitor thread
      */
     @Override
     public void run() {
+        /* Start server */
         logger.log("Started CacheServer thread", Logger.LogType.THREAD_MANAGEMENT);
-        // start server
         ThreadPoolExecutor threadPoolExecutor = (ThreadPoolExecutor) Executors.newFixedThreadPool(1);
+
+        /* Used for handling client requests forwarded by the load balancer */
         HttpHandler clientReqHandler = new CacheServerClientRequestHandler(reqMonitor);
+
+        /* Used for handling requests for updates on capacity factor */
         HttpHandler capacityFactorRequestHandler = new CapacityFactorRequestHandler(reqMonitor);
         HttpServer server = null;
 
+        /* Attempt to start CacheServer on random ports among the selectable ports */
+        Random rand = new Random();
+
         for (int i = 0; i < selectablePorts.length; i++) {
-            port = selectablePorts[i];
+            int randIdx = rand.nextInt(selectablePorts.length);
+            port = selectablePorts[randIdx];
             logger.log("attempting to start server on port " + port, Logger.LogType.CAPACITY_MODULATION);
 
+            /* Retry until the port starts successfully */
             try {
                 InetAddress host = InetAddress.getByName("127.0.0.1");
                 InetSocketAddress socketAddress = new InetSocketAddress(host, port);
@@ -104,10 +129,10 @@ public class CacheServer implements Runnable {
             }
         }
 
-        // start request monitor thread
+        /* Start request monitor thread */
         reqMonitorThread.start();
 
-        // start server
+        /* Start server */
         server.start();
         logger.log("Server started on port " + port, Logger.LogType.CAPACITY_MODULATION);
 
@@ -115,9 +140,12 @@ public class CacheServer implements Runnable {
             try {
                 Thread.sleep(500);
             } catch (InterruptedException e) {
+
+                /* Start shutdown */
                 Thread.currentThread().interrupt();
                 logger.log("CacheServer thread interrupted", Logger.LogType.THREAD_MANAGEMENT);
-                // shutdown associated telemetry curator thread
+
+                /* Shutdown associated telemetry curator thread */
                 reqMonitorThread.interrupt();
                 logger.log("Request Monitor thread interrupted", Logger.LogType.THREAD_MANAGEMENT);
                 server.stop(3);

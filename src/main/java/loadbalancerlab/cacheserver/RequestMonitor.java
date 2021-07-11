@@ -12,20 +12,26 @@ import java.util.Collections;
  * Monitors the number of incoming requests, compiles data and delivers reports.
  */
 public class RequestMonitor {
+
     /**
      * A list of RequestDatum objects. Keeps track of the processing times of the most recent requests
      */
     List<RequestDatum> requestData;
+
     /**
      * How long RequestMonitor records are kept in memory, in milliseconds.
      */
     static int recordTTL = 10_000;
 
     /**
-     * Used for logging
+     * Object used for logging
      */
     private Logger logger;
 
+    /**
+     * Method used to configure static variables
+     * @param config        Config object used for configuring various classes
+     */
     public static void configure( Config config ) {
         recordTTL = config.getRequestMonitorRecordTTL();
     }
@@ -51,15 +57,13 @@ public class RequestMonitor {
      * @param currentTime: the time which is used to calculate whether the records are old enough to be deleted
      */
     public void clearOutData(long currentTime) {
-        // delete request data which are out of date
         Iterator<RequestDatum> iterator = requestData.iterator();
-        int deleteCount = 0;
 
+        /* Delete request data which is out of date */
         while (iterator.hasNext()) {
             RequestDatum datum = iterator.next();
             if (datum.startTime + recordTTL < currentTime) {
                 iterator.remove();
-                deleteCount++;
             } else {
                 break;
             }
@@ -68,12 +72,13 @@ public class RequestMonitor {
 
     /**
      * Returns the average recent capacity factor value by processing recent request records, stored in 'requestData'
-     * @param currentTime: a timestamp for the current time in milliseconds since 1-Jan-1970
-     * @return capacityFactor: the 'load' on the CacheServer, in terms of running time / total time
+     * @param currentTime        a timestamp for the current time (milliseconds since 1-Jan-1970)
+     * @return capacityFactor    the 'load' on the CacheServer, in terms of running time / total time
      */
     public double getCapacityFactor(long currentTime) {
         if (requestData.isEmpty()) {
-            // if records are empty, return 0.0
+
+            /* If records are empty, return 0.0 */
             return 0.0;
         } else {
             long startTime = requestData.get(0).startTime;

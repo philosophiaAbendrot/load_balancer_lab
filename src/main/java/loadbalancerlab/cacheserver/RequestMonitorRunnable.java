@@ -1,13 +1,12 @@
 package loadbalancerlab.cacheserver;
 import loadbalancerlab.shared.Logger;
 
-// class for periodically clearing out outdated telemetry
-
 /**
  * Runnable implementation which wraps around RequestMonitor. Periodically calls clearOutData() method on RequestMonitor
  * to keep capacity factor records on CacheServer up to date.
  */
 class RequestMonitorRunnable implements Runnable {
+
     /**
      * The RequestMonitor instance on the associated CacheServer instance. Tracks data about the load on the CacheServer.
      */
@@ -18,13 +17,18 @@ class RequestMonitorRunnable implements Runnable {
      */
     private Logger logger;
 
-    public RequestMonitorRunnable( RequestMonitor _reqMonitor ) {
-        reqMonitor = _reqMonitor;
+    /**
+     * @param reqMonitor         Associated RequestMonitor which keeps track of the capacity factor of this object and data on the incoming
+     *                           requests.
+     */
+    public RequestMonitorRunnable( RequestMonitor reqMonitor ) {
+        this.reqMonitor = reqMonitor;
         logger = new Logger("RequestMonitorRunnable");
     }
 
     /**
-     * periodically clears out clearOutData() method on associated RequestMonitor to keep load data up to date.
+     * Periodically calls clearOutData() method on associated RequestMonitor to keep load data up to date.
+     * Method from Runnable interface.
      */
     @Override
     public void run() {
