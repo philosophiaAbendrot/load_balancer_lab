@@ -6,89 +6,92 @@ import loadbalancerlab.shared.Config;
 import loadbalancerlab.shared.RequestDecoder;
 
 /**
- * Runnable implementation which serves as a wrapper for CacheServerManager class
+ * Runnable implementation which serves as a wrapper for CacheServerManager class.
  */
 public class CacheServerManagerRunnable implements Runnable {
 
     /**
-     * Associated CacheServerManager instance
+     * Associated CacheServerManager instance.
      */
     CacheServerManager cacheServerManager;
 
     /**
-     * Associated ServerMonitor instance which is used to keep track of the data on all the CacheServer instances
+     * Associated ServerMonitor instance which is used to keep track of the data on all the CacheServer instances.
      */
     ServerMonitor serverMonitor;
 
     /**
      * A HttpRequestHandler implementation which is used to handle requests for updates on the capacity factor
-     * of specific CacheServer instances
+     * of specific CacheServer instances.
      */
     CacheInfoRequestHandler cacheInfoRequestHandler;
 
     /**
-     * An implementation of the Runnable interface which wraps around the associated ServerMonitor instance
-     * Used for starting a thread which runs ServerMonitor logic periodically
+     * An implementation of the Runnable interface which wraps around the associated ServerMonitor instance.
+     * Used for starting a thread which runs ServerMonitor logic periodically.
      */
     ServerMonitorRunnable serverMonitorRunnable;
 
     /**
-     * A server which handles requests for data on CacheServer capacity factors
+     * A server which handles requests for data on CacheServer capacity factors.
      */
     CacheInfoServerRunnable cacheInfoServerRunnable;
 
     /**
-     * Thread on which ServerMonitor instance runs
+     * Thread on which ServerMonitor instance runs.
      */
     Thread serverMonitorThread;
 
     /**
-     * Thread on which CacheInfoServerRunnable instance runs
+     * Thread on which CacheInfoServerRunnable instance runs.
      */
     Thread cacheInfoServerThread;
 
     /**
-     * controls how long the thread sleeps (in milliseconds) between iterations of the run() method
+     * controls how long the thread sleeps (in milliseconds) between iterations of the run() method.
      */
     static int sleepInterval = 50;
 
     /**
-     * Utility class used to extract json fields from a CloseableHttpResponse instance
+     * Utility class used to extract json fields from a CloseableHttpResponse instance.
      */
     RequestDecoder reqDecoder;
 
     /**
-     * Factory class used to create CacheServer instances
+     * Factory class used to create CacheServer instances.
      */
     CacheServerFactory cacheServerFactory;
 
     /**
-     * Factory class used to create CloseableHttpClient instances
+     * Factory class used to create CloseableHttpClient instances.
      */
     HttpClientFactory clientFactory;
 
     /**
-     * Static variable which controls the number of CacheServers which are started initially
+     * Static variable which controls the number of CacheServers which are started initially.
      */
     static int numCacheServersOnStartup;
 
     /**
-     * Static variable which controls the minimum time (in milliseconds) between calls of CacheServerManager.modulateCapacity() method.
+     * Static variable which controls the minimum time (in milliseconds) between calls of
+     * CacheServerManager.modulateCapacity() method.
      */
     static int capacityModulationInterval;
 
     /**
-     * keeps track of the last timestamp (in seconds since 1-Jan-1970) at which CacheServerManager.modulateCapacity() method was called.
+     * Keeps track of the last timestamp (in seconds since 1-Jan-1970) at which CacheServerManager.modulateCapacity()
+     * method was called.
      * Used in conjunction with 'capacityModulationInterval' field to get CacheServerManager.modulateCapacity() method
      * to be called periodically.
      */
     private int lastCapacityModulationTime;
 
     /**
-     * @param cacheServerFactory: Factory class used to generate CacheServer instances
-     * @param clientFactory: Factory class used to generate CloseableHttpClient instances
-     * @param reqDecoder: Utility class used to extract json parameters from a CloseableHttpResponse instance
-     * @param cacheServerManager: object used to manage life cycle of CacheServer instances and modulate the number of
+     * Constructor
+     * @param cacheServerFactory  Factory class used to generate CacheServer instances.
+     * @param clientFactory       Factory class used to generate CloseableHttpClient instances.
+     * @param reqDecoder          Utility class used to extract json parameters from a CloseableHttpResponse instance.
+     * @param cacheServerManager  Object used to manage life cycle of CacheServer instances and modulate the number of
      *                            CacheServer instances to meet request load.
      */
     public CacheServerManagerRunnable( CacheServerFactory cacheServerFactory, HttpClientFactory clientFactory, RequestDecoder reqDecoder, CacheServerManager cacheServerManager ) {
@@ -111,14 +114,14 @@ public class CacheServerManagerRunnable implements Runnable {
     }
 
     /**
-     * @return: the port that the associated CacheInfoServerRunnable is running on
+     * @return: The port that the associated CacheInfoServerRunnable is running on.
      */
     public int getPort() {
         return cacheInfoServerRunnable.getPort();
     }
 
     /**
-     * @param config: method used to configure static variables
+     * @param config: Method used to configure static variables.
      */
     public static void configure(Config config) {
         numCacheServersOnStartup = config.getNumCacheServersOnStartup();
@@ -126,11 +129,11 @@ public class CacheServerManagerRunnable implements Runnable {
     }
 
     /**
-     * Method from Runnable interface
-     * Starts sub-threads for ServerMonitor instance and CacheInfoServer instance
+     * Starts sub-threads for ServerMonitor instance and CacheInfoServer instance.
      * Starts default number of cache server instances.
+     * Method from Runnable interface
      * Runs CacheServerManager.modulateCapacity() method periodically to modulate the number of CacheServers to meet
-     * request load
+     * request load.
      * When interrupted, shuts down the assocaited sub-threads, including the threads that the CacheServer instances
      * run on.
      */

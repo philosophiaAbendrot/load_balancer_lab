@@ -20,22 +20,22 @@ import java.util.concurrent.TimeUnit;
 public class CacheInfoServerRunnable implements Runnable {
 
     /**
-     * stores the port that the CacheInfoServer is running on
+     * Stores the port that the CacheInfoServer is running on.
      */
     volatile private int port;
 
     /**
-     * The associated request handler which is employed by the server to handle requests
+     * The associated request handler which is employed by the server to handle requests.
      */
     CacheInfoRequestHandler cacheInfoRequestHandler;
 
     /**
-     * The default port that the server attempts to start on
+     * The default port that the server attempts to start on.
      */
     private static int defaultPort = -1;
 
     /**
-     * Used for logging
+     * Object used for logging.
      */
     private Logger logger;
 

@@ -25,33 +25,34 @@ public class CacheServer implements Runnable {
     RequestMonitor reqMonitor;
 
     /**
-     * Runnable implementation which wraps around RequestMonitor object
+     * Runnable implementation which wraps around RequestMonitor object.
      */
     RequestMonitorRunnable reqMonitorRunnable;
 
     /**
-     * Thread running the RequestMonitorRunnable object
+     * Thread running the RequestMonitorRunnable object.
      */
     Thread reqMonitorThread;
 
     /**
-     * Port number on which the CacheServer instance is running
+     * Port number on which the CacheServer instance is running.
      */
     private volatile int port;
 
     /**
-     * Object used for logging
+     * Object used for logging.
      */
     private Logger logger;
 
     /**
      * Array of available ports on which CacheServers can run.
-     * These are allocated to be all ports between 37_000 and 37_099
+     * These are allocated to be all ports between 37_000 and 37_099.
      */
     int[] selectablePorts = new int[100];
 
     /**
-     * @param reqMonitor        RequestMonitor object used to keep track of the capacity factor of this object
+     * Constructor
+     * @param reqMonitor        RequestMonitor object used to keep track of the capacity factor of this object.
      */
     public CacheServer(RequestMonitor reqMonitor) {
 
@@ -66,7 +67,7 @@ public class CacheServer implements Runnable {
     }
 
     /**
-     * Helper method which initializes 'selectablePorts' field to be an array of all ports between 37_000 and 37_099
+     * Helper method which initializes 'selectablePorts' field to be an array of all ports between 37_000 and 37_099.
      */
     private void initializeSelectablePorts() {
         for (int i = 0; i < selectablePorts.length; i++)
@@ -74,24 +75,24 @@ public class CacheServer implements Runnable {
     }
 
     /**
-     * Getter method for returning the port that the CacheServer instance is running on
-     * @return      The port that the CacheServer instance is running on
+     * Getter method for returning the port that the CacheServer instance is running on.
+     * @return      The port that the CacheServer instance is running on.
      */
     public int getPort() {
         return port;
     }
 
     /**
-     * Setter method for setting the port on which the CacheServer instance is running
-     * @param port: the port on which this CacheServer object is running
+     * Setter method for setting the port on which the CacheServer instance is running.
+     * @param port: the port on which this CacheServer object is running.
      */
     public void setPort(int port) {
         this.port = port;
     }
 
     /**
-     * Method inherited from Runnable interface
-     * Starts server and request monitor thread
+     * Method inherited from Runnable interface.
+     * Starts server and request monitor thread.
      */
     @Override
     public void run() {

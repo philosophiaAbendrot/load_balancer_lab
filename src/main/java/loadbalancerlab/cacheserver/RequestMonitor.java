@@ -14,7 +14,7 @@ import java.util.Collections;
 public class RequestMonitor {
 
     /**
-     * A list of RequestDatum objects. Keeps track of the processing times of the most recent requests
+     * A list of RequestDatum objects. Keeps track of the processing times of the most recent requests.
      */
     List<RequestDatum> requestData;
 
@@ -24,18 +24,21 @@ public class RequestMonitor {
     static int recordTTL = 10_000;
 
     /**
-     * Object used for logging
+     * Object used for logging.
      */
     private Logger logger;
 
     /**
-     * Method used to configure static variables
-     * @param config        Config object used for configuring various classes
+     * Method used to configure static variables.
+     * @param config        Config object used for configuring various classes.
      */
     public static void configure( Config config ) {
         recordTTL = config.getRequestMonitorRecordTTL();
     }
 
+    /**
+     * Constructor
+     */
     public RequestMonitor() {
         requestData = Collections.synchronizedList(new ArrayList<>());
         logger = new Logger("RequestMonitor");
@@ -43,18 +46,18 @@ public class RequestMonitor {
 
     /**
      * Adds a request record. This method is called whenever a client request is handled by ClientRequestHandler.
-     * @param startTime   when request processing began (milliseconds since Jan 1, 1970)
-     * @param endTime     when request processing completed (milliseconds since Jan 1, 1970)
+     * @param startTime   When request processing began (milliseconds since Jan 1, 1970).
+     * @param endTime     When request processing completed (milliseconds since Jan 1, 1970).
      */
     public void addRecord(long startTime, long endTime) {
         requestData.add(new RequestDatum(startTime, endTime));
     }
 
     /**
-     * Clears out request records which are outdated. Records are considered outdated if they are older than 'recordStorageTime' by
-     * the given timestamp 'currentTime'. This method is periodically called by RequestMonitorRunnable to keep capacity factor
-     * records up to date.
-     * @param currentTime: the time which is used to calculate whether the records are old enough to be deleted
+     * Clears out request records which are outdated. Records are considered outdated if they are older than
+     * 'recordStorageTime' by the given timestamp 'currentTime'. This method is periodically called by
+     * RequestMonitorRunnable to keep capacity factor records up to date.
+     * @param currentTime   The time which is used to calculate whether the records are old enough to be deleted.
      */
     public void clearOutData(long currentTime) {
         Iterator<RequestDatum> iterator = requestData.iterator();
@@ -71,9 +74,9 @@ public class RequestMonitor {
     }
 
     /**
-     * Returns the average recent capacity factor value by processing recent request records, stored in 'requestData'
-     * @param currentTime        a timestamp for the current time (milliseconds since 1-Jan-1970)
-     * @return capacityFactor    the 'load' on the CacheServer, in terms of running time / total time
+     * Returns the average recent capacity factor value by processing recent request records, stored in 'requestData'.
+     * @param currentTime        a timestamp for the current time (milliseconds since 1-Jan-1970).
+     * @return capacityFactor    the 'load' on the CacheServer, in terms of running time / total time.
      */
     public double getCapacityFactor(long currentTime) {
         if (requestData.isEmpty()) {

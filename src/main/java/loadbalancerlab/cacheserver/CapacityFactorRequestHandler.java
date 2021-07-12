@@ -28,6 +28,7 @@ public class CapacityFactorRequestHandler implements HttpHandler {
     Logger logger;
 
     /**
+     * Constructor
      * @param reqMonitor        RequestMonitor class used for logging data on the capacity factor of the associated CacheServer
      *                          object and the number of requests it receives.
      */
@@ -37,8 +38,8 @@ public class CapacityFactorRequestHandler implements HttpHandler {
     }
 
     /**
-     * handles incoming request for update on the capacity factor of the associated CacheServer instance
-     * @param httpExchange - a representation of an Http request from the com.sun.net.httpserver package
+     * handles incoming request for update on the capacity factor of the associated CacheServer instance.
+     * @param httpExchange - a representation of an Http request from the com.sun.net.httpserver package.
      */
     @Override
     public void handle( HttpExchange httpExchange ) throws IOException {

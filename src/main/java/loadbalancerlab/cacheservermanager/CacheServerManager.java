@@ -24,48 +24,48 @@ public class CacheServerManager {
     static double growthRate;
 
     /**
-     * The average capacity factor for CacheServers which the CacheServerManager aims to meet
+     * The average capacity factor for CacheServers which the CacheServerManager aims to meet.
      */
     static double targetCf;
 
     /**
-     * A concurrent hash map which maps cache servers by id to the threads that they are running on
+     * A concurrent hash map which maps cache servers by id to the threads that they are running on.
      */
     volatile ConcurrentMap<Integer, Thread> serverThreadTable = new ConcurrentHashMap<>();
 
     /**
-     * The Associated ServerMonitor instance which records and updates info on the CacheServer instances
+     * The Associated ServerMonitor instance which records and updates info on the CacheServer instances.
      */
     ServerMonitor serverMonitor;
 
     /**
-     * Static variable which is used to determine the id of the next CacheServer to be started
+     * Static variable which is used to determine the id of the next CacheServer to be started.
      */
     static int cacheServerIdCounter;
 
     /**
-     * Implementation of HttpRequestHandler interface which is used to handle requests for updates on a CacheServer
-     * instance's capacity factor
+     * Implementation of HttpRequestHandler interface which is used to handle requests for updates on a CacheServer.
+     * instance's capacity factor.
      */
     CacheInfoRequestHandler cacheInfoRequestHandler;
 
     /**
-     * Factory class used to create CacheServer instances
+     * Factory class used to create CacheServer instances.
      */
     private CacheServerFactory cacheServerFactory;
 
     /**
-     * Factory class used to create CloseableHttpClient instances
+     * Factory class used to create CloseableHttpClient instances.
      */
     private HttpClientFactory clientFactory;
 
     /**
-     * Utility class used to extract json fields from a CloseableHttpResponse instance
+     * Utility class used to extract json fields from a CloseableHttpResponse instance.
      */
     private RequestDecoder reqDecoder;
 
     /**
-     * The port that the CacheServerManager instance is running on
+     * The port that the CacheServerManager instance is running on.
      */
     private int port;
 
@@ -74,8 +74,8 @@ public class CacheServerManager {
     }
 
     /**
-     * Used to configure static variables on class
-     * @param config    Config class instance used to store configurations for various classes
+     * Used to configure static variables on class.
+     * @param config    Config class instance used to store configurations for various classes.
      */
     public static void configure( Config config ) {
         targetCf = config.getTargetCf();
@@ -146,7 +146,8 @@ public class CacheServerManager {
     }
 
     /**
-     * Modulates number of active CacheServer instances by using the average capacity factor of all CacheServer instances
+     * Modulates number of active CacheServer instances by using the average capacity factor of all CacheServer
+     * instances.
      */
     public void modulateCapacity() {
         double averageCapacityFactor = serverMonitor.getAverageCf();
@@ -165,7 +166,7 @@ public class CacheServerManager {
     /**
      * Shuts down CacheServer threads and removes the terminated thread from 'serverThreadTable'.
      * Updates records in ServerMonitor instance to reflect that CacheServer instances have been terminated.
-     * @param num   The number of CacheServers to be deactivated
+     * @param num   The number of CacheServers to be deactivated.
      */
     public void shutdownCacheServer(int num) {
         List<Integer> serverIds = new ArrayList<>(serverThreadTable.keySet());
@@ -185,7 +186,7 @@ public class CacheServerManager {
 
     /**
      * Getter method for the number of CacheServer instances which are currently active.
-     * @return      the number of CacheServer instances which are currently active
+     * @return      the number of CacheServer instances which are currently active.
      */
     public int numServers() {
         return this.serverThreadTable.size();

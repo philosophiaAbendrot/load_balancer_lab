@@ -19,7 +19,7 @@ import java.io.OutputStream;
 public class CacheServerClientRequestHandler implements HttpHandler {
 
     /**
-     * RequestMonitor which monitors load and incoming requests on the associated CacheServer instance
+     * RequestMonitor which monitors load and incoming requests on the associated CacheServer instance.
      */
     RequestMonitor reqMonitor;
 
@@ -30,13 +30,13 @@ public class CacheServerClientRequestHandler implements HttpHandler {
     static int processingTime;
 
     /**
-     * Object used for logging
+     * Object used for logging.
      */
     private Logger logger;
 
     /**
      * Method used for configuring static variables on class.
-     * @param config        Config object used for configuring various classes
+     * @param config        Config object used for configuring various classes.
      */
     public static void configure( Config config ) {
         processingTime = config.getCacheServerProcessingTime();
@@ -52,8 +52,8 @@ public class CacheServerClientRequestHandler implements HttpHandler {
     }
 
     /**
-     * Handles incoming requests for updates on the capacity factor of the associated CacheServer instance
-     * @param httpExchange - an representation of an Http request from the com.sun.net.httpserver package
+     * Handles incoming requests for updates on the capacity factor of the associated CacheServer instance.
+     * @param httpExchange - an representation of an Http request from the com.sun.net.httpserver package.
      */
     @Override
     public void handle( HttpExchange httpExchange ) throws IOException {
@@ -87,7 +87,7 @@ public class CacheServerClientRequestHandler implements HttpHandler {
 
     /**
      * Helper method which is called by 'handle' method to generate a dummy response.
-     * @param requestParams  The query string of the request URI
+     * @param requestParams  The query string of the request URI.
      */
     private String generateResponse(String requestParams) {
 
@@ -102,9 +102,9 @@ public class CacheServerClientRequestHandler implements HttpHandler {
     }
 
     /**
-     * Helper method which returns the query string of the uri of a request
-     * @param httpExchange: httpExchange - a representation of a Http request from the com.sun.net.httpserver package
-     * @return query string of the request uri
+     * Helper method which returns the query string of the uri of a request.
+     * @param httpExchange: httpExchange - a representation of a Http request from the com.sun.net.httpserver package.
+     * @return query string of the request uri.
      */
     private String extractParams(HttpExchange httpExchange) {
         String uri = httpExchange.getRequestURI().toString().substring(1);

@@ -13,13 +13,14 @@ class RequestMonitorRunnable implements Runnable {
     RequestMonitor reqMonitor;
 
     /**
-     * Used for logging
+     * Used for logging.
      */
     private Logger logger;
 
     /**
-     * @param reqMonitor         Associated RequestMonitor which keeps track of the capacity factor of this object and data on the incoming
-     *                           requests.
+     * Constructor
+     * @param reqMonitor         Associated RequestMonitor which keeps track of the capacity factor of this object and
+     *                           data on the incoming requests.
      */
     public RequestMonitorRunnable( RequestMonitor reqMonitor ) {
         this.reqMonitor = reqMonitor;

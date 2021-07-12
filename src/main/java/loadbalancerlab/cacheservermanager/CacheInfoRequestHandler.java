@@ -12,18 +12,20 @@ import java.io.IOException;
 import java.util.Map;
 
 /**
- * A HttpRequestHandler implementation used to handle requests for info on the capacity factor of all CacheServer instances
+ * A HttpRequestHandler implementation used to handle requests for info on the capacity factor of all CacheServer
+ * instances.
  * Requests are delegated to this class by the CacheServerManager class.
  */
 public class CacheInfoRequestHandler implements HttpRequestHandler {
 
     /**
-     * ServerMonitor object which monitors, records, and processes data on CacheServer instances
+     * ServerMonitor object which monitors, records, and processes data on CacheServer instances.
      */
     private ServerMonitor serverMonitor;
 
     /**
-     * @param serverMonitor     ServerMonitor object used to monitor, record and process data on CacheServer instances
+     * Constructor
+     * @param serverMonitor     ServerMonitor object used to monitor, record and process data on CacheServer instances.
      */
     public CacheInfoRequestHandler( ServerMonitor serverMonitor ) {
         this.serverMonitor = serverMonitor;
