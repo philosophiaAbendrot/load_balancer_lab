@@ -14,49 +14,60 @@ import java.util.ArrayList;
 import java.util.concurrent.TimeUnit;
 
 /**
- * A server which handles requests for CacheInfo analytics using the CacheInfoRequestHandler class.
+ * A server which handles requests for CacheInfo telemetry from the LoadBalancerRunnable class using the
+ * CacheInfoRequestHandler class.
  */
 public class CacheInfoServerRunnable implements Runnable {
+
     /**
      * stores the port that the CacheInfoServer is running on
      */
     volatile private int port;
+
     /**
      * The associated request handler which is employed by the server to handle requests
      */
     CacheInfoRequestHandler cacheInfoRequestHandler;
+
     /**
      * The default port that the server attempts to start on
      */
     private static int defaultPort = -1;
+
     /**
      * Used for logging
      */
     private Logger logger;
 
-    public CacheInfoServerRunnable(CacheInfoRequestHandler _cacheInfoRequestHandler) {
-        cacheInfoRequestHandler = _cacheInfoRequestHandler;
+    /**
+     * Constructor
+     * @param cacheInfoRequestHandler   CacheInfoRequestHandler object which contains logic to handle HttpRequest from
+     *                                  LoadBalancerRunnable for update on CacheServer telemetry.
+     */
+    public CacheInfoServerRunnable(CacheInfoRequestHandler cacheInfoRequestHandler) {
+        this.cacheInfoRequestHandler = cacheInfoRequestHandler;
         logger = new Logger("CacheInfoServerRunnable");
     }
 
     /**
-     * Used to configure class fields
-     * @param config: An Object used to store configurations
+     * Used to configure class fields.
+     * @param config: An Object used to store configurations for various classes.
      */
     public static void configure( Config config ) {
         defaultPort = config.getCacheInfoServerDefaultPort();
     }
 
     /**
-     * @return the port the server is currently running on
+     * Getter method for the port this object is running on.
+     * @return the port object is running on
      */
     public int getPort() {
         return port;
     }
 
     /**
-     * Method from Runnable interface
-     * Runs and manages lifecycle of CacheInfoServer
+     * Runs and manages lifecycle of CacheInfoServer.
+     * Method from Runnable interface.
      */
     @Override
     public void run() {
@@ -78,6 +89,8 @@ public class CacheInfoServerRunnable implements Runnable {
 
         HttpServer server;
 
+        /* Attempt to start server on 'defaultPort'. If that fails, continue trying to start the server on higher port
+           numbers */
         while (true) {
             try {
                 server = ServerBootstrap.bootstrap()
@@ -96,7 +109,7 @@ public class CacheInfoServerRunnable implements Runnable {
                 continue;
             }
 
-            // break out of loop if server successfully started
+            /* Break out of loop if server successfully started */
             break;
         }
 
@@ -111,12 +124,15 @@ public class CacheInfoServerRunnable implements Runnable {
         });
 
         try {
+
+            /* Await termination of thread */
             server.awaitTermination(Long.MAX_VALUE, TimeUnit.SECONDS);
         } catch (InterruptedException e) {
             e.printStackTrace();
             logger.log("CacheInfoServerRunnable thread interrupted", Logger.LogType.THREAD_MANAGEMENT);
         } finally {
-            // shutdown server
+
+            /* Shutdown server */
             Thread.currentThread().interrupt();
             server.shutdown(5, TimeUnit.SECONDS);
         }

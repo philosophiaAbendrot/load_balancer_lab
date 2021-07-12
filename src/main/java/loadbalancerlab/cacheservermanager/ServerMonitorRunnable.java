@@ -3,48 +3,57 @@ package loadbalancerlab.cacheservermanager;
 import loadbalancerlab.shared.Logger;
 
 /**
- * A Runnable implementation which wraps around ServerMonitor class
+ * A Runnable implementation which wraps around a ServerMonitor object.
  */
 public class ServerMonitorRunnable implements Runnable {
+
     /**
      * Associated ServerMonitor instance. Used for recording information on CacheServer instances.
      */
     ServerMonitor serverMonitor;
+
     /**
-     * a flag which is used to control termination of loop in ServerMonitor run() method
+     * A flag which is used to control termination of loop in ServerMonitor run() method.
      */
     boolean stopExecution;
+
     /**
-     * Associated CacheServerManager. Used to manage lifecycle of CacheServer instances. Also modulates number of
-     * CacheServer instances to meet request load.
+     * Associated CacheServerManager. Used to manage lifecycle of CacheServer instances.
+     * Also modulates number of CacheServer instances to meet request load.
      */
     CacheServerManager cacheServerManager;
+
     /**
-     * minimum interval (in seconds) between calls of ServerMonitor.updateServerCount() method.
+     * Minimum interval (in seconds) between calls of ServerMonitor.updateServerCount() method.
      */
     static int serverCountInterval = 1;
+
     /**
      * Stores timestamp of last call of ServerMonitor.updateServerCount() method.
      */
     int lastServerCountTime;
+
     /**
-     * minimum interval (in seconds) between calls of ServerMonitor.pingCacheServers() method.
+     * Minimum interval (in seconds) between calls of ServerMonitor.pingCacheServers() method.
      */
     static int pingServerInterval = 1;
+
     /**
      * Stores timestamp of last call of ServerMonitor.pingCacheServers() method.
      */
     int lastPingServerTime;
+
     /**
-     * Used for logging
+     * Object used for logging.
      */
     private Logger logger;
 
     /**
-     * @param serverMonitor: Associated ServerMonitor instance
-     * @param cacheServerManager: Associated CacheServerManager instance
+     * Constructor
+     * @param serverMonitor         Associated ServerMonitor instance.
+     * @param cacheServerManager    Associated CacheServerManager instance.
      */
-    public ServerMonitorRunnable( ServerMonitor serverMonitor, CacheServerManager cacheServerManager) {
+    public ServerMonitorRunnable( ServerMonitor serverMonitor, CacheServerManager cacheServerManager ) {
         this.serverMonitor = serverMonitor;
         this.cacheServerManager = cacheServerManager;
         stopExecution = false;
@@ -52,7 +61,7 @@ public class ServerMonitorRunnable implements Runnable {
     }
 
     /**
-     * Method from Runnable interface
+     * Method from Runnable interface.
      * Periodically runs 'updateServerCount()' and 'pingCacheServers()' methods on the associated
      * ServerMonitor instance
      */
@@ -68,11 +77,11 @@ public class ServerMonitorRunnable implements Runnable {
                 Thread.sleep(100);
                 int currentSecond = (int)(System.currentTimeMillis() / 1_000);
 
-                // updates record of active number of servers for a particular second
+                /* Updates record of active number of servers for a particular second */
                 if (currentSecond - lastServerCountTime >= serverCountInterval)
                     serverMonitor.updateServerCount(currentSecond, cacheServerManager.numServers());
 
-                // server monitor pings cache servers for checkup
+                /* Server monitor pings cache servers for checkup */
                 if (currentSecond - lastPingServerTime >= pingServerInterval)
                     serverMonitor.pingCacheServers();
 
