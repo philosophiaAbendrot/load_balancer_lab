@@ -12,6 +12,7 @@ public class CacheServerManagerRunnable implements Runnable {
 
     /**
      * Associated CacheServerManager instance.
+     * Manages lifecycle of CacheServer instances.
      */
     CacheServerManager cacheServerManager;
 
@@ -33,7 +34,7 @@ public class CacheServerManagerRunnable implements Runnable {
     ServerMonitorRunnable serverMonitorRunnable;
 
     /**
-     * A server which handles requests for data on CacheServer capacity factors.
+     * A server which handles requests for updates on CacheServer capacity factors.
      */
     CacheInfoServerRunnable cacheInfoServerRunnable;
 
@@ -48,7 +49,7 @@ public class CacheServerManagerRunnable implements Runnable {
     Thread cacheInfoServerThread;
 
     /**
-     * controls how long the thread sleeps (in milliseconds) between iterations of the run() method.
+     * Controls how long the thread sleeps (in milliseconds) between iterations of the run() method.
      */
     static int sleepInterval = 50;
 
@@ -114,14 +115,16 @@ public class CacheServerManagerRunnable implements Runnable {
     }
 
     /**
-     * @return: The port that the associated CacheInfoServerRunnable is running on.
+     * Getter method for the port that the associated CacheInfoServerRunnable object is running on.
+     * @return      The port that the associated CacheInfoServerRunnable is running on.
      */
     public int getPort() {
         return cacheInfoServerRunnable.getPort();
     }
 
     /**
-     * @param config: Method used to configure static variables.
+     * Method used to configure static variables.
+     * @param config     Method used to configure static variables.
      */
     public static void configure(Config config) {
         numCacheServersOnStartup = config.getNumCacheServersOnStartup();
@@ -131,10 +134,10 @@ public class CacheServerManagerRunnable implements Runnable {
     /**
      * Starts sub-threads for ServerMonitor instance and CacheInfoServer instance.
      * Starts default number of cache server instances.
-     * Method from Runnable interface
+     * Method from Runnable interface/
      * Runs CacheServerManager.modulateCapacity() method periodically to modulate the number of CacheServers to meet
      * request load.
-     * When interrupted, shuts down the assocaited sub-threads, including the threads that the CacheServer instances
+     * When interrupted, shuts down the associated sub-threads, including the threads that the CacheServer instances
      * run on.
      */
     @Override
@@ -153,6 +156,9 @@ public class CacheServerManagerRunnable implements Runnable {
         while (true) {
             currentTime = (int)(System.currentTimeMillis() / 1_000);
             try {
+
+                /* Run 'modulateCapacity' method on CacheServerManager if it has been long enough since the last call
+                 */
                 if (currentTime - lastCapacityModulationTime >= capacityModulationInterval) {
                     lastCapacityModulationTime = currentTime;
                     cacheServerManager.modulateCapacity();

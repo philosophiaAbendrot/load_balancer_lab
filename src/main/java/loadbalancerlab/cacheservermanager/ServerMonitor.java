@@ -16,46 +16,61 @@ import java.util.concurrent.ConcurrentMap;
  * Used to monitor, record, and process data on CacheServer instances.
  */
 public class ServerMonitor {
+
     /**
      * A hash table which maps server id to a ServerInfo instance which holds info about the server
-     * holds info about the port and the record of capacity factor over time
+     * holds info about the port and the record of capacity factor over time.
      */
     ConcurrentMap<Integer, ServerInfo> serverInfoTable;
+
     /**
-     * A factory which is used to generate CloseableHttpClient instances
+     * A factory which is used to generate CloseableHttpClient instances.
      */
     HttpClientFactory clientFactory;
+
     /**
-     * Used to extract information from CloseableHttpResponse objects
+     * Used to extract JSON parameters from CloseableHttpResponse objects.
      */
     RequestDecoder reqDecoder;
+
     /**
-     * Used to store information about how many servers were active at each moment in time
+     * A SortedMap Used to store information about how many servers were active at each moment in time.
+     * The keys are timestamps (seconds since 1-Jan-1970). They are in order from earliest to latest.
+     * The values are the number of CacheServers active at that timestamp.
      */
     SortedMap<Integer, Integer> serverCount;
+
     /**
      * Associated CacheServerManager instance which manages lifecycle of cache servers and modulates number of
-     * cache servers to meet request load
+     * cache servers to meet request load.
      */
     CacheServerManager cacheServerManager;
+
     /**
-     * variable which is used to control when ServerMonitor thread stops execution
+     * Variable which is used to control when ServerMonitor thread stops execution.
      */
     boolean stopExecution;
 
-    public ServerMonitor( HttpClientFactory _clientFactory, RequestDecoder _reqDecoder, CacheServerManager _cacheServerManager ) {
+    /**
+     * Constructor
+     * @param clientFactory     A factory which is used to generate CloseableHttpClient instances.
+     * @param reqDecoder        Used to extract information from CloseableHttpResponse objects.
+     * @param cacheServerManager    Associated CacheServerManager which manages lifecycle of CacheServer objects
+     *                              nad modulates their number to meet request load.
+     */
+    public ServerMonitor( HttpClientFactory clientFactory, RequestDecoder reqDecoder, CacheServerManager cacheServerManager ) {
         serverInfoTable = new ConcurrentHashMap<>();
-        clientFactory = _clientFactory;
+        this.clientFactory = clientFactory;
         serverCount = new TreeMap<>();
-        reqDecoder = _reqDecoder;
-        cacheServerManager = _cacheServerManager;
+        this.reqDecoder = reqDecoder;
+        this.cacheServerManager = cacheServerManager;
         stopExecution = false;
     }
 
     /**
-     * Adds new cache server to the record of servers 'serverInfoTable' field
-     * @param id: the id of the server
-     * @param port: the port that the server is running on
+     * Adds new CacheServer object to the record of servers 'serverInfoTable' field.
+     * @param id    The id of the server.
+     * @param port  The port that CacheServer object is running on.
      */
     public void addServer( int id, int port, int currentTime ) {
         if (serverInfoTable.containsKey(id)) {
@@ -67,10 +82,10 @@ public class ServerMonitor {
 
     /**
      * Records that a certain server is no longer active. Also records the time at which a server was deactivated.
-     * @param id: the id of the server
-     * @param currentTime: the current time, in seconds since 1-Jan-1970
+     * @param id            The id of the server.
+     * @param currentTime   The current time, in seconds since 1-Jan-1970.
      */
-    public void deactivateServer(int id, int currentTime) {
+    public void deactivateServer( int id, int currentTime ) {
         if (serverInfoTable.containsKey(id)) {
             ServerInfo info = serverInfoTable.get(id);
             info.setActive(false);
@@ -79,9 +94,9 @@ public class ServerMonitor {
     }
 
     /**
-     * Updates the number of active servers at a particular moment in time in 'serverCount' field
-     * @param currentSecond: the current second, in seconds since 1-Jan-1970
-     * @param numServers: the number of active servers at the time indicated by currentSecond
+     * Updates the number of active servers at a particular moment in time in 'serverCount' field.
+     * @param currentSecond     The current time (seconds since 1-Jan-1970).
+     * @param numServers        The number of active CacheServer objects at the time indicated by currentSecond.
      */
     public void updateServerCount( int currentSecond, int numServers ) {
         if (!serverCount.containsKey(currentSecond))
@@ -89,7 +104,11 @@ public class ServerMonitor {
     }
 
     /**
-     * @return info about the number of active cache servers as a function of time
+     * Returns a copy of 'serverCount' field, which holds information information about how many servers were active
+     * at each moment in time.
+     * @return      Info about the number of active CahceServer objects as a function of time.
+     *              Keys are timestamps (seconds since 1-Jan-1970), ordered in ascending order.
+     *              Values are the number of CacheServer objects active at that moment in time.
      */
     public SortedMap<Integer, Integer> deliverServerCountData() {
         SortedMap<Integer, Integer> copyMap = new TreeMap<>();
@@ -98,7 +117,9 @@ public class ServerMonitor {
     }
 
     /**
-     * @return a copy of serverInfoTable
+     * Returns a copy of 'serverInfoTable' field, which maps ids of CacheServer objects to 'ServerInfo' objects which
+     * hold information about the CacheServer.
+     * @return      A copy of serverInfoTable which contains the original ServerInfo objects.
      */
     public Map<Integer, ServerInfo> getServerInfo() {
         Map<Integer, ServerInfo> copyMap = new HashMap<>();
@@ -107,7 +128,8 @@ public class ServerMonitor {
     }
 
     /**
-     * Pings every active cache server and updates capacity factor information in serverInfoTable
+     * Pings every active CacheServer object with a Http request for a telemetry update and updates information in
+     * serverInfoTable field.
      */
     public void pingCacheServers() {
         serverInfoTable.forEach((serverId, info) -> {
@@ -129,26 +151,26 @@ public class ServerMonitor {
     }
 
     /**
-     * @return average capacity factor of every cache server as a double
+     * Returns average capacity factor of every CacheServer.
+     * @return      Average capacity factor of every cache server as a double.
      */
-    // returns the average capacity factor of every cache server
     public double getAverageCf() {
         double cfSum = 0;
         int numEntries = 0;
 
+        /* Find average capacity factor among all active CacheServers */
         for (ServerInfo info : serverInfoTable.values()) {
-            if (info.getCurrentCapacityFactor() != 0.0) {
+            if (info.getCurrentCapacityFactor() != 0.0 && info.getActive()) {
                 cfSum += info.getCurrentCapacityFactor();
                 numEntries++;
             }
         }
 
-        // return average
         return cfSum / numEntries;
     }
 
     /**
-     * Returns data on the capacity factor of each server at each moment in time
+     * Returns data on the capacity factor of each server at each moment in time.
      * @return      Returns cap factor at each moment in time.
      *              The data is a 2d String array representation of a csv file.
      *              The leftmost column has all timestamps, in ascending order from top to bottom.
@@ -209,11 +231,11 @@ public class ServerMonitor {
     }
 
     /**
-     * Interpolates missing entries in the provided 2d capacity-factor array 'entryFields'
-     * @param entryFields           2d double array detailing capacity factor of servers
-     * @param serverIds             Array of cache server ids (sorted in ascending order)
-     * @param serverInfoTableCopy   A copy of the serverInfoTable field
-     * @param earliestTime          The earliest timestamp in serverInfoTable field (in seconds since 1-Jan-1970)
+     * Interpolates missing entries in the provided 2d capacity-factor array 'entryFields'.
+     * @param entryFields           2d double array detailing capacity factor of servers.
+     * @param serverIds             Array of cache server ids (sorted in ascending order).
+     * @param serverInfoTableCopy   A copy of the serverInfoTable field.
+     * @param earliestTime          The earliest timestamp in serverInfoTable field (in seconds since 1-Jan-1970).
      */
     private void interpolateMissingEntries(double[][] entryFields, Integer[] serverIds, SortedMap<Integer, ServerInfo> serverInfoTableCopy, int earliestTime) {
         for (int col = 0; col < entryFields[0].length; col++) {
@@ -277,8 +299,6 @@ public class ServerMonitor {
 
                     for (int row = prevEntryIdx; row < nextEntryIdx; row++) {
                         double res = (row - prevEntryIdx) * slope + entryFields[prevEntryIdx][col];
-
-                        /* Round to 2 decimal places */
                         entryFields[row][col] = res;
                     }
 
@@ -289,7 +309,8 @@ public class ServerMonitor {
     }
 
     /**
-     * Rounds all entries in provided 2d double array 'entryRows' to two digits.
+     * Helper method for rounding all entries in provided 2d double array 'entryRows' to two digits.
+     * Used by 'interpolateMissingEntries()' method.
      * @param entryRows     The 2d double array holding the capacity factor values per time.
      */
     private void roundEntries(double[][] entryRows) {
@@ -303,9 +324,9 @@ public class ServerMonitor {
     /**
      * A helper method for deliverCfData which Constructs a 2d String grid by stitching together a header row,
      * a timestamp column and a grid of capacity factors.
-     * @param headerRow          A String array holding server ids
-     * @param timestampColumn    A String array holding timestamps
-     * @param entryRowsDouble    A 2d double array holding capacity factors
+     * @param headerRow          A String array holding server ids.
+     * @param timestampColumn    A String array holding timestamps.
+     * @param entryRowsDouble    A 2d double array holding capacity factors.
      * @return   Returns a 2d String grid for output by the deliverCfData function, which is meant to be printed to csv.
      */
     private String[][] constructOutputGrid(String[] headerRow, String[] timestampColumn, double[][] entryRowsDouble) {
@@ -366,6 +387,7 @@ public class ServerMonitor {
 
     /**
      * Takes a copy of the 'serverInfoTable' field and returns the earliest and latest timestamps within it.
+     * Helper method used by 'deliverCfData()' method.
      * @param serverInfoTableCopy   A copy of 'serverInfoTable' field.
      * @return      An integer array of length 2. The first element is earliest time. The second element is the
      *              latest time.

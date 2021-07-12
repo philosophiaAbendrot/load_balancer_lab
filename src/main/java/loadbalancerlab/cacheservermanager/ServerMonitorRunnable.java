@@ -50,8 +50,10 @@ public class ServerMonitorRunnable implements Runnable {
 
     /**
      * Constructor
-     * @param serverMonitor         Associated ServerMonitor instance.
-     * @param cacheServerManager    Associated CacheServerManager instance.
+     * @param serverMonitor         Associated ServerMonitor instance. Used to monitor, record, and process data on
+     *                              CacheServer instances.
+     * @param cacheServerManager    Associated CacheServerManager instance. Manages the lifecycle of CacheServer
+     *                              instances. Modulates the number of CacheServers to match the request load.
      */
     public ServerMonitorRunnable( ServerMonitor serverMonitor, CacheServerManager cacheServerManager ) {
         this.serverMonitor = serverMonitor;
@@ -63,7 +65,7 @@ public class ServerMonitorRunnable implements Runnable {
     /**
      * Method from Runnable interface.
      * Periodically runs 'updateServerCount()' and 'pingCacheServers()' methods on the associated
-     * ServerMonitor instance
+     * ServerMonitor instance.
      */
     @Override
     public void run() {

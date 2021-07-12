@@ -40,11 +40,12 @@ public class CacheServerManager {
 
     /**
      * Static variable which is used to determine the id of the next CacheServer to be started.
+     * Incremented each time a new CacheServer is started.
      */
     static int cacheServerIdCounter;
 
     /**
-     * Implementation of HttpRequestHandler interface which is used to handle requests for updates on a CacheServer.
+     * Implementation of HttpRequestHandler interface which is used to handle requests for updates on a CacheServer
      * instance's capacity factor.
      */
     CacheInfoRequestHandler cacheInfoRequestHandler;
@@ -121,7 +122,7 @@ public class CacheServerManager {
      * Generates CacheServer instances, allocates it a thread on which to run, and starts the thread.
      * Updates 'serverThreadTable' field, which keeps track of cache server ids and the threads the CacheServer
      * instances are running on.
-     * @param num   parameter which controls how many CacheServer instances are being generated and started.
+     * @param num   Parameter which controls how many CacheServer instances are being generated and started.
      */
     public void startupCacheServer(int num) {
         for (int i = 0; i < num; i++) {
@@ -186,14 +187,14 @@ public class CacheServerManager {
 
     /**
      * Getter method for the number of CacheServer instances which are currently active.
-     * @return      the number of CacheServer instances which are currently active.
+     * @return      The number of CacheServer instances which are currently active.
      */
     public int numServers() {
         return this.serverThreadTable.size();
     }
 
     /**
-     * @return: Returns capacity factors of CacheServer instances as a function of time.
+     * @return      Returns capacity factors of CacheServer instances as a function of time.
      */
     public String[][] deliverCfData() {
         return serverMonitor.deliverCfData();
