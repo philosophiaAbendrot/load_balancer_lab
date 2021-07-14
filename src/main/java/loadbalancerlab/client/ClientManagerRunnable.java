@@ -13,43 +13,65 @@ import java.util.List;
  * Implementation of Runnable interface.
  */
 public class ClientManagerRunnable implements Runnable {
+
     /**
-     * Number of clients instances that the ClientManagerRunnable will spawn
+     * Number of clients instances that the ClientManagerRunnable will spawn.
      */
     private static int numClients;
+
     /**
-     * A list that holds all the client threads that have been spawned by this instance
+     * A list that holds all the client threads that have been spawned by this instance.
      */
     List<Thread> clientThreads;
+
     /**
-     * An instance of ClientFactory, which generates Client instances
+     * An instance of ClientFactory, which generates Client instances.
      */
     ClientFactory clientFactory;
+
     /**
-     * An instance of HttpClientFactory, which generates HttpClient instances which are used to send Http requests
+     * An instance of HttpClientFactory, which generates HttpClient instances which are used to send Http requests.
      */
     HttpClientFactory httpClientFactory;
+
     /**
      * The time at which max demand occurs. This field is only relevant for time-varying demand functions.
-     * Milliseconds since 1-Jan-1970
+     * (Milliseconds since 1-Jan-1970)
      */
     long maxDemandTime;
+
     /**
-     * Time time at which requests start sending. Milliseconds since 1-Jan-1970.
+     * Time time at which requests start sending. (Milliseconds since 1-Jan-1970)
      */
     long requestStartTime;
+
     /**
      * The basic rest time between requests in milliseconds. This base time is modified by demand functions.
      */
     int restInterval = 200;
+
     /**
      * Used for parsing JSON from responses
      */
     RequestDecoder reqDecoder;
 
+    /**
+     * Variable which controls time (in milliseconds) between runs of the main loop in run() method.
+     */
     static final int TICK_INTERVAL = 100;
 
-    public ClientManagerRunnable( ClientFactory clientFactory, long maxDemandTime, long requestStartTime, HttpClientFactory httpClientFactory, RequestDecoder reqDecoder ) {
+    /**
+     * Constructor
+     * @param clientFactory         Factory object which generates Client instances for sending requests to
+     *                              LoadBalancer.
+     * @param maxDemandTime         The time at which max request load occurs. (Milliseconds since 1-Jan-1970)
+     * @param requestStartTime      The time at which requests start sending. (Milliseconds since 1-Jan-1970)
+     * @param httpClientFactory     Factory object which generates CloseableHttpClient objects for sending http
+     *                              requests.
+     * @param reqDecoder            Object used to extract JSON object from a CloseableHttpResponse object.
+     */
+    public ClientManagerRunnable( ClientFactory clientFactory, long maxDemandTime, long requestStartTime,
+                                  HttpClientFactory httpClientFactory, RequestDecoder reqDecoder ) {
         this.clientFactory = clientFactory;
         this.maxDemandTime = maxDemandTime;
         this.requestStartTime = requestStartTime;
@@ -57,15 +79,17 @@ public class ClientManagerRunnable implements Runnable {
         this.reqDecoder = reqDecoder;
     }
 
-    /** Allow configurations of static variables using a Config instance
-     * @param config: Config instance which holds all configurations
+    /**
+     * Allow configurations of static variables using a Config instance.
+     * @param config    Config object used to configure various classes.
      */
     public static void configure( Config config ) {
         numClients = config.getNumClients();
     }
 
-    /** Implementation of Runnable interface method
-     * Starts up client threads
+    /**
+     * Starts up client threads.
+     * Implementation of Runnable interface method.
      * When this thread is interrupted, it interrupts all client threads spawned by it.
      */
     @Override
