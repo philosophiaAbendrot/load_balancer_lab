@@ -109,7 +109,8 @@ public class Config {
     private int cacheInfoServerDefaultPort;
 
     /**
-     * NOT USED OUTSIDE OF TESTS. NEED TO REMOVE AND REFACTOR TESTS
+     * The target average capacity factor which CacheServerManager class aims to hit by modulating the number of
+     * CacheServer instances.
      */
     private double targetCf;
 

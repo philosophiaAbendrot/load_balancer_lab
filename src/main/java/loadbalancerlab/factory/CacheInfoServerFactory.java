@@ -11,9 +11,9 @@ public class CacheInfoServerFactory {
 
     /**
      * Given a ServerMonitor instance, produces a CacheInfoRequestHandler instance.
-     * @param serverMonitor: ServerMonitor instance for recording and processing CacheServer telemetry.
-     * @return: A CacheInfoRequestHandler instance which handles requests on updates of CacheServer capacity factor.
-     * values
+     * @param serverMonitor     ServerMonitor instance for recording and processing CacheServer telemetry.
+     * @return                  A CacheInfoRequestHandler instance which handles requests on updates of CacheServer
+     *                          capacity factor values.
      */
     public CacheInfoRequestHandler produceCacheInfoRequestHandler( ServerMonitor serverMonitor ) {
         return new CacheInfoRequestHandler(serverMonitor);
@@ -21,9 +21,10 @@ public class CacheInfoServerFactory {
 
     /**
      * Given a CacheInfoRequestHandler instance, wraps it in a CacheInfoServerRunnable instance.
-     * @param cacheInfoRequestHandler: CacheInfoRequestHandler instance used for handling requests on updates of CacheServer.
-     *                                 capacity factors.
-     * @return: A Runnable instance which runs an HttpServer that processes requests for updates on CacheServer capacity factors.
+     * @param cacheInfoRequestHandler   CacheInfoRequestHandler instance used for handling requests on updates of CacheServer.
+     *                                  capacity factors.
+     * @return                          A Runnable instance which runs an HttpServer that processes requests for
+     *                                  updates on CacheServer capacity factors.
      */
     public CacheInfoServerRunnable produceCacheInfoServerRunnable(CacheInfoRequestHandler cacheInfoRequestHandler) {
         return new CacheInfoServerRunnable(cacheInfoRequestHandler);
