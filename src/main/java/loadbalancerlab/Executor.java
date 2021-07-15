@@ -27,67 +27,68 @@ import java.util.*;
 import java.util.List;
 
 /**
- * Main execution class used for setting up, running, and shutting down simulation
+ * Main execution class used for setting up, running, and shutting down simulation.
  */
 public class Executor {
+
     /**
-     * Timestamp at which demand peaks. Used for certain demand functions. Milliseconds since 1-Jan-1970
+     * Timestamp at which demand peaks. Used for certain demand functions. Milliseconds since 1-Jan-1970.
      */
     long maxDemandTime;
 
     /**
-     * Controls how long simulation runs (in milliseconds)
+     * Controls how long simulation runs (in milliseconds).
      */
     static int simulationTime;
 
     /**
-     * Logger object used for logging messages to terminal
+     * Logger object used for logging messages to terminal.
      */
     Logger logger;
 
     /**
-     * A factory class which produces CacheServer instances
+     * A factory class which produces CacheServer instances.
      */
     CacheServerFactory cacheServerFactory;
 
     /**
-     * Factory class used for generating CloseableHttpClient instances
+     * Factory class used for generating CloseableHttpClient instances.
      */
     HttpClientFactory httpClientFactory;
 
     /**
-     * Used for extracting JSON parameters from a CloseableHttpResponse object
+     * Used for extracting JSON object from a CloseableHttpResponse object.
      */
     RequestDecoder reqDecoder;
 
     /**
-     * A factory class for producing Client instances
+     * A factory class for producing Client instances.
      */
     ClientFactory clientFactory;
 
     /**
-     * A server which manages the lifecycle of CacheServer instances
-     * Modulates the number of CacheServers to match the request load
+     * A server which manages the lifecycle of CacheServer instances.
+     * Modulates the number of CacheServers to match the request load.
      */
     CacheServerManager cacheServerManager;
 
     /**
-     * Runnable implementation which serves as a wrapper for CacheServerManager class
+     * Runnable implementation which serves as a wrapper for CacheServerManager class.
      */
     CacheServerManagerRunnable cacheServerManagerRunnable;
 
     /**
-     * Thread which CacheServerManager object
+     * Thread which CacheServerManager object.
      */
     Thread cacheServerManagerThread;
 
     /**
-     * LoadBalancer object which handles delegation and forwarding of incoming client Http requests to CacheServer objects
+     * LoadBalancer object which handles delegation and forwarding of incoming client Http requests to CacheServer objects.
      */
     LoadBalancerRunnable loadBalancer;
 
     /**
-     * Thread which runs LoadBalancerRunnable object
+     * Thread which runs LoadBalancerRunnable object.
      */
     Thread loadBalancerThread;
 
@@ -97,7 +98,7 @@ public class Executor {
     ClientManagerRunnable clientManagerRunnable;
 
     /**
-     * Thread instance which runs ClientManagerRunnable object
+     * Thread instance which runs ClientManagerRunnable object.
      */
     Thread clientManagerThread;
 
@@ -159,10 +160,9 @@ public class Executor {
     }
 
     /**
-     * Starts, runs and shuts down entire simulation system
+     * Starts, runs and shuts down entire simulation system.
      */
     public void start( Config config ) {
-        // Logger.setPrintAll(true);
 
         /* set up logger */
         logger = new Logger("Executor");
@@ -229,7 +229,7 @@ public class Executor {
     }
 
     /**
-     * Helper method used to instantiate factories
+     * Helper method used to instantiate factories.
      */
     private void instantiateFactories() {
         cacheServerFactory = new CacheServerFactory();
@@ -239,7 +239,7 @@ public class Executor {
     }
 
     /**
-     * Helper method used to compiles data from simulation
+     * Helper method used to compiles data from simulation.
      */
     private void collectData(int hashRingSize) {
 
@@ -271,7 +271,7 @@ public class Executor {
     }
 
     /**
-     * Helper method used to startup all threads
+     * Helper method used to startup all threads.
      */
     private void startupThreads() {
 
@@ -413,7 +413,7 @@ public class Executor {
     }
 
     /**
-     * Helper method for graphing simulation data using vendor class 'Graph'
+     * Helper method for graphing simulation data using vendor class 'Graph'.
      */
     private void graphData() {
 
@@ -429,7 +429,7 @@ public class Executor {
     }
 
     /**
-     * Helper method to shutdown threads
+     * Helper method to shutdown threads.
      */
     private void shutdownThreads() {
 

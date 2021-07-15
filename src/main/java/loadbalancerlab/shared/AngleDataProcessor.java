@@ -5,24 +5,47 @@ import loadbalancerlab.loadbalancer.HashRingAngle;
 import java.util.*;
 
 /**
- * Data processing class for processing snapshots of HashRingAngle instances over time into csv-printable information
+ * Data processing class for processing snapshots of HashRingAngle instances over time into csv-printable information.
  */
 public class AngleDataProcessor {
+
+    /**
+     * A table holding snapshots of the mapping of CacheServers to the HashRingAngles they own by time.
+     *
+     * The outer table's keys are timestamps (seconds since 1-Jan-1970).
+     * The outer table's values are a nested table.
+     *
+     * The nested table's keys are CacheServer ids.
+     * The nested table's values are a list of HashRingAngle objects which belong to the CacheServer with that id.
+     */
     SortedMap<Integer, Map<Integer, List<HashRingAngle>>> angleHistory;
+
+    /**
+     * The number of positions on the associated HashRing object.
+     */
     int hashRingSize;
+
+    /**
+     * An array of CacheServer ids.
+     */
     Integer[] serverIds;
+
+    /**
+     * An array of timestamps for every second during which the simulation ran.
+     */
     Integer[] timestamps;
 
     /**
-     * Constructor method
-     * @param angleHistory: a table mapping time (seconds since 1-Jan-1970) to a map which holds a snapshot of
-     *                      server ids mapping to the HashRingAngle instances belonging to that server at that moment in time
+     * Constructor
+     * @param angleHistory  A table mapping time (seconds since 1-Jan-1970) to a map which holds a snapshot of
+     *                      server ids mapping to the HashRingAngle instances belonging to that server at that moment
+     *                      in time.
      */
-    public AngleDataProcessor(SortedMap<Integer, Map<Integer, List<HashRingAngle>>> angleHistory, int hashRingSize) {
+    public AngleDataProcessor( SortedMap<Integer, Map<Integer, List<HashRingAngle>>> angleHistory, int hashRingSize ) {
         this.angleHistory = angleHistory;
         this.hashRingSize = hashRingSize;
 
-        /* traverse through angle history and compile the ids of every server that was active at one point */
+        /* Traverse through angle history and compile the ids of every server that was active at one point */
         Set<Integer> serverIdSet = new HashSet<>();
 
         for (Map<Integer, List<HashRingAngle>> snapshot : angleHistory.values()) {
@@ -31,11 +54,11 @@ public class AngleDataProcessor {
             }
         }
 
-        /* convert the set of server ids into an array and sort it in ascending order */
+        /* Convert the set of server ids into an array and sort it in ascending order */
         serverIds = serverIdSet.toArray(new Integer[serverIdSet.size()]);
         Arrays.sort(serverIds);
 
-        /* compile an array of timestamps for serverIds in ascending order */
+        /* Compile an array of timestamps for serverIds in ascending order */
         timestamps = new Integer[angleHistory.size()];
 
         int i = 0;
@@ -45,9 +68,13 @@ public class AngleDataProcessor {
     }
 
     /**
-     * Processes angleHistory field into a field counting the number of angles active by server by timestamp
-     * @return: Returns a 2d string array formatted for printing to csv holding information about the number of angles
-     * for each CacheServer at a number of timestamps
+     * Processes angleHistory field into a 2d String array representing a csv printout which indicates the number of
+     * HashRingAngle objects belonging to each CacheServer by time.
+     * @return      Returns a 2d string array holding information about the number of HashRingAngle objects for each
+     *              CacheServer at each point in time.
+     *
+     *              The top row lists all CacheServer ids in ascending order from left to right.
+     *              The leftmost column lists all timestamps in ascending order from top to bottom.
      */
     public String[][] getNumAnglesByTime() {
 
@@ -92,10 +119,13 @@ public class AngleDataProcessor {
     }
 
     /**
-     * Processes angleHistory field into a field counting the total sweep angle of the HashRingAngle instances associated
-     * with each server as a function of time
-     * @return: Returns a 2d String array formatted for printing to csv holding information about the total sweep angle for each
-     * cache server as a function of time
+     * Processes angleHistory field into a field counting the total sweep angle of the HashRingAngle instances
+     * associated with each server as a function of time.
+     * @return      Returns a 2d String array representation of a csv. Holds information about the total sweep
+     *              angle for each cache server as a function of time.
+     *
+     *              The topmost row lists all CacheServer ids in ascending order from left to right.
+     *              The leftmost column lists all timestamps in ascending order from top to bottom.
      */
     public String[][] getSweepAngleByTime() {
 
@@ -111,7 +141,7 @@ public class AngleDataProcessor {
             Set<Integer> anglePositions = snapshot.keySet();
 
             /* Convert snapshot into a sorted map 'hashRingAngleTable' which maps HashRingAngle position to the HashRingAngle
-               instance. */
+               instance */
             SortedMap<Integer, HashRingAngle> hashRingAngleTable = new TreeMap<>();
 
             for (List<HashRingAngle> angles : snapshot.values()) {
@@ -128,7 +158,7 @@ public class AngleDataProcessor {
 
             Map<Integer, Integer> totalSweepAngleTalliesForSnapshot = new HashMap<>();
 
-            /* Initialize entry for all server id */
+            /* Initialize entry for all CacheServer ids */
             for (Integer serverId : snapshot.keySet()) {
                 totalSweepAngleTalliesForSnapshot.put(serverId, 0);
             }
@@ -159,7 +189,7 @@ public class AngleDataProcessor {
             sweepAngleHistory.put(timestamp, totalSweepAngleTalliesForSnapshot);
         }
 
-        /* Convert 'sweepAngleHistory' data into a 2d String for csv-output */
+        /* Convert 'sweepAngleHistory' data into a 2d String representation of a CSV file */
         String[][] outputString = new String[sweepAngleHistory.size() + 1][serverIds.length + 1];
 
         /* Fill out header row */

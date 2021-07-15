@@ -5,57 +5,58 @@ import loadbalancerlab.loadbalancer.HashFunction;
 import loadbalancerlab.loadbalancer.MurmurHashFunctionImpl;
 
 /**
- * Used to configure various classes throughout this project
+ * Used to configure various classes throughout this project.
  */
 public class Config {
+
     /**
-     * Configures various classes.
-     * Factory object used for generating CloseableHttpClient instances for sending Http requests
+     * Used by various classes.
+     * Factory object used for generating CloseableHttpClient instances for sending Http requests.
      */
     private HttpClientFactory httpClientFactory;
 
     /* Start of HashRing class configurations */
     /**
-     * Configures HashRing class.
-     * The maximum number of HashRingAngle objects that a CacheServer object can have
+     * Configuration for HashRing class.
+     * The maximum number of HashRingAngle objects that a CacheServer object can have.
      */
     private int maxAnglesPerServer;
 
     /**
-     * Configures HashRing class.
-     * The minimum number of HashRingAngle objects that a CacheServer object can own
+     * Configuration for HashRing class.
+     * The minimum number of HashRingAngle objects that a CacheServer object can own.
      */
     private int minAnglesPerServer;
 
     /**
-     * Configures HashRing class.
-     * The default number of HashRingAngle objects that a CacheServer is assigned
+     * Configuration for HashRing class.
+     * The default number of HashRingAngle objects that a CacheServer is assigned.
      */
     private int defaultAnglesPerServer;
 
     /**
-     * Configures HashRing class.
-     * The number of positions in a HashRing object
+     * Configuration for HashRing class.
+     * The number of positions in a HashRing object.
      */
     private int ringSize;
 
     /**
-     * Configures HashRing class.
+     * Configuration for HashRing class.
      * The HashFunction object which is used to hash resource names into integers.
-     * Used within a consistent hashing mechanism for assigning resource names to CacheServer objects
+     * Used within a consistent hashing mechanism for assigning resource names to CacheServer objects.
      */
     private HashFunction hashFunction;
 
     /* End of HashRing class configurations */
 
     /**
-     * Configures CacheRedistributor class.
-     * RequestDecoder object used to extract JSON parameters from a CloseableHttpResponse object
+     * Configuration for CacheRedistributor class.
+     * RequestDecoder object used to extract JSON parameters from a CloseableHttpResponse object/
      */
     private RequestDecoder reqDecoder;
 
     /**
-     * Configures CacheRedistributor class.
+     * Configuration for CacheRedistributor class.
      *
      * An array of doubles which is used to decide how to modulate the number of HashRingAngle objects a CacheServer
      * object has.
@@ -71,23 +72,23 @@ public class Config {
 
     /* Start of CacheRedistributorRunnable class configurations */
     /**
-     * Configures CacheRedistributorRunnable class.
+     * Configuration for CacheRedistributorRunnable class.
      * The minimum interval (in seconds) between calls of CacheRedistributor.requestServerInfo().
-     * Controls how often the CacheRedistributor object (within the loadbalancer package) package requests an update from the
-     * CacheServerManager object (within the cacheservermanager package) about information on the CacheServers.
+     * Controls how often the CacheRedistributor object (within the loadbalancer package) package requests an update
+     * from the CacheServerManager object (within the cacheservermanager package) about information on the CacheServers.
      */
     private int cacheRedisPingInterval;
 
     /**
-     * Configures CacheRedistributorRunnable class.
+     * Configuration for CacheRedistributorRunnable class.
      * The minimum interval (in seconds) between calls of CacheRedistributor.remapCacheKeys().
-     * Controls how often the HashRingAngles are dynamically remapped on the CacheServers to even out the capacity factors
-     * of CacheServer objects.
+     * Controls how often the HashRingAngles are dynamically remapped on the CacheServers to even out the capacity
+     * factor of CacheServer objects.
      */
     private int cacheRedisRemapInterval;
 
     /**
-     * Configures CacheRedistributorRunnable class.
+     * Configuration for CacheRedistributorRunnable class.
      * Controls minimum interval (in milliseconds) between calls of CacheRedistributor.recordServerAngles() method.
      * Controls the temporal resolution of the HashRingAngle telemetry.
      */
@@ -96,14 +97,14 @@ public class Config {
     /* End of CacheRedistributorRunnable class configurations */
 
     /**
-     * Configures ClientRequestHandlerServer class.
-     * The default port that ClientRequestHandlerServer attempts to start on
+     * Configuration for ClientRequestHandlerServer class.
+     * The default port that ClientRequestHandlerServer attempts to start on.
      */
     private int clientHandlerServerDefaultPort;
 
     /**
-     * Configures CacheInfoServerRunnable class.
-     * The default port that CacheInfoServerRunnable objects attempt to start on
+     * Configuration for CacheInfoServerRunnable class.
+     * The default port that CacheInfoServerRunnable objects attempt to start on.
      */
     private int cacheInfoServerDefaultPort;
 
@@ -113,14 +114,14 @@ public class Config {
     private double targetCf;
 
     /**
-     * Configures CacheServerManager class.
+     * Configuration for CacheServerManager class.
      * Controls the speed of the growth or shrinking in the number of active CacheServer objects in response to the
      * request load.
      */
     private double cacheServerGrowthRate;
 
     /**
-     * Configures CacheServerManagerRunnable class.
+     * Configuration for CacheServerManagerRunnable class.
      * Controls the minimum time (in milliseconds) between calls of CacheServerManager.modulateCapacity() method.
      * This controls how often the number of CacheServer instances is dynamically modulated in response to the request
      * load.
@@ -128,32 +129,32 @@ public class Config {
     private int capacityModulationInterval;
 
     /**
-     * Configures RequestMonitor class.
+     * Configuration for RequestMonitor class.
      * Controls how long RequestMonitor records are kept in memory, in milliseconds.
      */
     private int requestMonitorRecordTTL;
 
     /**
-     * Configures CacheServerClientRequestHandler class.
+     * Configuration for CacheServerClientRequestHandler class.
      * Controls how long a CacheServer instance (in milliseconds) waits before sending back a response to a request.
      * Used to simulate request processing time by the CacheServer.
      */
     private int cacheServerProcessingTime;
 
     /**
-     * Configures ClientManagerRunnable class.
+     * Configuration for ClientManagerRunnable class.
      * Controls the number of Client instances which will be spawned.
      */
     private int numClients;
 
     /**
-     * Configures CacheServerManagerRunnable class.
+     * Configuration for CacheServerManagerRunnable class.
      * Controls the number of CacheServer objects which are spawned initially.
      */
     private int numCacheServersOnStartup;
 
     /**
-     * Configures Executor class.
+     * Configuration for Executor class.
      * Controls how long simulation runs (in milliseconds).
      */
     private int simulationTime;

@@ -16,7 +16,7 @@ public class Logger {
     private static Set<LogType> displayedLogTypes;
 
     /**
-     * Integer variable used to control print settings/
+     * Integer variable used to control print settings.
      *
      * 0: Default setting (no overrides).
      * -1: Don't print any logs.
@@ -25,7 +25,7 @@ public class Logger {
     private static int printSetting;
 
     /**
-     * The name of the class for which this Logger object is printing logs
+     * The name of the class for which this Logger object is printing logs.
      */
     private String className;
 
@@ -58,7 +58,7 @@ public class Logger {
 
     /**
      * Static method used for configuring the 'displayedLogTypes' static field.
-     * @param types     An array of LogType objects which indicates what type of logs Logger objects should print
+     * @param types     An array of LogType objects which indicates what type of logs Logger objects should print.
      */
     public static void configure(LogType[] types) {
         displayedLogTypes = new HashSet<>(Arrays.asList(types));
@@ -68,14 +68,15 @@ public class Logger {
      * @param className     The name of the class which this Logger object will be printing for.
      */
     public Logger(String className) {
-        // initialize a logger instance
+
+        /* Initialize a logger instance */
         this.className = className;
     }
 
     /**
      * Logs message to terminal.
-     * @param msg   The message to be logged to the terminal
-     * @param type  The type of the message to be logged
+     * @param msg   The message to be logged to the terminal.
+     * @param type  The type of the message to be logged.
      */
     public void log(String msg, LogType type) {
         if (printSetting == 1) {

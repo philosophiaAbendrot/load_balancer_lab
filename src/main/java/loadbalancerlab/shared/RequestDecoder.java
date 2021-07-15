@@ -11,14 +11,14 @@ import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
 
 /**
- * Used for extracting JSON parameters from a CloseableHttpResponse object
+ * Used for extracting JSON Object from a CloseableHttpResponse object.
  */
 public class RequestDecoder {
 
     /**
-     * @param response      org.apache.http.CloseableHttpResponse object
-     * @return              Returns JSONObject which is extracted from the response
-     * @throws IOException  If an IOException occurs
+     * @param response      org.apache.http.CloseableHttpResponse object.
+     * @return              Returns JSONObject which is extracted from the response.
+     * @throws IOException  If an IOException occurs.
      */
     public JSONObject extractJsonApacheResponse(CloseableHttpResponse response) throws IOException {
         HttpEntity responseBody = response.getEntity();
@@ -26,12 +26,16 @@ public class RequestDecoder {
         String responseString = null;
         JSONObject jsonObject = null;
 
-        responseStream = responseBody.getContent();     /* Throws IOException if stream could not be created */
+        /* Throws IOException if stream could not be created */
+        responseStream = responseBody.getContent();
         responseString = IOUtils.toString(responseStream, StandardCharsets.UTF_8.name());
         jsonObject = new JSONObject(StringEscapeUtils.unescapeJson(responseString));
 
-        responseStream.close();     /* Throws IOException if error occurs with closing stream */
-        response.close();           /* Throws IOException if error occurs with closign CloseableHttpResponse object */
+        /* Throws IOException if error occurs with closing stream */
+        responseStream.close();
+
+        /* Throws IOException if error occurs with closing CloseableHttpResponse object */
+        response.close();
 
         return jsonObject;
     }
