@@ -3,24 +3,28 @@ package loadbalancerlab.loadbalancer;
 import loadbalancerlab.shared.Config;
 
 /**
- * A Runnable implementation which wraps around the CacheRedistributor class and periodically calls methods on it
+ * A Runnable implementation which wraps around the CacheRedistributor class and periodically calls methods on it.
  */
 public class CacheRedistributorRunnable implements Runnable {
+
     /**
      * Associated CacheRedistributor logic which manages a HashRing instance and handles consistent hashing logic to
-     * delegate client request to CacheServer instances
+     * delegate client request to CacheServer instances.
      */
     CacheRedistributor cacheRedis;
+
     /**
      * Controls minimum interval (in milliseconds) between calls of CacheRedistributor.requestServerInfo() method.
      * This controls how often a request is for an update on telemetry for CacheServer instances.
      */
     static int pingInterval;
+
     /**
      * Controls minimum interval (in milliseconds) between calls of CacheRedistributor.remapCacheKeys() method.
      * This controls how often the resource mappings on the HashRing are remapped.
      */
     static int cacheRemapInterval;
+
     /**
      * Controls minimum interval (in milliseconds) between calls of CacheRedistributor.recordServerAngles() method.
      * Controls the temporal resolution of the HashRingAngle telemetry.
@@ -28,8 +32,8 @@ public class CacheRedistributorRunnable implements Runnable {
     static int hashRingAngleRecordInterval;
 
     /**
-     * Configures static variables
-     * @param config: Config instance used for configuring variables on various classes
+     * Configures static variables.
+     * @param config    Config instance used for configuring variables on various classes.
      */
     public static void configure( Config config ) {
         pingInterval = config.getCacheRedisPingInterval();
@@ -37,10 +41,9 @@ public class CacheRedistributorRunnable implements Runnable {
         hashRingAngleRecordInterval = config.getHashRingAngleRecordInterval();
     }
 
-
     /**
-     * @param cacheRedis: Associated CacheRedistributor class which manages HashRing instance and handles consistent
-     *                    hashing logic to delegate client requests to CacheServer instances
+     * @param cacheRedis    Associated CacheRedistributor class which manages HashRing instance and handles consistent
+     *                      hashing logic to delegate client requests to CacheServer instances.
      */
     public CacheRedistributorRunnable( CacheRedistributor cacheRedis ) {
         this.cacheRedis = cacheRedis;
@@ -48,7 +51,7 @@ public class CacheRedistributorRunnable implements Runnable {
 
     /**
      * Method for Runnable interface.
-     * Prompts CacheRedistributor logic periodically
+     * Prompts CacheRedistributor logic periodically.
      */
     @Override
     public void run() {
@@ -60,16 +63,20 @@ public class CacheRedistributorRunnable implements Runnable {
         while (true) {
             currentTime = (int)(System.currentTimeMillis() / 1_000);
 
+            /* Send request to CacheServerManager for updates on telemetry of CacheServers */
             if (currentTime - lastRequestServerTime >= pingInterval)
                 cacheRedis.requestServerInfo();
 
             currentTime = (int)(System.currentTimeMillis() / 1_000);
 
+            /* Remap HashRingAngle objects to even out capacity factors of CacheServer objects. */
             if (currentTime - lastRemapTime >= cacheRemapInterval)
                 cacheRedis.remapCacheKeys();
 
             currentTime = (int)(System.currentTimeMillis() / 1_000);
 
+            /* Makes the associated HashRing instance record a snapshot of its 'angleHistory' field for the current
+               time */
             if (currentTime - lastHashRingRecordTime >= hashRingAngleRecordInterval) {
                 cacheRedis.recordServerAngles(currentTime);
             }

@@ -26,8 +26,9 @@ import java.util.List;
  * HttpRequestHandler implementation for handling HTTP requests from Client received by the LoadBalancerRunnable class
  */
 public class LoadBalancerClientRequestHandler implements HttpRequestHandler {
+
     /**
-     * A synchronized list which records the timestamps of all incoming requests (seconds since 1-Jan-1970)
+     * A synchronized list which records the timestamps of all incoming requests (seconds since 1-Jan-1970).
      */
     private List<Integer> incomingRequestTimestamps;
 
@@ -38,18 +39,18 @@ public class LoadBalancerClientRequestHandler implements HttpRequestHandler {
     private CacheRedistributor cacheRedis;
 
     /**
-     * Factory used for generating CloseableHttpClient instances to send HttpRequests
+     * Factory used for generating CloseableHttpClient instances to send Http requests.
      */
     public static HttpClientFactory clientFactory;
 
     /**
-     * Logger object used for logging
+     * Logger object used for logging.
      */
     private Logger logger;
 
     /**
-     * Configuration method used for configuring static fields
-     * @param config: Config object used to configure various classes
+     * Configuration method used for configuring static fields.
+     * @param config    Config object used to configure various classes.
      */
     public static void configure( Config config ) {
         clientFactory = config.getHttpClientFactory();
@@ -57,7 +58,7 @@ public class LoadBalancerClientRequestHandler implements HttpRequestHandler {
 
     /**
      * @param cacheRedis    CacheRedistributor object used to manage consistent hashing mechanism to allocate client
-     *                      requests to CacheServer instances
+     *                      requests to CacheServer instances.
      */
     public LoadBalancerClientRequestHandler( CacheRedistributor cacheRedis ) {
         incomingRequestTimestamps = Collections.synchronizedList(new LinkedList<>());
@@ -67,22 +68,23 @@ public class LoadBalancerClientRequestHandler implements HttpRequestHandler {
 
     /**
      * Method from HttpRequestHandler interface. Used to receive and generate response to Http requests from clients.
-     * @param httpRequest       HttpRequest object which represents Http request from client
-     * @param httpResponse      HttpResponse object which represents response which will be sent back to the client
-     * @param httpContext       HttpContext object which represents execution state of an Http process
+     *
+     * @param httpRequest       HttpRequest object which represents Http request from client.
+     * @param httpResponse      HttpResponse object which represents response which will be sent back to the client.
+     * @param httpContext       HttpContext object which represents execution state of an Http process.
      */
     @Override
-    public void handle( HttpRequest httpRequest, HttpResponse httpResponse, HttpContext httpContext) {
+    public void handle( HttpRequest httpRequest, HttpResponse httpResponse, HttpContext httpContext ) {
         CloseableHttpClient httpClient = clientFactory.buildApacheClient();
         String uri = httpRequest.getRequestLine().getUri();
         String[] uriArr = uri.split("/");
         String resourceName = uriArr[uriArr.length - 1];
 
-        /* select port to forward request to using consistent hashing mechanism */
+        /* Select port to forward request to using consistent hashing mechanism */
         int cacheServerPort = cacheRedis.selectPort(resourceName);
         logger.log(String.format("relaying message to cache server at port %d", cacheServerPort), Logger.LogType.REQUEST_PASSING);
 
-        /* record request incoming timestamp */
+        /* Record request incoming timestamp */
         incomingRequestTimestamps.add((int)(System.currentTimeMillis() / 1000));
         HttpGet getReq = new HttpGet("http://127.0.0.1:" + cacheServerPort + "/" + resourceName);
 

@@ -7,41 +7,42 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 
 /**
- * A class which implements a consistent hashing mechanism to map resource names to CacheServer objects
+ * A class which implements a consistent hashing mechanism to map resource names to CacheServer objects.
  */
 public class HashRing {
+
     /**
-     * Controls the maximum number of HashRingAngle objects per CacheServer object
+     * Controls the maximum number of HashRingAngle objects per CacheServer object.
      */
     static int maxAnglesPerServer;
 
     /**
-     * Controls the minimum number of HashRingAngle objects per CacheServer instance
+     * Controls the minimum number of HashRingAngle objects per CacheServer instance.
      */
     static int minAnglesPerServer;
 
     /**
-     * Controls the default number of HashRingAngle objects per CacheServer object
+     * Controls the default number of HashRingAngle objects per CacheServer object.
      */
     static int defaultAnglesPerServer;
 
     /**
-     * Controls the number of positions on HashRing objects
+     * Controls the number of positions on HashRing objects.
      */
     static int ringSize;
 
     /**
-     * The HashFunction object which is used to hash resource names into positions
+     * The HashFunction object which is used to hash resource names into positions.
      */
     static HashFunction hashFunction;
 
     /**
-     * A hash table which maps integer position values to all the HashRingAngle objects which the positions contain
+     * A hash table which maps integer position values to all the HashRingAngle objects which the positions contain.
      */
     ConcurrentMap<Integer, HashRingAngle> angles;
 
     /**
-     * A hash table which maps CacheServer ids to a list of HashRingAngle instances that belong to that server
+     * A hash table which maps CacheServer ids to a list of HashRingAngle instances that belong to that server.
      */
     ConcurrentMap<Integer, List<HashRingAngle>> anglesByServerId;
 
@@ -52,8 +53,8 @@ public class HashRing {
     SortedMap<Integer, Map<Integer, List<HashRingAngle>>> angleHistory;
 
     /**
-     * method used to configure static variables
-     * @param config    a Config object used to configure various classes
+     * Method used to configure static variables.
+     * @param config    a Config object used to configure various classes.
      */
     public static void configure( Config config ) {
         maxAnglesPerServer = config.getMaxAnglesPerServer();
@@ -63,6 +64,9 @@ public class HashRing {
         hashFunction = config.getHashFunction();
     }
 
+    /**
+     * Constructor
+     */
     public HashRing() {
         angles = new ConcurrentHashMap<>();
         anglesByServerId = new ConcurrentHashMap<>();
@@ -71,16 +75,16 @@ public class HashRing {
 
     /**
      * Getter method for angleHistory field
-     * @return:     returns angleHistory field which maps timestamps to snapshots of the 'anglesByServerId' field at
-     *              those times
+     * @return      Returns angleHistory field which maps timestamps to snapshots of the 'anglesByServerId' field at
+     *              those times.
      */
     public SortedMap<Integer, Map<Integer, List<HashRingAngle>>> getHashRingAngleHistory() {
         return angleHistory;
     }
 
     /**
-     * @param resourceName      The name of the resource being accessed
-     * @return                  The id of the CacheServer which is responsible for that resource
+     * @param resourceName      The name of the resource being accessed.
+     * @return                  The id of the CacheServer which is responsible for that resource.
      */
     public int findServerId( String resourceName ) {
         int resourcePosition = hashFunction.hash(resourceName) % ringSize;
@@ -114,10 +118,10 @@ public class HashRing {
     }
 
     /**
-     * Generates 'numAngles' HashRingAngle instances under CacheServer with id 'serverId'
-     * @param serverId      The id of the CacheServer object to which HashRingAngle objects are being added
-     * @param numAngles     The number of HashRingAngle objects which are being added
-     * @throws IllegalArgumentException     Thrown if there is no entry in 'anglesByServerId' field for the serverId
+     * Generates 'numAngles' HashRingAngle instances under CacheServer with id 'serverId'.
+     * @param serverId      The id of the CacheServer object to which HashRingAngle objects are being added.
+     * @param numAngles     The number of HashRingAngle objects which are being added.
+     * @throws IllegalArgumentException     Thrown if there is no entry in 'anglesByServerId' field for the serverId.
      */
     public void addAngle( int serverId, int numAngles ) throws IllegalArgumentException {
         Random rand = new Random();
@@ -150,11 +154,11 @@ public class HashRing {
     }
 
     /**
-     * Removes 'numAngles' HashRingAngle instances from CacheServer object with id 'serverId'
-     * @param serverId      The id of the CacheServer instance
-     * @param numAngles     The number of HashRingAngle objects being removed
+     * Removes 'numAngles' HashRingAngle instances from CacheServer object with id 'serverId'.
+     * @param serverId      The id of the CacheServer instance.
+     * @param numAngles     The number of HashRingAngle objects being removed.
      * @throws IllegalArgumentException         Thrown when there is no entry for CacheServer with id 'serverId' in
-     *                                          'anglesByServerId' field
+     *                                          'anglesByServerId' field.
      */
     public void removeAngle( int serverId, int numAngles ) throws IllegalArgumentException {
         Random rand = new Random();
@@ -177,8 +181,8 @@ public class HashRing {
     }
 
     /**
-     * Adds an entry for CacheServer with id 'serverId' in 'anglesByServerId' field
-     * @param serverId      The id of the CacheServer instance
+     * Adds an entry for CacheServer with id 'serverId' in 'anglesByServerId' field.
+     * @param serverId      The id of the CacheServer instance.
      */
     public void addServer( int serverId ) {
         if (anglesByServerId.containsKey(serverId))
@@ -189,11 +193,12 @@ public class HashRing {
     }
 
     /**
-     * Records a copy of anglesByServerId for a particular moment in time into 'anglesByServerId' field
-     * @param currentTime   the current time, in seconds since 1-Jan-1970
+     * Records a copy of anglesByServerId for a particular moment in time into 'anglesByServerId' field.
+     * @param currentTime   The current time, in seconds since 1-Jan-1970.
      */
     public void recordServerAngles(int currentTime) {
-        // do not record if there is already an entry for the given timestamp
+
+        /* Do not record if there is already an entry for the given timestamp */
         if (angleHistory.containsKey(currentTime))
             return;
 
@@ -208,8 +213,8 @@ public class HashRing {
     }
 
     /**
-     * Removes entry of CacheServer object with id 'serverId' from 'anglesByServerId' field
-     * @param serverId      the id of the CacheServer object being removed
+     * Removes entry of CacheServer object with id 'serverId' from 'anglesByServerId' field.
+     * @param serverId      The id of the CacheServer object being removed.
      */
     public void removeServer( int serverId ) {
         if (!anglesByServerId.containsKey(serverId))

@@ -13,43 +13,52 @@ import java.net.UnknownHostException;
 import java.util.ArrayList;
 import java.util.concurrent.TimeUnit;
 
+/**
+ * A Server which handles Http requests from the Client class.
+ */
 public class ClientRequestHandlerServer implements Runnable {
+
     /**
-     * the default port which the server started by an instance of this class tries to run on
+     * The default port which the server started by an instance of this class tries to run on.
      */
     volatile private static int defaultPort;
 
     /**
-     * the port which the server started by an instance of this class is running on
+     * The port which the server started by an instance of this class is running on.
      */
     volatile private int port = -1;
 
     /**
-     * Logger object used for logging
+     * Logger object used for logging.
      */
     private Logger logger;
 
     /**
-     * LoadBalancerClientRequestHandler object used for handling requests from clients
+     * LoadBalancerClientRequestHandler object used for handling requests from clients.
      */
     LoadBalancerClientRequestHandler loadBalancerClientRequestHandler;
 
     /**
-     * Method to configure static fields
-     * @param config: Config object used to configure various classes
+     * Method to configure static fields.
+     * @param config    Config object used to configure various classes.
      */
     public static void configure( Config config ) {
         defaultPort = config.getClientHandlerServerDefaultPort();
     }
 
+    /**
+     * Constructor
+     * @param loadBalancerClientRequestHandler      HttpRequestHandler implementation. Handles logic for forwarding
+     *                                              Http requests from Client class.
+     */
     public ClientRequestHandlerServer( LoadBalancerClientRequestHandler loadBalancerClientRequestHandler ) {
         this.loadBalancerClientRequestHandler = loadBalancerClientRequestHandler;
         logger = new Logger("ClientRequestHandlerServer");
     }
 
     /**
-     * Runnable interface method
-     * Starts an apache.http.impl.bootstrap.HttpServer instance and awaits termination
+     * Runnable interface method.
+     * Starts an apache.http.impl.bootstrap.HttpServer instance and awaits termination.
      */
     @Override
     public void run() {
@@ -89,7 +98,7 @@ public class ClientRequestHandlerServer implements Runnable {
                 continue;
             }
 
-            // if server successfully started, exit the loop
+            /* If server successfully started, exit the loop */
             this.port = temporaryPort;
             break;
         }
@@ -110,8 +119,8 @@ public class ClientRequestHandlerServer implements Runnable {
         } finally {
             Thread.currentThread().interrupt();
             server.shutdown(5, TimeUnit.SECONDS);
-            // shut down capacity factor monitor thread
-            // shut down this thread
+
+            /* Shut down capacity factor monitor thread */
             logger.log("Thread shutdown", Logger.LogType.THREAD_MANAGEMENT);
         }
     }
