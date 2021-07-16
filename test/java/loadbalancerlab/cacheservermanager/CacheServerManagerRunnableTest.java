@@ -1,6 +1,7 @@
 package loadbalancerlab.cacheservermanager;
 
 import loadbalancerlab.cacheserver.CacheServer;
+import loadbalancerlab.factory.CacheInfoServerFactory;
 import loadbalancerlab.factory.CacheServerFactory;
 import loadbalancerlab.factory.HttpClientFactory;
 import loadbalancerlab.cacheserver.RequestMonitor;
@@ -22,18 +23,23 @@ public class CacheServerManagerRunnableTest {
     CacheServerFactory mockCacheServerFactory;
     Thread mockCacheServerThread;
     CacheServer mockCacheServer;
+    CacheInfoServerFactory cacheInfoServerFactory;
 
     @BeforeEach
     public void setup() {
         mockCacheServerFactory = Mockito.mock(CacheServerFactory.class);
         mockCacheServerThread = Mockito.mock(Thread.class);
         mockCacheServer = Mockito.mock(CacheServer.class);
+        cacheInfoServerFactory = new CacheInfoServerFactory();
         when(mockCacheServer.getPort()).thenReturn(cacheServerPort);
         when(mockCacheServerFactory.produceCacheServer(any(RequestMonitor.class))).thenReturn(mockCacheServer);
         when(mockCacheServerFactory.produceCacheServerThread(any(CacheServer.class))).thenReturn(mockCacheServerThread);
 
-        cacheServerManager = new CacheServerManager(mockCacheServerFactory, new HttpClientFactory(), new RequestDecoder());
-        cacheServerManagerRunnable = new CacheServerManagerRunnable(mockCacheServerFactory, new HttpClientFactory(), new RequestDecoder(), cacheServerManager);
+        cacheServerManager = new CacheServerManager(mockCacheServerFactory, new HttpClientFactory(),
+                                                    new RequestDecoder(), cacheInfoServerFactory);
+        cacheServerManagerRunnable = new CacheServerManagerRunnable(mockCacheServerFactory, new HttpClientFactory(),
+                                                                    new RequestDecoder(), cacheServerManager,
+                                                                    cacheInfoServerFactory);
         cacheServerManagerThread = new Thread(cacheServerManagerRunnable);
         cacheServerManagerThread.start();
     }

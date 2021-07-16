@@ -1,5 +1,6 @@
 package loadbalancerlab.cacheservermanager;
 
+import loadbalancerlab.factory.CacheInfoServerFactory;
 import loadbalancerlab.factory.CacheServerFactory;
 import loadbalancerlab.factory.HttpClientFactory;
 import loadbalancerlab.shared.Config;
@@ -64,6 +65,11 @@ public class CacheServerManagerRunnable implements Runnable {
     CacheServerFactory cacheServerFactory;
 
     /**
+     * Factory class used to create ServerMonitor objects and CacheInfoServerRunnable objects.
+     */
+    CacheInfoServerFactory cacheInfoServerFactory;
+
+    /**
      * Factory class used to create CloseableHttpClient instances.
      */
     HttpClientFactory clientFactory;
@@ -89,13 +95,18 @@ public class CacheServerManagerRunnable implements Runnable {
 
     /**
      * Constructor
-     * @param cacheServerFactory  Factory class used to generate CacheServer instances.
-     * @param clientFactory       Factory class used to generate CloseableHttpClient instances.
-     * @param reqDecoder          Utility class used to extract json parameters from a CloseableHttpResponse instance.
-     * @param cacheServerManager  Object used to manage life cycle of CacheServer instances and modulate the number of
-     *                            CacheServer instances to meet request load.
+     * @param cacheServerFactory        Factory class used to generate CacheServer instances.
+     * @param clientFactory             Factory class used to generate CloseableHttpClient instances.
+     * @param reqDecoder                Utility class used to extract json parameters from a CloseableHttpResponse
+     *                                  instance.
+     * @param cacheServerManager        Object used to manage life cycle of CacheServer instances and modulate the number of
+     *                                  CacheServer instances to meet request load.
+     * @param cacheInfoServerFactory    Factory class used to create ServerMonitor objects and CacheInfoServerRunnable
+     *                                  objects.
      */
-    public CacheServerManagerRunnable( CacheServerFactory cacheServerFactory, HttpClientFactory clientFactory, RequestDecoder reqDecoder, CacheServerManager cacheServerManager ) {
+    public CacheServerManagerRunnable( CacheServerFactory cacheServerFactory, HttpClientFactory clientFactory,
+                                       RequestDecoder reqDecoder, CacheServerManager cacheServerManager,
+                                       CacheInfoServerFactory cacheInfoServerFactory ) {
         this.reqDecoder = reqDecoder;
         this.clientFactory = clientFactory;
         this.cacheServerFactory = cacheServerFactory;
@@ -103,7 +114,7 @@ public class CacheServerManagerRunnable implements Runnable {
 
         /* Generate instances of sub-components */
         serverMonitor = cacheServerManager.serverMonitor;
-        cacheInfoRequestHandler = new CacheInfoRequestHandler(serverMonitor);
+        cacheInfoRequestHandler = cacheInfoServerFactory.produceCacheInfoRequestHandler(serverMonitor);
 
         /* Wrap sub-components in Runnable objects */
         serverMonitorRunnable = new ServerMonitorRunnable(serverMonitor, cacheServerManager);
@@ -112,6 +123,9 @@ public class CacheServerManagerRunnable implements Runnable {
         /* Generate threads for sub-components */
         serverMonitorThread = new Thread(serverMonitorRunnable);
         cacheInfoServerThread = new Thread(cacheInfoServerRunnable);
+
+        /* Factories */
+        this.cacheInfoServerFactory = cacheInfoServerFactory;
     }
 
     /**

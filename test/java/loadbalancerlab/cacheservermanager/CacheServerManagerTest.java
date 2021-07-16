@@ -1,5 +1,6 @@
 package loadbalancerlab.cacheservermanager;
 
+import loadbalancerlab.factory.CacheInfoServerFactory;
 import loadbalancerlab.factory.CacheServerFactory;
 import loadbalancerlab.cacheserver.RequestMonitor;
 import loadbalancerlab.cacheserver.CacheServer;
@@ -22,6 +23,7 @@ import static org.mockito.Mockito.*;
 
 public class CacheServerManagerTest {
     CacheServerManager cacheServerManager;
+    CacheInfoServerFactory cacheInfoServerFactory;
     CacheServerFactory mockFactory;
     CacheServer mockCacheServer;
     Thread mockCacheServerThread;
@@ -39,11 +41,13 @@ public class CacheServerManagerTest {
         mockCacheServer = Mockito.mock(CacheServer.class);
         when(mockCacheServer.getPort()).thenReturn(37_100);
         mockCacheServerThread = Mockito.mock(Thread.class);
+        cacheInfoServerFactory = new CacheInfoServerFactory();
 
         when(mockFactory.produceCacheServer(any(RequestMonitor.class))).thenReturn(mockCacheServer);
         when(mockFactory.produceCacheServerThread(any(CacheServer.class))).thenReturn(mockCacheServerThread);
 
-        cacheServerManager = new CacheServerManager(mockFactory, new HttpClientFactory(), new RequestDecoder());
+        cacheServerManager = new CacheServerManager(mockFactory, new HttpClientFactory(), new RequestDecoder(),
+                                                    cacheInfoServerFactory);
     }
 
     @Nested
@@ -196,7 +200,8 @@ public class CacheServerManagerTest {
         public void setup() {
             config = new Config();
             CacheServerManager.configure(config);
-            cacheServerManager = new CacheServerManager(mockFactory, new HttpClientFactory(), new RequestDecoder());
+            cacheServerManager = new CacheServerManager(mockFactory, new HttpClientFactory(), new RequestDecoder(),
+                                                        cacheInfoServerFactory);
         }
 
         @Nested

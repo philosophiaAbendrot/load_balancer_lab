@@ -44,7 +44,7 @@ public class CacheInfoServerRunnable implements Runnable {
      * @param cacheInfoRequestHandler   CacheInfoRequestHandler object which contains logic to handle HttpRequest from
      *                                  LoadBalancerRunnable for update on CacheServer telemetry.
      */
-    public CacheInfoServerRunnable(CacheInfoRequestHandler cacheInfoRequestHandler) {
+    public CacheInfoServerRunnable( CacheInfoRequestHandler cacheInfoRequestHandler ) {
         this.cacheInfoRequestHandler = cacheInfoRequestHandler;
         logger = new Logger("CacheInfoServerRunnable");
     }

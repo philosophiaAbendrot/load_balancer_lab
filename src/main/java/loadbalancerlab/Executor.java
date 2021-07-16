@@ -5,6 +5,7 @@ import loadbalancerlab.cacheserver.RequestMonitor;
 import loadbalancerlab.cacheservermanager.CacheInfoServerRunnable;
 import loadbalancerlab.cacheservermanager.CacheServerManagerRunnable;
 import loadbalancerlab.client.ClientManagerRunnable;
+import loadbalancerlab.factory.CacheInfoServerFactory;
 import loadbalancerlab.factory.ClientFactory;
 import loadbalancerlab.factory.HttpClientFactory;
 import loadbalancerlab.loadbalancer.*;
@@ -65,6 +66,12 @@ public class Executor {
      * A factory class for producing Client instances.
      */
     ClientFactory clientFactory;
+
+    /**
+     * Factory class used to create ServerMonitor objects and CacheInfoServerRunnable
+     * objects.
+     */
+    CacheInfoServerFactory cacheInfoServerFactory;
 
     /**
      * A server which manages the lifecycle of CacheServer instances.
@@ -236,6 +243,7 @@ public class Executor {
         httpClientFactory = new HttpClientFactory();
         reqDecoder = new RequestDecoder();
         clientFactory = new ClientFactory();
+        cacheInfoServerFactory = new CacheInfoServerFactory();
     }
 
     /**
@@ -274,10 +282,11 @@ public class Executor {
      * Helper method used to startup all threads.
      */
     private void startupThreads() {
-
         /* Instantiate CacheServerManager and wrap it into a Runnable object and then a Thread object */
-        cacheServerManager = new CacheServerManager(cacheServerFactory, httpClientFactory, reqDecoder);
-        cacheServerManagerRunnable = new CacheServerManagerRunnable(cacheServerFactory, httpClientFactory, reqDecoder, cacheServerManager);
+        cacheServerManager = new CacheServerManager(cacheServerFactory, httpClientFactory, reqDecoder,
+                                                    cacheInfoServerFactory);
+        cacheServerManagerRunnable = new CacheServerManagerRunnable(cacheServerFactory, httpClientFactory, reqDecoder,
+                                                                    cacheServerManager, cacheInfoServerFactory);
         cacheServerManagerThread = new Thread(cacheServerManagerRunnable);
 
         /* Start cache server manager thread */
