@@ -5,10 +5,12 @@ import loadbalancerlab.factory.CacheServerFactory;
 import loadbalancerlab.cacheserver.RequestMonitor;
 import loadbalancerlab.cacheserver.CacheServer;
 import loadbalancerlab.factory.HttpClientFactory;
+import loadbalancerlab.factory.ServerMonitorFactory;
 import loadbalancerlab.shared.Config;
 import loadbalancerlab.shared.Logger;
 import loadbalancerlab.shared.RequestDecoder;
 
+import org.apache.maven.settings.Server;
 import org.junit.jupiter.api.*;
 import org.mockito.Mockito;
 
@@ -47,7 +49,7 @@ public class CacheServerManagerTest {
         when(mockFactory.produceCacheServerThread(any(CacheServer.class))).thenReturn(mockCacheServerThread);
 
         cacheServerManager = new CacheServerManager(mockFactory, new HttpClientFactory(), new RequestDecoder(),
-                                                    cacheInfoServerFactory);
+                                                    cacheInfoServerFactory, new ServerMonitorFactory());
     }
 
     @Nested
@@ -201,7 +203,7 @@ public class CacheServerManagerTest {
             config = new Config();
             CacheServerManager.configure(config);
             cacheServerManager = new CacheServerManager(mockFactory, new HttpClientFactory(), new RequestDecoder(),
-                                                        cacheInfoServerFactory);
+                                                        cacheInfoServerFactory,  new ServerMonitorFactory());
         }
 
         @Nested

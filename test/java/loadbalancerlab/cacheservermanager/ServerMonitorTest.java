@@ -1,6 +1,7 @@
 package loadbalancerlab.cacheservermanager;
 
 import loadbalancerlab.factory.HttpClientFactory;
+import loadbalancerlab.factory.ServerMonitorFactory;
 import loadbalancerlab.shared.Logger;
 import loadbalancerlab.shared.RequestDecoder;
 import org.apache.http.client.methods.CloseableHttpResponse;
@@ -51,7 +52,8 @@ public class ServerMonitorTest {
     public class TestAnalytics {
         @BeforeEach
         public void setup() {
-            serverMonitor = new ServerMonitor(clientFactory, mockDecoder, mockCacheServerManager);
+            ServerMonitorFactory serverMonitorFact = new ServerMonitorFactory();
+            serverMonitor = serverMonitorFact.produceServerMonitor(mockCacheServerManager, mockDecoder, clientFactory);
         }
 
         @Test

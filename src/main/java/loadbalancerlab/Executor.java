@@ -5,16 +5,13 @@ import loadbalancerlab.cacheserver.RequestMonitor;
 import loadbalancerlab.cacheservermanager.CacheInfoServerRunnable;
 import loadbalancerlab.cacheservermanager.CacheServerManagerRunnable;
 import loadbalancerlab.client.ClientManagerRunnable;
-import loadbalancerlab.factory.CacheInfoServerFactory;
-import loadbalancerlab.factory.ClientFactory;
-import loadbalancerlab.factory.HttpClientFactory;
+import loadbalancerlab.factory.*;
 import loadbalancerlab.loadbalancer.*;
 import loadbalancerlab.shared.AngleDataProcessor;
 import loadbalancerlab.shared.Config;
 import loadbalancerlab.shared.RequestDecoder;
 import loadbalancerlab.vendor.Graph;
 import loadbalancerlab.shared.Logger;
-import loadbalancerlab.factory.CacheServerFactory;
 import loadbalancerlab.client.Client;
 import loadbalancerlab.cacheservermanager.CacheServerManager;
 import org.apache.commons.csv.CSVFormat;
@@ -56,6 +53,11 @@ public class Executor {
      * Factory class used for generating CloseableHttpClient instances.
      */
     HttpClientFactory httpClientFactory;
+
+    /**
+     * Factory class for producing ServerMonitor instances.
+     */
+    ServerMonitorFactory serverMonitorFactory;
 
     /**
      * Used for extracting JSON object from a CloseableHttpResponse object.
@@ -244,6 +246,7 @@ public class Executor {
         reqDecoder = new RequestDecoder();
         clientFactory = new ClientFactory();
         cacheInfoServerFactory = new CacheInfoServerFactory();
+        serverMonitorFactory = new ServerMonitorFactory();
     }
 
     /**
@@ -284,7 +287,7 @@ public class Executor {
     private void startupThreads() {
         /* Instantiate CacheServerManager and wrap it into a Runnable object and then a Thread object */
         cacheServerManager = new CacheServerManager(cacheServerFactory, httpClientFactory, reqDecoder,
-                                                    cacheInfoServerFactory);
+                                                    cacheInfoServerFactory, serverMonitorFactory);
         cacheServerManagerRunnable = new CacheServerManagerRunnable(cacheServerFactory, httpClientFactory, reqDecoder,
                                                                     cacheServerManager, cacheInfoServerFactory);
         cacheServerManagerThread = new Thread(cacheServerManagerRunnable);

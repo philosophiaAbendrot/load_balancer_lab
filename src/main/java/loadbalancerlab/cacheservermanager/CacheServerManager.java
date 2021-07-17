@@ -4,6 +4,7 @@ import loadbalancerlab.factory.CacheInfoServerFactory;
 import loadbalancerlab.factory.CacheServerFactory;
 import loadbalancerlab.cacheserver.RequestMonitor;
 import loadbalancerlab.cacheserver.CacheServer;
+import loadbalancerlab.factory.ServerMonitorFactory;
 import loadbalancerlab.shared.Config;
 import loadbalancerlab.factory.HttpClientFactory;
 import loadbalancerlab.shared.RequestDecoder;
@@ -67,6 +68,11 @@ public class CacheServerManager {
     CacheInfoServerFactory cacheInfoServerFactory;
 
     /**
+     * Factory class for producing ServerMonitor instances.
+     */
+    ServerMonitorFactory serverMonitorFactory;
+
+    /**
      * Utility class used to extract json fields from a CloseableHttpResponse instance.
      */
     private RequestDecoder reqDecoder;
@@ -94,18 +100,24 @@ public class CacheServerManager {
      * @param cacheServerFactory    a factory class used to generate CacheServer instances.
      * @param clientFactory         a factory class used to generate CloseableHttpClient instances for sending requests.
      * @param reqDecoder            a utility class used to parse json from http responses.
-     * @param cacheInfoServerFactory    Factory class used to create ServerMonitor and CacheInfoRequestHandler objects.
+     * @param cacheInfoServerFactory    Factory class used to create CacheInfoRequestHandler and CacheInfoServerRunnable
+     *                                  objects.
+     * @param serverMonitorFactory      Factory class used to create ServerMonitor instances.
      */
     public CacheServerManager( CacheServerFactory cacheServerFactory, HttpClientFactory clientFactory,
-                               RequestDecoder reqDecoder, CacheInfoServerFactory cacheInfoServerFactory ) {
+                               RequestDecoder reqDecoder, CacheInfoServerFactory cacheInfoServerFactory,
+                               ServerMonitorFactory serverMonitorFactory ) {
         port = -1;
         this.cacheInfoServerFactory = cacheInfoServerFactory;
         this.cacheServerFactory = cacheServerFactory;
         this.clientFactory = clientFactory;
         this.reqDecoder = reqDecoder;
+        this.serverMonitorFactory = serverMonitorFactory;
 
         /* Server monitor is set */
-        serverMonitor = new ServerMonitor(clientFactory, reqDecoder, this);
+
+        serverMonitor = serverMonitorFactory.produceServerMonitor(this, reqDecoder, clientFactory);
+//        serverMonitor = new ServerMonitor(clientFactory, reqDecoder, this)
 
         cacheInfoRequestHandler = cacheInfoServerFactory.produceCacheInfoRequestHandler(serverMonitor);
     }
