@@ -100,9 +100,11 @@ public class Client implements Runnable {
 
             try {
                 resourceName = RandomStringUtils.randomAlphabetic(10);
-                CloseableHttpResponse res = sendRequest(resourceName);
+                CloseableHttpClient httpClient = clientFactory.buildApacheClient();
+                CloseableHttpResponse res = sendRequest(resourceName, httpClient);
                 printResponse(res);
                 res.close();
+                httpClient.close();
             } catch (IOException e) {
                 e.printStackTrace();
                 System.out.println("Client | No response to request sent to load balancer by client server ");
@@ -127,13 +129,11 @@ public class Client implements Runnable {
      * @return                  Returns the Http response as a CloseableHttpResponse object.
      * @throws IOException      Throws if there is an IOException.
      */
-    public CloseableHttpResponse sendRequest( String resourceName ) throws IOException {
+    public CloseableHttpResponse sendRequest( String resourceName, CloseableHttpClient httpClient ) throws IOException {
         String path = "/api/" + resourceName;
         HttpGet httpGet = new HttpGet("http://127.0.0.1:" + Client.loadBalancerPort + path);
         logger.log(String.format("path: %s", path), Logger.LogType.REQUEST_PASSING);
-        CloseableHttpClient httpClient = clientFactory.buildApacheClient();
         CloseableHttpResponse res = httpClient.execute(httpGet);
-        httpClient.close();
         return res;
     }
 
@@ -142,7 +142,7 @@ public class Client implements Runnable {
      * @param response      The response object passed from the load balancer.
      * @throws IOException  Throws exception if there is a failure in IO operations.
      */
-    private void printResponse(CloseableHttpResponse response) throws IOException {
+    private void printResponse( CloseableHttpResponse response ) throws IOException {
         HttpEntity responseBody = response.getEntity();
         InputStream bodyStream = responseBody.getContent();
         String responseString = IOUtils.toString(bodyStream, StandardCharsets.UTF_8.name());
