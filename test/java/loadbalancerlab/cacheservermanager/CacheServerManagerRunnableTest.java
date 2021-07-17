@@ -40,7 +40,8 @@ public class CacheServerManagerRunnableTest {
                                                     new RequestDecoder(), cacheInfoServerFactory, new ServerMonitorFactory());
         cacheServerManagerRunnable = new CacheServerManagerRunnable(mockCacheServerFactory, new HttpClientFactory(),
                                                                     new RequestDecoder(), cacheServerManager,
-                                                                    cacheInfoServerFactory);
+                                                                    cacheInfoServerFactory,
+                                                                    new ServerMonitorFactory());
         cacheServerManagerThread = new Thread(cacheServerManagerRunnable);
         cacheServerManagerThread.start();
     }
@@ -50,17 +51,17 @@ public class CacheServerManagerRunnableTest {
     public void cacheServerMonitorThreadInterruptedInterruptsAllCacheServers() {
         cacheServerManager.startupCacheServer(1);
 
-        // wait for CacheServerMonitor to run interruption callbacks
+        /* Wait for CacheServerMonitor to run interruption callbacks */
         try {
             Thread.sleep(500);
         } catch(InterruptedException e) {
             e.printStackTrace();
         }
 
-        // interrupt cacheServerMonitor thread
+        /* Interrupt cacheServerMonitor thread */
         cacheServerManagerThread.interrupt();
 
-        // wait for CacheServerMonitor to run interruption callbacks
+        /* Wait for CacheServerMonitor to run interruption callbacks */
         try {
             Thread.sleep(500);
         } catch(InterruptedException e) {
@@ -70,8 +71,7 @@ public class CacheServerManagerRunnableTest {
         verify(mockCacheServerThread, times(1)).interrupt();
     }
 
-    // waits until a server has started up
-    // returns port
+    /* Waits until a server has started up */
     private static int waitUntilServerReady(CacheServerManager cacheServerManager) {
         int cacheServerMonitorPort = cacheServerManager.getPort();
 

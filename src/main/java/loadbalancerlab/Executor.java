@@ -289,7 +289,8 @@ public class Executor {
         cacheServerManager = new CacheServerManager(cacheServerFactory, httpClientFactory, reqDecoder,
                                                     cacheInfoServerFactory, serverMonitorFactory);
         cacheServerManagerRunnable = new CacheServerManagerRunnable(cacheServerFactory, httpClientFactory, reqDecoder,
-                                                                    cacheServerManager, cacheInfoServerFactory);
+                                                                    cacheServerManager, cacheInfoServerFactory,
+                                                                    serverMonitorFactory);
         cacheServerManagerThread = new Thread(cacheServerManagerRunnable);
 
         /* Start cache server manager thread */
