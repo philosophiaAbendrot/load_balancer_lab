@@ -112,20 +112,21 @@ public class CacheServerManagerRunnable implements Runnable {
         this.cacheServerFactory = cacheServerFactory;
         this.cacheServerManager = cacheServerManager;
 
+        /* Factories */
+        this.cacheInfoServerFactory = cacheInfoServerFactory;
+
         /* Generate instances of sub-components */
         serverMonitor = cacheServerManager.serverMonitor;
         cacheInfoRequestHandler = cacheInfoServerFactory.produceCacheInfoRequestHandler(serverMonitor);
 
         /* Wrap sub-components in Runnable objects */
         serverMonitorRunnable = new ServerMonitorRunnable(serverMonitor, cacheServerManager);
-        cacheInfoServerRunnable = new CacheInfoServerRunnable(cacheInfoRequestHandler);
+        cacheInfoServerRunnable = cacheInfoServerFactory.produceCacheInfoServerRunnable(cacheInfoRequestHandler);
 
         /* Generate threads for sub-components */
         serverMonitorThread = new Thread(serverMonitorRunnable);
         cacheInfoServerThread = new Thread(cacheInfoServerRunnable);
 
-        /* Factories */
-        this.cacheInfoServerFactory = cacheInfoServerFactory;
     }
 
     /**
