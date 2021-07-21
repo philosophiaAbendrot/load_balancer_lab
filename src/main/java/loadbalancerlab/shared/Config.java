@@ -160,6 +160,11 @@ public class Config {
      */
     private int simulationTime;
 
+    /**
+     * The basic rest time between requests in milliseconds. This base time is modified by demand functions.
+     */
+    private int demandFunctionRestInterval;
+
     public Config() {
 
         /* Set default values for configurations */
@@ -184,6 +189,7 @@ public class Config {
         numCacheServersOnStartup = 5;
         simulationTime = 80_000;
         hashRingAngleRecordInterval = 1;
+        demandFunctionRestInterval = 200;
 
         /* Factories */
         httpClientFactory = new HttpClientFactory();
@@ -257,6 +263,8 @@ public class Config {
 
     public int getHashRingAngleRecordInterval() { return hashRingAngleRecordInterval; }
 
+    public int getDemandFunctionRestInterval() { return demandFunctionRestInterval; }
+
     /* END OF GETTER METHODS */
 
     /* SETTER METHODS */
@@ -327,6 +335,8 @@ public class Config {
     }
 
     public void setHashRingAngleRecordInterval(int val) { hashRingAngleRecordInterval = val; }
+
+    public void setDemandFunctionRestInterval(int val) { demandFunctionRestInterval = val; }
 
     /* END OF SETTER METHODS */
 }

@@ -48,7 +48,7 @@ public class ClientManagerRunnable implements Runnable {
     /**
      * The basic rest time between requests in milliseconds. This base time is modified by demand functions.
      */
-    int restInterval = 200;
+    static int restInterval;
 
     /**
      * Used for parsing JSON from responses
@@ -85,6 +85,7 @@ public class ClientManagerRunnable implements Runnable {
      */
     public static void configure( Config config ) {
         numClients = config.getNumClients();
+        restInterval = config.getDemandFunctionRestInterval();
     }
 
     /**
