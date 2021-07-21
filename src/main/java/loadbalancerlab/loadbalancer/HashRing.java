@@ -208,7 +208,7 @@ public class HashRing {
             List<HashRingAngle> newList = new ArrayList<>(v);
             copyTable.put(k, newList);
         });
-
+        
         angleHistory.put(currentTime, copyTable);
     }
 

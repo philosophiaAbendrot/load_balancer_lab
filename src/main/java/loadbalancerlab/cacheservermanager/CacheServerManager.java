@@ -117,7 +117,6 @@ public class CacheServerManager {
         /* Server monitor is set */
 
         serverMonitor = serverMonitorFactory.produceServerMonitor(this, reqDecoder, clientFactory);
-//        serverMonitor = new ServerMonitor(clientFactory, reqDecoder, this)
 
         cacheInfoRequestHandler = cacheInfoServerFactory.produceCacheInfoRequestHandler(serverMonitor);
     }
@@ -146,7 +145,7 @@ public class CacheServerManager {
      * instances are running on.
      * @param num   Parameter which controls how many CacheServer instances are being generated and started.
      */
-    public void startupCacheServer(int num) {
+    public void startupCacheServer( int num ) {
         for (int i = 0; i < num; i++) {
             CacheServer cacheServer = cacheServerFactory.produceCacheServer(new RequestMonitor());
             Thread cacheServerThread = cacheServerFactory.produceCacheServerThread(cacheServer);
@@ -191,7 +190,7 @@ public class CacheServerManager {
      * Updates records in ServerMonitor instance to reflect that CacheServer instances have been terminated.
      * @param num   The number of CacheServers to be deactivated.
      */
-    public void shutdownCacheServer(int num) {
+    public void shutdownCacheServer( int num ) {
         List<Integer> serverIds = new ArrayList<>(serverThreadTable.keySet());
         Random rand = new Random();
         num = Math.min(serverThreadTable.size(), num);

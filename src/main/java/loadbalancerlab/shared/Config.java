@@ -183,7 +183,7 @@ public class Config {
         numClients = 20;
         numCacheServersOnStartup = 5;
         simulationTime = 80_000;
-        hashRingAngleRecordInterval = 5;
+        hashRingAngleRecordInterval = 1;
 
         /* Factories */
         httpClientFactory = new HttpClientFactory();

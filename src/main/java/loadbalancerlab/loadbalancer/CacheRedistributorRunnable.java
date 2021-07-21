@@ -64,14 +64,18 @@ public class CacheRedistributorRunnable implements Runnable {
             currentTime = (int)(System.currentTimeMillis() / 1_000);
 
             /* Send request to CacheServerManager for updates on telemetry of CacheServers */
-            if (currentTime - lastRequestServerTime >= pingInterval)
+            if (currentTime - lastRequestServerTime >= pingInterval) {
                 cacheRedis.requestServerInfo();
+                lastRequestServerTime = currentTime;
+            }
 
             currentTime = (int)(System.currentTimeMillis() / 1_000);
 
             /* Remap HashRingAngle objects to even out capacity factors of CacheServer objects. */
-            if (currentTime - lastRemapTime >= cacheRemapInterval)
+            if (currentTime - lastRemapTime >= cacheRemapInterval) {
                 cacheRedis.remapCacheKeys();
+                lastRemapTime = currentTime;
+            }
 
             currentTime = (int)(System.currentTimeMillis() / 1_000);
 
@@ -79,6 +83,7 @@ public class CacheRedistributorRunnable implements Runnable {
                time */
             if (currentTime - lastHashRingRecordTime >= hashRingAngleRecordInterval) {
                 cacheRedis.recordServerAngles(currentTime);
+                lastHashRingRecordTime = currentTime;
             }
 
             try {
