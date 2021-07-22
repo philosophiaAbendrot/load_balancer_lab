@@ -91,9 +91,6 @@ public class Client implements Runnable {
         int count = 0;
         while (true) {
             if (System.currentTimeMillis() < requestStartTime) {
-
-                /* Dummy printout used to force thread scheduling and thus even out client request load at beginning */
-                // logger.log("", Logger.LogType.ALWAYS_PRINT);
                 count++;
                 continue;
             }
