@@ -1,5 +1,6 @@
 package loadbalancerlab.client;
 
+import com.thoughtworks.qdox.model.expression.Constant;
 import loadbalancerlab.factory.ClientFactory;
 import loadbalancerlab.factory.HttpClientFactory;
 import loadbalancerlab.shared.Config;
@@ -97,9 +98,14 @@ public class ClientManagerRunnable implements Runnable {
     public void run() {
         clientThreads = new ArrayList<>();
 
+        // DemandFunction demandFunction = new ConstantDemandFunctionImpl(restInterval)
+        int maxRestInterval = 1_000;
+        int minRestInterval = 200;
+        DemandFunction demandFunction = new LinearRampDemandFunctionImpl(maxRestInterval, minRestInterval, 50_000, (int)(System.currentTimeMillis() / 1_000));
+
         /* Generate client threads */
         for (int i = 0; i < numClients; i++) {
-            Client client = clientFactory.buildClient(maxDemandTime, new ConstantDemandFunctionImpl(restInterval), httpClientFactory, requestStartTime, reqDecoder);
+            Client client = clientFactory.buildClient(maxDemandTime, demandFunction, httpClientFactory, requestStartTime, reqDecoder);
             Thread clientThread = new Thread(client);
             clientThreads.add(clientThread);
         }
