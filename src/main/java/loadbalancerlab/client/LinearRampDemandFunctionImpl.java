@@ -13,12 +13,12 @@ public class LinearRampDemandFunctionImpl implements DemandFunction {
     /**
      * The maximum length of sleep interval which is the setting at the beginning of the period.
      */
-    private int maxRestInterval;
+    private int startRestInterval;
 
     /**
      * The minimum length of sleep interval which is reached at the end of the period.
      */
-    private int minRestInterval;
+    private int endRestInterval;
 
     /**
      * Object used for running time (milliseconds).
@@ -37,15 +37,14 @@ public class LinearRampDemandFunctionImpl implements DemandFunction {
 
     /**
      * Constructor
-     * @param maxRestInterval       The max sleep interval between requests (in milliseconds), which is the setting at
-     *                              the beginning of the period.
-     * @param minRestInterval       The min sleep interval between requests (in milliseconds), which is reached at the
+     * @param startRestInterval     The starting sleep interval between requests (in milliseconds).
+     * @param endRestInterval       The sleep interval between requests (in milliseconds), which is reached at the
      *                              end of the period.
      * @param runningTime           The total amount of time (in milliseconds) which the demand function runs for.
      */
-    public LinearRampDemandFunctionImpl( int maxRestInterval, int minRestInterval, int runningTime, int startTime ) {
-        this.maxRestInterval = maxRestInterval;
-        this.minRestInterval = minRestInterval;
+    public LinearRampDemandFunctionImpl( int startRestInterval, int endRestInterval, int runningTime, int startTime ) {
+        this.startRestInterval = startRestInterval;
+        this.endRestInterval = endRestInterval;
         this.runningTime = runningTime;
         this.startTime = startTime;
         logger = new Logger("LinearRampDemandFunctionImpl");
@@ -60,14 +59,14 @@ public class LinearRampDemandFunctionImpl implements DemandFunction {
     public void rest() throws InterruptedException {
         int currentTime = (int)(System.currentTimeMillis() / 1_000);
 
-        double minDemand = 1 / ((double) maxRestInterval);
-        double maxDemand = 1 / ((double) minRestInterval);
+        double startDemand = 1 / ((double) startRestInterval);
+        double endDemand = 1 / ((double) endRestInterval);
 
-        double demandSlope = (maxDemand - minDemand) / ((double)(runningTime / 1000));
+        double demandSlope = (endDemand - startDemand) / ((double)(runningTime / 1000));
         double deltaT = currentTime - startTime;
 
-        /* If time is past the running time, return the maximum demand */
-        double currentDemand = Math.min(minDemand + demandSlope * (deltaT), maxDemand);
+        /* If time is past the running time, return the ending interval */
+        double currentDemand = Math.min(startDemand + demandSlope * (deltaT), endDemand);
         int sleepTime = (int)(1.0 / currentDemand);
         Thread.sleep(sleepTime);
     }
