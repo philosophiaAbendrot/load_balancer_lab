@@ -98,9 +98,12 @@ public class ClientManagerRunnable implements Runnable {
         clientThreads = new ArrayList<>();
 
         // DemandFunction demandFunction = new ConstantDemandFunctionImpl(restInterval)
-        int maxRestInterval = 200;
-        int minRestInterval = 1000;
-        DemandFunction demandFunction = new LinearRampDemandFunctionImpl(maxRestInterval, minRestInterval, 50_000, (int)(System.currentTimeMillis() / 1_000));
+//        int maxRestInterval = 200;
+//        int minRestInterval = 1000;
+//        DemandFunction demandFunction = new LinearRampDemandFunctionImpl(maxRestInterval, minRestInterval, 50_000, (int)(System.currentTimeMillis() / 1_000));
+        int minRestInterval = 200;
+        int maxRestInterval = 1000;
+        DemandFunction demandFunction = new ParabolicDemandFunctionImpl(50, (int)(System.currentTimeMillis() / 1_000), minRestInterval, maxRestInterval);
 
         /* Generate client threads */
         for (int i = 0; i < numClients; i++) {
