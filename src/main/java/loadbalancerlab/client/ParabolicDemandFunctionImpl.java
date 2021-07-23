@@ -6,6 +6,7 @@ package loadbalancerlab.client;
  * A downward opening parabolic demand function.
  */
 public class ParabolicDemandFunctionImpl implements DemandFunction {
+
     /**
      * How long the function runs (in milliseconds).
      */
@@ -61,6 +62,11 @@ public class ParabolicDemandFunctionImpl implements DemandFunction {
         coeff = (maxDemand - minDemand) / Math.pow(((double)runningTime) / 2.0d, 2.0d);
     }
 
+    /**
+     * Makes the thread sleep for a certain amount of time.
+     * Method from DemandFunction interface.
+     * @throws InterruptedException     Thrown when thread is interrupted while the thread is sleeping.
+     */
     @Override
     public void rest() throws InterruptedException {
         int currentTime = (int)(System.currentTimeMillis() / 1_000);
