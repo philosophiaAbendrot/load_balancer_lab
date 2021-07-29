@@ -37,7 +37,7 @@ public class HashRing {
     static HashFunction hashFunction;
 
     /**
-     * A hash table which maps integer position values to all the HashRingAngle objects which the positions contain.
+     * A hash table which maps integer position values the HashRingAngle objects that the positions contain.
      */
     ConcurrentMap<Integer, HashRingAngle> angles;
 
@@ -83,10 +83,14 @@ public class HashRing {
     }
 
     /**
+     * Finds the id of the cache server which is responsible for the resource with name resourceName. It does this by
+     * finding the angle that is immediately clockwise of the angle that the hash function maps the resource name to.
      * @param resourceName      The name of the resource being accessed.
      * @return                  The id of the CacheServer which is responsible for that resource.
      */
     public int findServerId( String resourceName ) {
+
+        /* Finds the position that the resourceName maps to by using a hash function */
         int resourcePosition = hashFunction.hash(resourceName) % ringSize;
 
         int lowestAngle = Integer.MAX_VALUE;
@@ -95,15 +99,21 @@ public class HashRing {
         int lowestAngleHigherThanPos = Integer.MAX_VALUE;
         int idLowestAngleHigherThanPos = -1;
 
+        /* Finds the angle which is directly clockwise of 'resourcePosition' */
         for (Map.Entry<Integer, HashRingAngle> entry : angles.entrySet()) {
+
             int angle = entry.getKey();
             int serverId = entry.getValue().getServerId();
 
+            /* Find the lowest position which is holding an angle and record the angle and which cache server that angle
+               belongs to. */
             if (angle < lowestAngle) {
                 lowestAngle = angle;
                 idLowestAngle = serverId;
             }
 
+            /* Find the angle in the lowest position which is higher than 'resourcePosition'. This is the angle that is
+               immediately clockwise of resourcePosition. */
             if (angle > resourcePosition && angle < lowestAngleHigherThanPos) {
                 lowestAngleHigherThanPos = angle;
                 idLowestAngleHigherThanPos = serverId;
@@ -111,8 +121,13 @@ public class HashRing {
         }
 
         if (idLowestAngleHigherThanPos == -1) {
+
+            /* If an angle with a position higher than resourcePosition has not been found, return the id of the cache
+               server of the angle with the lowest position. */
             return idLowestAngle;
         } else {
+
+            /* Return the id of the cache server of angle with the lowest angle higher than 'resourcePosition' */
             return idLowestAngleHigherThanPos;
         }
     }

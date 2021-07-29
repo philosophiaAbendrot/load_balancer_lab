@@ -99,7 +99,7 @@ public class CacheServerManager {
      * Constructor
      * @param cacheServerFactory    a factory class used to generate CacheServer instances.
      * @param clientFactory         a factory class used to generate CloseableHttpClient instances for sending requests.
-     * @param reqDecoder            a utility class used to parse json from http responses.
+     * @param reqDecoder               a utility class used to parse json from http responses.
      * @param cacheInfoServerFactory    Factory class used to create CacheInfoRequestHandler and CacheInfoServerRunnable
      *                                  objects.
      * @param serverMonitorFactory      Factory class used to create ServerMonitor instances.
