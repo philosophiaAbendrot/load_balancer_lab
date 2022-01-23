@@ -65,12 +65,6 @@ public class Executor {
     ClientFactory clientFactory;
 
     /**
-     * Factory class used to create ServerMonitor objects and CacheInfoServerRunnable
-     * objects.
-     */
-    CacheInfoServerFactory cacheInfoServerFactory;
-
-    /**
      * A server which manages the lifecycle of CacheServer instances.
      * Modulates the number of CacheServers to match the request load.
      */
@@ -240,7 +234,6 @@ public class Executor {
         httpClientFactory = new HttpClientFactory();
         reqDecoder = new RequestDecoder();
         clientFactory = new ClientFactory();
-        cacheInfoServerFactory = new CacheInfoServerFactory();
     }
 
     /**
@@ -282,7 +275,7 @@ public class Executor {
         /* Instantiate CacheServerManager and wrap it into a Runnable object and then a Thread object */
         cacheServerManager = new CacheServerManager(cacheServerFactory, httpClientFactory, reqDecoder);
         cacheServerManagerRunnable = new CacheServerManagerRunnable(cacheServerFactory, httpClientFactory, reqDecoder,
-                                                                    cacheServerManager, cacheInfoServerFactory);
+                                                                    cacheServerManager);
         cacheServerManagerThread = new Thread(cacheServerManagerRunnable);
 
         /* Start cache server manager thread */

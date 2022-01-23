@@ -1,6 +1,5 @@
 package loadbalancerlab.cacheservermanager;
 
-import loadbalancerlab.factory.CacheInfoServerFactory;
 import loadbalancerlab.factory.CacheServerFactory;
 import loadbalancerlab.factory.HttpClientFactory;
 import loadbalancerlab.shared.Config;
@@ -96,12 +95,9 @@ public class CacheServerManagerRunnable implements Runnable {
      *                                  instance.
      * @param cacheServerManager        Object used to manage life cycle of CacheServer instances and modulate the number of
      *                                  CacheServer instances to meet request load.
-     * @param cacheInfoServerFactory    Factory class used to create ServerMonitor objects and CacheInfoServerRunnable
-     *                                  objects.
      */
     public CacheServerManagerRunnable( CacheServerFactory cacheServerFactory, HttpClientFactory clientFactory,
-                                       RequestDecoder reqDecoder, CacheServerManager cacheServerManager,
-                                       CacheInfoServerFactory cacheInfoServerFactory ) {
+                                       RequestDecoder reqDecoder, CacheServerManager cacheServerManager ) {
         this.reqDecoder = reqDecoder;
         this.clientFactory = clientFactory;
         this.cacheServerFactory = cacheServerFactory;
@@ -113,7 +109,7 @@ public class CacheServerManagerRunnable implements Runnable {
 
         /* Wrap sub-components in Runnable objects */
         serverMonitorRunnable = new ServerMonitorRunnable(serverMonitor, cacheServerManager);
-        cacheInfoServerRunnable = cacheInfoServerFactory.produceCacheInfoServerRunnable(cacheInfoRequestHandler);
+        cacheInfoServerRunnable = new CacheInfoServerRunnable(cacheInfoRequestHandler);
 
         /* Generate threads for sub-components */
         serverMonitorThread = new Thread(serverMonitorRunnable);
