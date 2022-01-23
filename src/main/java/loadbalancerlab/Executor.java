@@ -55,11 +55,6 @@ public class Executor {
     HttpClientFactory httpClientFactory;
 
     /**
-     * Factory class for producing ServerMonitor instances.
-     */
-    ServerMonitorFactory serverMonitorFactory;
-
-    /**
      * Used for extracting JSON object from a CloseableHttpResponse object.
      */
     RequestDecoder reqDecoder;
@@ -246,7 +241,6 @@ public class Executor {
         reqDecoder = new RequestDecoder();
         clientFactory = new ClientFactory();
         cacheInfoServerFactory = new CacheInfoServerFactory();
-        serverMonitorFactory = new ServerMonitorFactory();
     }
 
     /**
