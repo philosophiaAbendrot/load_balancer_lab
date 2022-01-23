@@ -32,7 +32,7 @@ public class CacheServerManagerRunnableTest {
 
         cacheServerManager = new CacheServerManager(mockCacheServerFactory, new HttpClientFactory(),
                                                     new RequestDecoder());
-        cacheServerManagerRunnable = new CacheServerManagerRunnable(mockCacheServerFactory, new HttpClientFactory(),
+        cacheServerManagerRunnable = new CacheServerManagerRunnable(new HttpClientFactory(),
                                                                     new RequestDecoder(), cacheServerManager);
         cacheServerManagerThread = new Thread(cacheServerManagerRunnable);
         cacheServerManagerThread.start();

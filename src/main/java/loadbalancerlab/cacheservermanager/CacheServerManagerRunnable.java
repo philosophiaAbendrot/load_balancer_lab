@@ -59,11 +59,6 @@ public class CacheServerManagerRunnable implements Runnable {
     RequestDecoder reqDecoder;
 
     /**
-     * Factory class used to create CacheServer instances.
-     */
-    CacheServerFactory cacheServerFactory;
-
-    /**
      * Factory class used to create CloseableHttpClient instances.
      */
     HttpClientFactory clientFactory;
@@ -89,18 +84,16 @@ public class CacheServerManagerRunnable implements Runnable {
 
     /**
      * Constructor
-     * @param cacheServerFactory        Factory class used to generate CacheServer instances.
      * @param clientFactory             Factory class used to generate CloseableHttpClient instances.
      * @param reqDecoder                Utility class used to extract json parameters from a CloseableHttpResponse
      *                                  instance.
      * @param cacheServerManager        Object used to manage life cycle of CacheServer instances and modulate the number of
      *                                  CacheServer instances to meet request load.
      */
-    public CacheServerManagerRunnable( CacheServerFactory cacheServerFactory, HttpClientFactory clientFactory,
+    public CacheServerManagerRunnable( HttpClientFactory clientFactory,
                                        RequestDecoder reqDecoder, CacheServerManager cacheServerManager ) {
         this.reqDecoder = reqDecoder;
         this.clientFactory = clientFactory;
-        this.cacheServerFactory = cacheServerFactory;
         this.cacheServerManager = cacheServerManager;
 
         /* Generate instances of sub-components */

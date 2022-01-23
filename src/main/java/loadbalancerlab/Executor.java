@@ -274,7 +274,7 @@ public class Executor {
     private void startupThreads() {
         /* Instantiate CacheServerManager and wrap it into a Runnable object and then a Thread object */
         cacheServerManager = new CacheServerManager(cacheServerFactory, httpClientFactory, reqDecoder);
-        cacheServerManagerRunnable = new CacheServerManagerRunnable(cacheServerFactory, httpClientFactory, reqDecoder,
+        cacheServerManagerRunnable = new CacheServerManagerRunnable(httpClientFactory, reqDecoder,
                                                                     cacheServerManager);
         cacheServerManagerThread = new Thread(cacheServerManagerRunnable);
 
