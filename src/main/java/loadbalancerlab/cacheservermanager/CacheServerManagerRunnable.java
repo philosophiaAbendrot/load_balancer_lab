@@ -3,7 +3,6 @@ package loadbalancerlab.cacheservermanager;
 import loadbalancerlab.factory.CacheInfoServerFactory;
 import loadbalancerlab.factory.CacheServerFactory;
 import loadbalancerlab.factory.HttpClientFactory;
-import loadbalancerlab.factory.ServerMonitorFactory;
 import loadbalancerlab.shared.Config;
 import loadbalancerlab.shared.RequestDecoder;
 
@@ -76,11 +75,6 @@ public class CacheServerManagerRunnable implements Runnable {
     HttpClientFactory clientFactory;
 
     /**
-     * Factory object used to generate ServerMonitor objects and ServerMonitorRunnable objects.
-     */
-    ServerMonitorFactory serverMonitorFactory;
-
-    /**
      * Static variable which controls the number of CacheServers which are started initially.
      */
     static int numCacheServersOnStartup;
@@ -112,12 +106,10 @@ public class CacheServerManagerRunnable implements Runnable {
      */
     public CacheServerManagerRunnable( CacheServerFactory cacheServerFactory, HttpClientFactory clientFactory,
                                        RequestDecoder reqDecoder, CacheServerManager cacheServerManager,
-                                       CacheInfoServerFactory cacheInfoServerFactory,
-                                       ServerMonitorFactory serverMonitorFactory ) {
+                                       CacheInfoServerFactory cacheInfoServerFactory ) {
         this.reqDecoder = reqDecoder;
         this.clientFactory = clientFactory;
         this.cacheServerFactory = cacheServerFactory;
-        this.serverMonitorFactory = serverMonitorFactory;
         this.cacheServerManager = cacheServerManager;
 
         /* Factories */
@@ -128,7 +120,7 @@ public class CacheServerManagerRunnable implements Runnable {
         cacheInfoRequestHandler = cacheInfoServerFactory.produceCacheInfoRequestHandler(serverMonitor);
 
         /* Wrap sub-components in Runnable objects */
-        serverMonitorRunnable = serverMonitorFactory.produceServerMonitorRunnable(serverMonitor, cacheServerManager);
+        serverMonitorRunnable = new ServerMonitorRunnable(serverMonitor, cacheServerManager);
         cacheInfoServerRunnable = cacheInfoServerFactory.produceCacheInfoServerRunnable(cacheInfoRequestHandler);
 
         /* Generate threads for sub-components */

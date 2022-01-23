@@ -5,12 +5,10 @@ import loadbalancerlab.factory.CacheServerFactory;
 import loadbalancerlab.cacheserver.RequestMonitor;
 import loadbalancerlab.cacheserver.CacheServer;
 import loadbalancerlab.factory.HttpClientFactory;
-import loadbalancerlab.factory.ServerMonitorFactory;
 import loadbalancerlab.shared.Config;
 import loadbalancerlab.shared.Logger;
 import loadbalancerlab.shared.RequestDecoder;
 
-import org.apache.maven.settings.Server;
 import org.junit.jupiter.api.*;
 import org.mockito.Mockito;
 

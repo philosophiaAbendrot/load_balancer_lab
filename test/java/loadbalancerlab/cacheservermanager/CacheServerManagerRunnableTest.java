@@ -5,7 +5,6 @@ import loadbalancerlab.factory.CacheInfoServerFactory;
 import loadbalancerlab.factory.CacheServerFactory;
 import loadbalancerlab.factory.HttpClientFactory;
 import loadbalancerlab.cacheserver.RequestMonitor;
-import loadbalancerlab.factory.ServerMonitorFactory;
 import loadbalancerlab.shared.RequestDecoder;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -15,8 +14,6 @@ import org.mockito.Mockito;
 import static org.mockito.Mockito.*;
 
 public class CacheServerManagerRunnableTest {
-    int cacheServerManagerPort = 8_000;
-    int sleepInterval = 100;
     int cacheServerPort = 1_000;
     CacheServerManager cacheServerManager;
     CacheServerManagerRunnable cacheServerManagerRunnable;
@@ -40,8 +37,7 @@ public class CacheServerManagerRunnableTest {
                                                     new RequestDecoder(), cacheInfoServerFactory);
         cacheServerManagerRunnable = new CacheServerManagerRunnable(mockCacheServerFactory, new HttpClientFactory(),
                                                                     new RequestDecoder(), cacheServerManager,
-                                                                    cacheInfoServerFactory,
-                                                                    new ServerMonitorFactory());
+                                                                    cacheInfoServerFactory);
         cacheServerManagerThread = new Thread(cacheServerManagerRunnable);
         cacheServerManagerThread.start();
     }
