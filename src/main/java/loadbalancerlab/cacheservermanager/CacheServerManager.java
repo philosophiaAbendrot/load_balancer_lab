@@ -4,7 +4,6 @@ import loadbalancerlab.factory.CacheInfoServerFactory;
 import loadbalancerlab.factory.CacheServerFactory;
 import loadbalancerlab.cacheserver.RequestMonitor;
 import loadbalancerlab.cacheserver.CacheServer;
-import loadbalancerlab.factory.ServerMonitorFactory;
 import loadbalancerlab.shared.Config;
 import loadbalancerlab.factory.HttpClientFactory;
 import loadbalancerlab.shared.RequestDecoder;
