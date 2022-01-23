@@ -46,8 +46,7 @@ public class CacheServerManagerTest {
         when(mockFactory.produceCacheServer(any(RequestMonitor.class))).thenReturn(mockCacheServer);
         when(mockFactory.produceCacheServerThread(any(CacheServer.class))).thenReturn(mockCacheServerThread);
 
-        cacheServerManager = new CacheServerManager(mockFactory, new HttpClientFactory(), new RequestDecoder(),
-                                                    cacheInfoServerFactory);
+        cacheServerManager = new CacheServerManager(mockFactory, new HttpClientFactory(), new RequestDecoder());
     }
 
     @Nested
@@ -200,8 +199,7 @@ public class CacheServerManagerTest {
         public void setup() {
             config = new Config();
             CacheServerManager.configure(config);
-            cacheServerManager = new CacheServerManager(mockFactory, new HttpClientFactory(), new RequestDecoder(),
-                                                        cacheInfoServerFactory);
+            cacheServerManager = new CacheServerManager(mockFactory, new HttpClientFactory(), new RequestDecoder());
         }
 
         @Nested

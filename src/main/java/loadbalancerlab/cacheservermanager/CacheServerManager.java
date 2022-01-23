@@ -1,6 +1,5 @@
 package loadbalancerlab.cacheservermanager;
 
-import loadbalancerlab.factory.CacheInfoServerFactory;
 import loadbalancerlab.factory.CacheServerFactory;
 import loadbalancerlab.cacheserver.RequestMonitor;
 import loadbalancerlab.cacheserver.CacheServer;
@@ -62,11 +61,6 @@ public class CacheServerManager {
     private HttpClientFactory clientFactory;
 
     /**
-     * Factory class used to create ServerMonitor and CacheInfoRequestHandler objects.
-     */
-    CacheInfoServerFactory cacheInfoServerFactory;
-
-    /**
      * Utility class used to extract json fields from a CloseableHttpResponse instance.
      */
     private RequestDecoder reqDecoder;
@@ -94,13 +88,10 @@ public class CacheServerManager {
      * @param cacheServerFactory    a factory class used to generate CacheServer instances.
      * @param clientFactory         a factory class used to generate CloseableHttpClient instances for sending requests.
      * @param reqDecoder               a utility class used to parse json from http responses.
-     * @param cacheInfoServerFactory    Factory class used to create CacheInfoRequestHandler and CacheInfoServerRunnable
-     *                                  objects.
      */
     public CacheServerManager( CacheServerFactory cacheServerFactory, HttpClientFactory clientFactory,
-                               RequestDecoder reqDecoder, CacheInfoServerFactory cacheInfoServerFactory) {
+                               RequestDecoder reqDecoder) {
         port = -1;
-        this.cacheInfoServerFactory = cacheInfoServerFactory;
         this.cacheServerFactory = cacheServerFactory;
         this.clientFactory = clientFactory;
         this.reqDecoder = reqDecoder;
@@ -108,8 +99,7 @@ public class CacheServerManager {
         /* Server monitor is set */
         serverMonitor = new ServerMonitor(clientFactory, reqDecoder, this);
         serverMonitor = new ServerMonitor(clientFactory, reqDecoder, this);
-
-        cacheInfoRequestHandler = cacheInfoServerFactory.produceCacheInfoRequestHandler(serverMonitor);
+        cacheInfoRequestHandler = new CacheInfoRequestHandler(serverMonitor);
     }
 
     /**

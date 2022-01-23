@@ -1,6 +1,5 @@
 package loadbalancerlab.cacheservermanager;
 
-import loadbalancerlab.factory.CacheInfoServerFactory;
 import loadbalancerlab.factory.HttpClientFactory;
 import loadbalancerlab.shared.Logger;
 import loadbalancerlab.shared.RequestDecoder;
@@ -105,15 +104,13 @@ public class CacheInfoRequestHandlerTest {
                     .setTcpNoDelay(true)
                     .build();
 
-            CacheInfoServerFactory cacheInfoServerFactory = new CacheInfoServerFactory();
-
             while (true) {
                 server = ServerBootstrap.bootstrap()
                         .setLocalAddress(hostAddress)
                         .setListenerPort(serverPort)
                         .setHttpProcessor(httpProcessor)
                         .setSocketConfig(config)
-                        .registerHandler("/cache-servers", cacheInfoServerFactory.produceCacheInfoRequestHandler(serverMonitor))
+                        .registerHandler("/cache-servers", new CacheInfoRequestHandler(serverMonitor))
                         .create();
 
                 try {
