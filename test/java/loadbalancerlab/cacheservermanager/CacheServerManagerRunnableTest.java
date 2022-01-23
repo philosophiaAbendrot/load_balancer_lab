@@ -37,7 +37,7 @@ public class CacheServerManagerRunnableTest {
         when(mockCacheServerFactory.produceCacheServerThread(any(CacheServer.class))).thenReturn(mockCacheServerThread);
 
         cacheServerManager = new CacheServerManager(mockCacheServerFactory, new HttpClientFactory(),
-                                                    new RequestDecoder(), cacheInfoServerFactory, new ServerMonitorFactory());
+                                                    new RequestDecoder(), cacheInfoServerFactory);
         cacheServerManagerRunnable = new CacheServerManagerRunnable(mockCacheServerFactory, new HttpClientFactory(),
                                                                     new RequestDecoder(), cacheServerManager,
                                                                     cacheInfoServerFactory,

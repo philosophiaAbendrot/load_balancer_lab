@@ -68,11 +68,6 @@ public class CacheServerManager {
     CacheInfoServerFactory cacheInfoServerFactory;
 
     /**
-     * Factory class for producing ServerMonitor instances.
-     */
-    ServerMonitorFactory serverMonitorFactory;
-
-    /**
      * Utility class used to extract json fields from a CloseableHttpResponse instance.
      */
     private RequestDecoder reqDecoder;
@@ -102,21 +97,18 @@ public class CacheServerManager {
      * @param reqDecoder               a utility class used to parse json from http responses.
      * @param cacheInfoServerFactory    Factory class used to create CacheInfoRequestHandler and CacheInfoServerRunnable
      *                                  objects.
-     * @param serverMonitorFactory      Factory class used to create ServerMonitor instances.
      */
     public CacheServerManager( CacheServerFactory cacheServerFactory, HttpClientFactory clientFactory,
-                               RequestDecoder reqDecoder, CacheInfoServerFactory cacheInfoServerFactory,
-                               ServerMonitorFactory serverMonitorFactory ) {
+                               RequestDecoder reqDecoder, CacheInfoServerFactory cacheInfoServerFactory) {
         port = -1;
         this.cacheInfoServerFactory = cacheInfoServerFactory;
         this.cacheServerFactory = cacheServerFactory;
         this.clientFactory = clientFactory;
         this.reqDecoder = reqDecoder;
-        this.serverMonitorFactory = serverMonitorFactory;
 
         /* Server monitor is set */
-
-        serverMonitor = serverMonitorFactory.produceServerMonitor(this, reqDecoder, clientFactory);
+        serverMonitor = new ServerMonitor(clientFactory, reqDecoder, this);
+        serverMonitor = new ServerMonitor(clientFactory, reqDecoder, this);
 
         cacheInfoRequestHandler = cacheInfoServerFactory.produceCacheInfoRequestHandler(serverMonitor);
     }
@@ -167,6 +159,7 @@ public class CacheServerManager {
         }
     }
 
+    /**
     /**
      * Modulates number of active CacheServer instances by using the average capacity factor of all CacheServer
      * instances.

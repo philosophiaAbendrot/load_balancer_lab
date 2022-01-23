@@ -49,7 +49,7 @@ public class CacheServerManagerTest {
         when(mockFactory.produceCacheServerThread(any(CacheServer.class))).thenReturn(mockCacheServerThread);
 
         cacheServerManager = new CacheServerManager(mockFactory, new HttpClientFactory(), new RequestDecoder(),
-                                                    cacheInfoServerFactory, new ServerMonitorFactory());
+                                                    cacheInfoServerFactory);
     }
 
     @Nested
@@ -203,7 +203,7 @@ public class CacheServerManagerTest {
             config = new Config();
             CacheServerManager.configure(config);
             cacheServerManager = new CacheServerManager(mockFactory, new HttpClientFactory(), new RequestDecoder(),
-                                                        cacheInfoServerFactory,  new ServerMonitorFactory());
+                                                        cacheInfoServerFactory);
         }
 
         @Nested
