@@ -55,11 +55,6 @@ public class Executor {
     HttpClientFactory httpClientFactory;
 
     /**
-     * Factory class for producing ServerMonitor instances.
-     */
-    ServerMonitorFactory serverMonitorFactory;
-
-    /**
      * Used for extracting JSON object from a CloseableHttpResponse object.
      */
     RequestDecoder reqDecoder;
@@ -68,12 +63,6 @@ public class Executor {
      * A factory class for producing Client instances.
      */
     ClientFactory clientFactory;
-
-    /**
-     * Factory class used to create ServerMonitor objects and CacheInfoServerRunnable
-     * objects.
-     */
-    CacheInfoServerFactory cacheInfoServerFactory;
 
     /**
      * A server which manages the lifecycle of CacheServer instances.
@@ -245,8 +234,6 @@ public class Executor {
         httpClientFactory = new HttpClientFactory();
         reqDecoder = new RequestDecoder();
         clientFactory = new ClientFactory();
-        cacheInfoServerFactory = new CacheInfoServerFactory();
-        serverMonitorFactory = new ServerMonitorFactory();
     }
 
     /**
@@ -286,11 +273,9 @@ public class Executor {
      */
     private void startupThreads() {
         /* Instantiate CacheServerManager and wrap it into a Runnable object and then a Thread object */
-        cacheServerManager = new CacheServerManager(cacheServerFactory, httpClientFactory, reqDecoder,
-                                                    cacheInfoServerFactory, serverMonitorFactory);
-        cacheServerManagerRunnable = new CacheServerManagerRunnable(cacheServerFactory, httpClientFactory, reqDecoder,
-                                                                    cacheServerManager, cacheInfoServerFactory,
-                                                                    serverMonitorFactory);
+        cacheServerManager = new CacheServerManager(cacheServerFactory, httpClientFactory, reqDecoder);
+        cacheServerManagerRunnable = new CacheServerManagerRunnable(httpClientFactory, reqDecoder,
+                                                                    cacheServerManager);
         cacheServerManagerThread = new Thread(cacheServerManagerRunnable);
 
         /* Start cache server manager thread */

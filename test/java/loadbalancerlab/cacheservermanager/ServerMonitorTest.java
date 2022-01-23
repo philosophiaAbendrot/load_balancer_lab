@@ -1,14 +1,12 @@
 package loadbalancerlab.cacheservermanager;
 
 import loadbalancerlab.factory.HttpClientFactory;
-import loadbalancerlab.factory.ServerMonitorFactory;
 import loadbalancerlab.shared.Logger;
 import loadbalancerlab.shared.RequestDecoder;
 import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.methods.HttpUriRequest;
 import org.apache.http.impl.client.CloseableHttpClient;
-import org.apache.maven.settings.Server;
 import org.json.JSONObject;
 import org.junit.jupiter.api.*;
 import org.mockito.ArgumentCaptor;
@@ -52,8 +50,7 @@ public class ServerMonitorTest {
     public class TestAnalytics {
         @BeforeEach
         public void setup() {
-            ServerMonitorFactory serverMonitorFact = new ServerMonitorFactory();
-            serverMonitor = serverMonitorFact.produceServerMonitor(mockCacheServerManager, mockDecoder, clientFactory);
+            serverMonitor = new ServerMonitor(clientFactory, mockDecoder, mockCacheServerManager);
         }
 
         @Test
